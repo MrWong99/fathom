@@ -15,6 +15,11 @@ practitioner survey at the company).
   done, a `RESULT.md` (PASS / FAIL / PARTIAL, measurements, date, what it changes
   in the design).
 - Update the status column below when a spike starts or finishes.
+- Verdicts: **PASS** when every part of the pass criterion is met; **FAIL**
+  when no part is met, or when an unmet part is left unmeasured; **PARTIAL**
+  when at least one part is met and every unmet part is measured, bounded and
+  named as a design change in `RESULT.md`. A PARTIAL never counts as a pass
+  for the gates above.
 - A failed spike is a result, not a problem: it rescopes the design (design.md
   section 14 shows how the critique already turned S4 and S11 from forks into ports).
 
@@ -22,7 +27,7 @@ practitioner survey at the company).
 
 | # | Spike | Pass criterion | Status |
 |---|---|---|---|
-| S1 | kubectl-validate `pkg/validator` (pseudo-version) on a CRD with a failing `x-kubernetes-validations` rule, ratcheting, budget exhaustion | Server-identical error text vs kind; compiles and passes its own tests under MVS at k8s.io v0.37.0; fork-readiness note | in progress 2026-09-18 (kind 1.37.0 oracle `kind-fathom-oracle`, kubectl-validate `v0.0.5-0.20260105161640-a97ccfaca20b`) |
+| S1 | kubectl-validate `pkg/validator` (pseudo-version) on a CRD with a failing `x-kubernetes-validations` rule, ratcheting, budget exhaustion | Server-identical error text vs kind; compiles and passes its own tests under MVS at k8s.io v0.37.0; fork-readiness note | **PARTIAL** 2026-09-18: 6/8 scenarios identical via the module API, 7/8 with an ~80-line `ValidateUpdate` port (ratcheting); budget error identical; compiles at v0.37.0 but `TestHasUptoDateBuiltinSchemas` fails (embed stops at 1.35); fork note done (`s1-kubectl-validate/RESULT.md`) |
 | S2 | VAP/MAP offline: `validating.NewValidator` + `cel.NewCompositedCompiler`; MAP via `compilation.go` copied into `internal/admit/port/mapcompile`; snapshot-backed type converter and namespace lister | Identical verdicts vs `--dry-run=server` on kind; per-object latency recorded | in progress 2026-09-18 (scout: `mutating/compilation.go` is in staging `k8s.io/apiserver@v0.37.0`, copy may be unnecessary) |
 | S3 | `kyverno apply --context-file --parameter-resource --userinfo --policy-report` from generated side files incl. a MAP paramRef; two-pass mutate/validate | Reproduces a known in-cluster denial; fathom-owned exit codes | not started |
 | S4 | Port (not fork) LimitRanger mutate/validate and pod/PVC/service quota usage to `k8s.io/api/core/v1`; `RulesAllow`/`RuleAllows` + rule resolver; `MatchingScopes` | Golden test against `--dry-run=server` on kind; port size recorded; per-minor refresh task budgeted | not started |
