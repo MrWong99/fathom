@@ -22,7 +22,7 @@ practitioner survey at the company).
 
 | # | Spike | Pass criterion | Status |
 |---|---|---|---|
-| S1 | kubectl-validate `pkg/validator` (pseudo-version) on a CRD with a failing `x-kubernetes-validations` rule, ratcheting, budget exhaustion | Server-identical error text vs kind; compiles and passes its own tests under MVS at k8s.io v0.37.0; fork-readiness note | not started |
+| S1 | kubectl-validate `pkg/validator` (pseudo-version) on a CRD with a failing `x-kubernetes-validations` rule, ratcheting, budget exhaustion | Server-identical error text vs kind; compiles and passes its own tests under MVS at k8s.io v0.37.0; fork-readiness note | in progress 2026-09-18 (kind 1.37.0 oracle `kind-fathom-oracle`, kubectl-validate `v0.0.5-0.20260105161640-a97ccfaca20b`) |
 | S2 | VAP/MAP offline: `validating.NewValidator` + `cel.NewCompositedCompiler`; MAP via `compilation.go` copied into `internal/admit/port/mapcompile`; snapshot-backed type converter and namespace lister | Identical verdicts vs `--dry-run=server` on kind; per-object latency recorded | not started |
 | S3 | `kyverno apply --context-file --parameter-resource --userinfo --policy-report` from generated side files incl. a MAP paramRef; two-pass mutate/validate | Reproduces a known in-cluster denial; fathom-owned exit codes | not started |
 | S4 | Port (not fork) LimitRanger mutate/validate and pod/PVC/service quota usage to `k8s.io/api/core/v1`; `RulesAllow`/`RuleAllows` + rule resolver; `MatchingScopes` | Golden test against `--dry-run=server` on kind; port size recorded; per-minor refresh task budgeted | not started |
