@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    fathom.dev/tier-seen: backend
+    kubectl.kubernetes.io/last-applied-configuration: |
+      {"apiVersion":"apps/v1","kind":"Deployment","metadata":{"annotations":{},"labels":{"app":"map-reinvoke","fathom.dev/mutate":"reinvoke"},"name":"map-reinvoke","namespace":"s2"},"spec":{"replicas":1,"selector":{"matchLabels":{"app":"map-reinvoke"}},"template":{"metadata":{"labels":{"app":"map-reinvoke"}},"spec":{"containers":[{"image":"nginx:1.27","name":"web"}]}}}}
+  creationTimestamp: "2026-09-17T22:18:49Z"
+  generation: 1
+  labels:
+    app: map-reinvoke
+    fathom.dev/mutate: reinvoke
+    fathom.dev/tier: backend
+  name: map-reinvoke
+  namespace: s2
+  uid: d57ebae0-0cab-45c3-8503-a2b3d667eeba
+spec:
+  progressDeadlineSeconds: 600
+  replicas: 1
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      app: map-reinvoke
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: map-reinvoke
+    spec:
+      containers:
+      - image: nginx:1.27
+        imagePullPolicy: IfNotPresent
+        name: web
+        resources: {}
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext: {}
+      terminationGracePeriodSeconds: 30
+status: {}

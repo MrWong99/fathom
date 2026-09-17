@@ -1,0 +1,13 @@
+apiVersion: authentication.k8s.io/v1
+kind: SelfSubjectReview
+metadata:
+  creationTimestamp: "2026-09-17T22:18:50Z"
+status:
+  userInfo:
+    extra:
+      authentication.kubernetes.io/credential-id:
+      - X509SHA256=13a0260393e199696706e08777fbb19614d2fbdf5cda3ece335e4a67bf4a8187
+    groups:
+    - kubeadm:cluster-admins
+    - system:authenticated
+    username: kubernetes-admin

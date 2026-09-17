@@ -1,0 +1,63 @@
+# Scenario budget: 14 identical rules over spec.values (maxItems 350).
+# Integer lists are estimated 1:1 with runtime cost, so each rule's static
+# estimate stays far under the per-rule limit (10,000,000) and the schema total
+# under 100,000,000, but the runtime cost of validating one full-size object
+# (nested comprehension: 350*350 iterations per rule) exceeds the per-object
+# RuntimeCELCostBudget of 10,000,000 before the last rule runs.
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: blobs.spike.fathom.dev
+spec:
+  group: spike.fathom.dev
+  scope: Namespaced
+  names:
+    plural: blobs
+    singular: blob
+    kind: Blob
+  versions:
+    - name: v1
+      served: true
+      storage: true
+      schema:
+        openAPIV3Schema:
+          type: object
+          properties:
+            spec:
+              type: object
+              required: [values]
+              x-kubernetes-validations:
+                - rule: "self.values.all(x, self.values.all(y, x + y >= 0))"
+                  message: "rule 1"
+                - rule: "self.values.all(x, self.values.all(y, x + y >= 0))"
+                  message: "rule 2"
+                - rule: "self.values.all(x, self.values.all(y, x + y >= 0))"
+                  message: "rule 3"
+                - rule: "self.values.all(x, self.values.all(y, x + y >= 0))"
+                  message: "rule 4"
+                - rule: "self.values.all(x, self.values.all(y, x + y >= 0))"
+                  message: "rule 5"
+                - rule: "self.values.all(x, self.values.all(y, x + y >= 0))"
+                  message: "rule 6"
+                - rule: "self.values.all(x, self.values.all(y, x + y >= 0))"
+                  message: "rule 7"
+                - rule: "self.values.all(x, self.values.all(y, x + y >= 0))"
+                  message: "rule 8"
+                - rule: "self.values.all(x, self.values.all(y, x + y >= 0))"
+                  message: "rule 9"
+                - rule: "self.values.all(x, self.values.all(y, x + y >= 0))"
+                  message: "rule 10"
+                - rule: "self.values.all(x, self.values.all(y, x + y >= 0))"
+                  message: "rule 11"
+                - rule: "self.values.all(x, self.values.all(y, x + y >= 0))"
+                  message: "rule 12"
+                - rule: "self.values.all(x, self.values.all(y, x + y >= 0))"
+                  message: "rule 13"
+                - rule: "self.values.all(x, self.values.all(y, x + y >= 0))"
+                  message: "rule 14"
+              properties:
+                values:
+                  type: array
+                  maxItems: 350
+                  items:
+                    type: integer

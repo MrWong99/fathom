@@ -26,5 +26,10 @@ form's residual
 ## Status
 
 - 2026-09-17: draft 1 of the survey written; tally implemented and tested.
+- 2026-09-18: owner decisions: Google Forms, German, informal address. `SURVEY.de.md`
+  is the version to build the form from (question titles and grid rows start
+  with their IDs so the CSV export maps back); `SURVEY.md` stays the English
+  reference. The tally matches EN and DE option labels. Audience 5 to 15
+  people: results below 8 responses are reported as indicative.
   Waiting for the owner to send it. RESULT.md is written when the survey
   closes (two weeks after sending) and appended after the hands-on sessions.

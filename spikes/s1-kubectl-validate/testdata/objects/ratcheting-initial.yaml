@@ -1,0 +1,9 @@
+# Created for real under CRD version A (no rule); spec.name violates the later rule.
+apiVersion: spike.fathom.dev/v1
+kind: Gadget
+metadata:
+  name: ratchet
+  namespace: s1
+spec:
+  name: UPPER
+  replicas: 1

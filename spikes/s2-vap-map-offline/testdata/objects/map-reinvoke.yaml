@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: map-reinvoke
+  namespace: s2
+  labels:
+    app: map-reinvoke
+    fathom.dev/mutate: reinvoke
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: map-reinvoke
+  template:
+    metadata:
+      labels:
+        app: map-reinvoke
+    spec:
+      containers:
+        - name: web
+          image: nginx:1.27

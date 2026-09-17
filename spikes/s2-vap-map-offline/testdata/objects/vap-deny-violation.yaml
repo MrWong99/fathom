@@ -1,0 +1,22 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vap-deny-violation
+  namespace: s2
+  labels:
+    app: vap-deny-violation
+    fathom.dev/enforce: deny
+    team: other
+spec:
+  replicas: 5
+  selector:
+    matchLabels:
+      app: vap-deny-violation
+  template:
+    metadata:
+      labels:
+        app: vap-deny-violation
+    spec:
+      containers:
+        - name: web
+          image: nginx:1.27

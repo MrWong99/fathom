@@ -1,0 +1,1 @@
+deployment.apps/map-jsonpatch created (server dry run)

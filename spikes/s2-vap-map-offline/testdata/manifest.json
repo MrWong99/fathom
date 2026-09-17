@@ -1,0 +1,176 @@
+{
+  "server": "kind-fathom-oracle, kindest/node v1.37.0, kubectl client v1.36.4",
+  "mapServed": "admissionregistration.k8s.io/v1 serves ValidatingAdmissionPolicy and MutatingAdmissionPolicy (both v1, no v1beta1, no feature gate needed on 1.37); no second cluster created",
+  "namespace": {
+    "name": "s2",
+    "labels": {
+      "environment": "prod",
+      "team": "shop"
+    },
+    "file": "snapshot/namespace-s2.yaml"
+  },
+  "openapi": {
+    "index": "openapi/index.json",
+    "documents": [
+      "openapi/api/v1.json",
+      "openapi/apis/apps/v1.json",
+      "openapi/apis/admissionregistration.k8s.io/v1.json"
+    ],
+    "layout": "kubectl-validate openapiclient.NewLocalSchemaFiles: /api/<version>.json and /apis/<group>/<version>.json (root = testdata/openapi)"
+  },
+  "snapshot": [
+    "snapshot/namespace-s2.yaml",
+    "snapshot/configmap-vap-limits.yaml",
+    "snapshot/validatingadmissionpolicies.yaml",
+    "snapshot/validatingadmissionpolicybindings.yaml",
+    "snapshot/mutatingadmissionpolicies.yaml",
+    "snapshot/mutatingadmissionpolicybindings.yaml",
+    "snapshot/whoami.yaml"
+  ],
+  "commands": "commands.sh",
+  "scenarios": [
+    {
+      "name": "vap-deny-violation",
+      "kind": "validate",
+      "policyFiles": [
+        "policies/vap-deny.yaml"
+      ],
+      "paramFiles": [
+        "params/vap-limits.yaml"
+      ],
+      "objectFile": "objects/vap-deny-violation.yaml",
+      "serverAllowed": false,
+      "serverMessage": "The deployments \"vap-deny-violation\" is invalid: : ValidatingAdmissionPolicy 'vap-deny' with binding 'vap-deny-binding' denied request: replicas 5 exceeds maxReplicas 3 from ConfigMap vap-limits",
+      "serverWarnings": [],
+      "goldenFile": "golden/vap-deny-violation.server.txt",
+      "notes": "replicas 5 > maxReplicas 3 AND team label mismatch: both validations fail, but Deny reports only the first denied decision (compare vap-warn, which surfaces both). Reason Invalid -> 'is invalid'."
+    },
+    {
+      "name": "vap-deny-pass",
+      "kind": "validate",
+      "policyFiles": [
+        "policies/vap-deny.yaml"
+      ],
+      "paramFiles": [
+        "params/vap-limits.yaml"
+      ],
+      "objectFile": "objects/vap-deny-pass.yaml",
+      "serverAllowed": true,
+      "serverMessage": "deployment.apps/vap-deny-pass created (server dry run)",
+      "serverWarnings": [],
+      "goldenFile": "golden/vap-deny-pass.server.txt",
+      "notes": "replicas 2, team=shop matches namespace label; authorizer check for cluster-admin (kubernetes-admin) is allowed."
+    },
+    {
+      "name": "vap-deny-excluded",
+      "kind": "validate",
+      "policyFiles": [
+        "policies/vap-deny.yaml"
+      ],
+      "paramFiles": [
+        "params/vap-limits.yaml"
+      ],
+      "objectFile": "objects/vap-deny-excluded.yaml",
+      "serverAllowed": true,
+      "serverMessage": "deployment.apps/vap-deny-excluded created (server dry run)",
+      "serverWarnings": [],
+      "goldenFile": "golden/vap-deny-excluded.server.txt",
+      "notes": "Would violate (replicas 5, team=other) but label fathom.dev/skip-vap makes matchCondition exclude-opted-out false; nothing evaluated."
+    },
+    {
+      "name": "vap-warn",
+      "kind": "validate",
+      "policyFiles": [
+        "policies/vap-deny.yaml",
+        "policies/vap-warn.yaml"
+      ],
+      "paramFiles": [
+        "params/vap-limits.yaml"
+      ],
+      "objectFile": "objects/vap-warn.yaml",
+      "serverAllowed": true,
+      "serverMessage": "deployment.apps/vap-warn created (server dry run)",
+      "serverWarnings": [
+        "Warning: Validation failed for ValidatingAdmissionPolicy 'vap-deny' with binding 'vap-warn-binding': replicas 5 exceeds maxReplicas 3 from ConfigMap vap-limits",
+        "Warning: Validation failed for ValidatingAdmissionPolicy 'vap-deny' with binding 'vap-warn-binding': deployments in a prod namespace must carry the namespace's team label"
+      ],
+      "goldenFile": "golden/vap-warn.server.txt",
+      "notes": "Same policy, binding vap-warn-binding with [Warn, Audit]: object allowed, one Warning line per failed validation (2)."
+    },
+    {
+      "name": "vap-param-missing",
+      "kind": "validate",
+      "policyFiles": [
+        "policies/vap-deny.yaml",
+        "policies/vap-param-missing.yaml"
+      ],
+      "paramFiles": [],
+      "objectFile": "objects/vap-param-missing.yaml",
+      "serverAllowed": false,
+      "serverMessage": "The deployments \"vap-param-missing\" is invalid: : ValidatingAdmissionPolicy 'vap-deny' with binding 'vap-param-missing-binding' denied request: failed to configure binding: no params found for policy binding with `Deny` parameterNotFoundAction",
+      "serverWarnings": [],
+      "goldenFile": "golden/vap-param-missing.server.txt",
+      "notes": "paramRef name vap-limits-does-not-exist, parameterNotFoundAction Deny: denied before any validation runs; message is the binding-configuration failure."
+    },
+    {
+      "name": "map-apply",
+      "kind": "mutate",
+      "policyFiles": [
+        "policies/map-apply.yaml"
+      ],
+      "paramFiles": [],
+      "objectFile": "objects/map-apply.yaml",
+      "serverAllowed": true,
+      "serverMessage": "deployment.apps/map-apply created (server dry run)",
+      "serverWarnings": [],
+      "goldenFile": "golden/map-apply.server.txt",
+      "mutatedFile": "golden/map-apply.mutated.yaml",
+      "notes": "ApplyConfiguration adds label fathom.dev/mutated-by=map-apply and spec.template.spec.securityContext.runAsNonRoot=true; kubectl apply (client-side) also adds the last-applied annotation."
+    },
+    {
+      "name": "map-jsonpatch",
+      "kind": "mutate",
+      "policyFiles": [
+        "policies/map-jsonpatch.yaml"
+      ],
+      "paramFiles": [],
+      "objectFile": "objects/map-jsonpatch.yaml",
+      "serverAllowed": true,
+      "serverMessage": "deployment.apps/map-jsonpatch created (server dry run)",
+      "serverWarnings": [],
+      "goldenFile": "golden/map-jsonpatch.server.txt",
+      "mutatedFile": "golden/map-jsonpatch.mutated.yaml",
+      "notes": "kubectl apply sends the last-applied annotation, so metadata.annotations exists and the JSONPatch takes the add-key branch (/metadata/annotations/fathom.dev~1patched-by)."
+    },
+    {
+      "name": "map-jsonpatch-create",
+      "kind": "mutate",
+      "policyFiles": [
+        "policies/map-jsonpatch.yaml"
+      ],
+      "paramFiles": [],
+      "objectFile": "objects/map-jsonpatch.yaml",
+      "serverAllowed": true,
+      "serverMessage": "deployment.apps/map-jsonpatch created (server dry run)",
+      "serverWarnings": [],
+      "goldenFile": "golden/map-jsonpatch-create.server.txt",
+      "mutatedFile": "golden/map-jsonpatch-create.mutated.yaml",
+      "notes": "Same object via kubectl create --dry-run=server: no annotations on the request, JSONPatch takes the add-whole-map branch (/metadata/annotations)."
+    },
+    {
+      "name": "map-reinvoke",
+      "kind": "mutate",
+      "policyFiles": [
+        "policies/map-reinvoke.yaml"
+      ],
+      "paramFiles": [],
+      "objectFile": "objects/map-reinvoke.yaml",
+      "serverAllowed": true,
+      "serverMessage": "deployment.apps/map-reinvoke created (server dry run)",
+      "serverWarnings": [],
+      "goldenFile": "golden/map-reinvoke.server.txt",
+      "mutatedFile": "golden/map-reinvoke.mutated.yaml",
+      "notes": "Alphabetical order: map-reinvoke-1-reader runs first and would record tier-seen=unset; map-reinvoke-2-setter sets label fathom.dev/tier=backend; reader (reinvocationPolicy IfNeeded) is reinvoked and the final object has annotation fathom.dev/tier-seen=backend."
+    }
+  ]
+}

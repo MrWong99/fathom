@@ -1,0 +1,1 @@
+Warning: spec.name: Invalid value: "UPPER": name must be lowercase

@@ -1,0 +1,1 @@
+deployment.apps/map-apply created (server dry run)

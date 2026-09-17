@@ -1,0 +1,98 @@
+{
+  "oracle": {
+    "context": "kind-fathom-oracle",
+    "kind": "v0.33.0",
+    "node": "kindest/node:v1.37.0@sha256:a1ed56cfb0e7b93589bdf97c8cd566405a265939e3620fc4f5de89adff580ae5",
+    "server": "v1.37.0",
+    "kubectlClient": "v1.36.4",
+    "namespace": "s1",
+    "command": "kubectl --context kind-fathom-oracle apply --dry-run=server -f <objectFile> (default --validate=strict unless noted); serverError is kubectl's stderr verbatim",
+    "replay": "commands.sh"
+  },
+  "budgetReproduced": true,
+  "ratchetingReproduced": true,
+  "scenarios": [
+    {
+      "name": "cel-fail",
+      "crdFile": "crds/widget.yaml",
+      "objectFile": "objects/cel-fail.yaml",
+      "operation": "create",
+      "serverAccepted": false,
+      "serverError": "The Widget \"cel-fail\" is invalid: \n* spec: Invalid value: replicas must not exceed maxReplicas\n* spec.name: Invalid value: \"UPPER\": name must be lowercase, got UPPER\n",
+      "goldenFile": "golden/cel-fail.server.txt",
+      "notes": "Violates the object-level rule (replicas 5 > maxReplicas 3, static message) and the field-level rule (spec.name UPPER, messageExpression). Both errors reported in one response."
+    },
+    {
+      "name": "cel-pass",
+      "crdFile": "crds/widget.yaml",
+      "objectFile": "objects/cel-pass.yaml",
+      "operation": "create",
+      "serverAccepted": true,
+      "serverError": "",
+      "goldenFile": "golden/cel-pass.server.txt",
+      "notes": "Same CRD, object satisfies both rules; stderr empty."
+    },
+    {
+      "name": "structural",
+      "crdFile": "crds/widget.yaml",
+      "objectFile": "objects/structural.yaml",
+      "operation": "create",
+      "serverAccepted": false,
+      "serverError": "Error from server (BadRequest): error when creating \"objects/structural.yaml\": Widget in version \"v1\" cannot be handled as a Widget: strict decoding error: unknown field \"spec.colour\"\n",
+      "goldenFile": "golden/structural.server.txt",
+      "notes": "Unknown field spec.colour plus spec.replicas as string. kubectl apply default --validate=strict sends fieldValidation=Strict; the server rejects on the unknown field (BadRequest, strict decoding) before schema validation, so the type error is not reported here."
+    },
+    {
+      "name": "structural-ignore",
+      "crdFile": "crds/widget.yaml",
+      "objectFile": "objects/structural.yaml",
+      "operation": "create",
+      "serverAccepted": false,
+      "serverError": "The Widget \"structural\" is invalid: \n* spec.replicas: Invalid value: \"string\": spec.replicas in body must be of type integer: \"string\"\n* <nil>: Invalid value: null: some validation rules were not checked because the object was invalid; correct the existing errors to complete validation\n",
+      "goldenFile": "golden/structural-ignore.server.txt",
+      "notes": "Same object with --validate=ignore (fieldValidation=Ignore): the server prunes spec.colour silently and reports the type error; type errors are blocking so CEL rules are skipped ('some validation rules were not checked'). --validate=warn gives this same error text plus a 'Warning: unknown field \"spec.colour\"' line."
+    },
+    {
+      "name": "structural-type",
+      "crdFile": "crds/widget.yaml",
+      "objectFile": "objects/structural-type.yaml",
+      "operation": "create",
+      "serverAccepted": false,
+      "serverError": "The Widget \"structural-type\" is invalid: \n* spec.replicas: Invalid value: \"string\": spec.replicas in body must be of type integer: \"string\"\n* <nil>: Invalid value: null: some validation rules were not checked because the object was invalid; correct the existing errors to complete validation\n",
+      "goldenFile": "golden/structural-type.server.txt",
+      "notes": "Wrong type only (spec.replicas: \"two\"), default strict validation. Shows the type-error wording and the blocking-error note that CEL was skipped."
+    },
+    {
+      "name": "ratcheting-replicas",
+      "crdFile": "crds/gadget-b.yaml",
+      "objectFile": "objects/ratcheting-replicas.yaml",
+      "operation": "update",
+      "serverAccepted": true,
+      "serverError": "Warning: spec.name: Invalid value: \"UPPER\": name must be lowercase\n",
+      "goldenFile": "golden/ratcheting-replicas.server.txt",
+      "notes": "Object created for real under crds/gadget-a.yaml (no rule) with spec.name UPPER; then crds/gadget-b.yaml added `self == self.lowerAscii()` on the same served version. Dry-run update changing only spec.replicas 1->2 is ACCEPTED: CRD validation ratcheting keeps the unchanged invalid spec.name. stderr is a Warning line, not an error. oldObjectFile is the stored object from kubectl get -o yaml (resourceVersion/uid are cluster-specific).",
+      "oldObjectFile": "objects/ratcheting-old.yaml"
+    },
+    {
+      "name": "ratcheting-name",
+      "crdFile": "crds/gadget-b.yaml",
+      "objectFile": "objects/ratcheting-name.yaml",
+      "operation": "update",
+      "serverAccepted": false,
+      "serverError": "The Gadget \"ratchet\" is invalid: spec.name: Invalid value: \"OTHER\": name must be lowercase\n",
+      "goldenFile": "golden/ratcheting-name.server.txt",
+      "notes": "Dry-run update that changes spec.name UPPER->OTHER (another violating value): not ratcheted, rejected.",
+      "oldObjectFile": "objects/ratcheting-old.yaml"
+    },
+    {
+      "name": "budget",
+      "crdFile": "crds/budget.yaml",
+      "objectFile": "objects/budget.yaml",
+      "operation": "create",
+      "serverAccepted": false,
+      "serverError": "The Blob \"budget\" is invalid: spec: Invalid value: \"object\": validation failed due to running out of cost budget, no further validation rules will be run\n",
+      "goldenFile": "golden/budget.server.txt",
+      "notes": "14 identical rules `self.values.all(x, self.values.all(y, x + y >= 0))` over an integer list with maxItems 350; the object has 350 items. Static estimate per rule is far below the 10,000,000 per-rule limit and the schema total below 100,000,000, but each rule costs between 833,334 and 909,090 at runtime (11 rules pass, 12 already exhaust; 1 rule passes, so the per-call 1,000,000 limit is not hit), so the 10,000,000 per-object RuntimeCELCostBudget runs out and the server reports the exact 1.37 wording. String-based shapes fail at CRD creation because the estimator counts 4 bytes per character (matches() estimated at 16x runtime)."
+    }
+  ]
+}

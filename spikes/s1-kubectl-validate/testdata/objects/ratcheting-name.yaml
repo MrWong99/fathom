@@ -1,0 +1,9 @@
+# Update that changes spec.name to a different violating value.
+apiVersion: spike.fathom.dev/v1
+kind: Gadget
+metadata:
+  name: ratchet
+  namespace: s1
+spec:
+  name: OTHER
+  replicas: 1

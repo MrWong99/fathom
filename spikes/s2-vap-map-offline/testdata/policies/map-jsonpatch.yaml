@@ -1,0 +1,35 @@
+# Scenario 5: JSONPatch mutation adding an annotation (creates the map if absent).
+apiVersion: admissionregistration.k8s.io/v1
+kind: MutatingAdmissionPolicy
+metadata:
+  name: map-jsonpatch
+spec:
+  failurePolicy: Fail
+  reinvocationPolicy: Never
+  matchConstraints:
+    resourceRules:
+      - apiGroups: ["apps"]
+        apiVersions: ["v1"]
+        operations: ["CREATE", "UPDATE"]
+        resources: ["deployments"]
+  mutations:
+    - patchType: JSONPatch
+      jsonPatch:
+        expression: >-
+          has(object.metadata.annotations)
+            ? [JSONPatch{op: "add", path: "/metadata/annotations/fathom.dev~1patched-by", value: "map-jsonpatch"}]
+            : [JSONPatch{op: "add", path: "/metadata/annotations", value: {"fathom.dev/patched-by": "map-jsonpatch"}}]
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: MutatingAdmissionPolicyBinding
+metadata:
+  name: map-jsonpatch-binding
+spec:
+  policyName: map-jsonpatch
+  matchResources:
+    namespaceSelector:
+      matchLabels:
+        kubernetes.io/metadata.name: s2
+    objectSelector:
+      matchLabels:
+        fathom.dev/mutate: jsonpatch

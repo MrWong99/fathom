@@ -1,0 +1,89 @@
+apiVersion: v1
+items:
+- apiVersion: admissionregistration.k8s.io/v1
+  kind: MutatingAdmissionPolicyBinding
+  metadata:
+    annotations:
+      kubectl.kubernetes.io/last-applied-configuration: |
+        {"apiVersion":"admissionregistration.k8s.io/v1","kind":"MutatingAdmissionPolicyBinding","metadata":{"annotations":{},"name":"map-apply-binding"},"spec":{"matchResources":{"namespaceSelector":{"matchLabels":{"kubernetes.io/metadata.name":"s2"}},"objectSelector":{"matchLabels":{"fathom.dev/mutate":"apply"}}},"policyName":"map-apply"}}
+    creationTimestamp: "2026-09-17T22:17:19Z"
+    generation: 1
+    name: map-apply-binding
+    resourceVersion: "1180"
+    uid: 596b6a88-b8ae-44f8-b21f-2565b8ec6f84
+  spec:
+    matchResources:
+      matchPolicy: Equivalent
+      namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: s2
+      objectSelector:
+        matchLabels:
+          fathom.dev/mutate: apply
+    policyName: map-apply
+- apiVersion: admissionregistration.k8s.io/v1
+  kind: MutatingAdmissionPolicyBinding
+  metadata:
+    annotations:
+      kubectl.kubernetes.io/last-applied-configuration: |
+        {"apiVersion":"admissionregistration.k8s.io/v1","kind":"MutatingAdmissionPolicyBinding","metadata":{"annotations":{},"name":"map-jsonpatch-binding"},"spec":{"matchResources":{"namespaceSelector":{"matchLabels":{"kubernetes.io/metadata.name":"s2"}},"objectSelector":{"matchLabels":{"fathom.dev/mutate":"jsonpatch"}}},"policyName":"map-jsonpatch"}}
+    creationTimestamp: "2026-09-17T22:17:19Z"
+    generation: 1
+    name: map-jsonpatch-binding
+    resourceVersion: "1182"
+    uid: f1de8635-188e-46e6-97d2-7caabc38d574
+  spec:
+    matchResources:
+      matchPolicy: Equivalent
+      namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: s2
+      objectSelector:
+        matchLabels:
+          fathom.dev/mutate: jsonpatch
+    policyName: map-jsonpatch
+- apiVersion: admissionregistration.k8s.io/v1
+  kind: MutatingAdmissionPolicyBinding
+  metadata:
+    annotations:
+      kubectl.kubernetes.io/last-applied-configuration: |
+        {"apiVersion":"admissionregistration.k8s.io/v1","kind":"MutatingAdmissionPolicyBinding","metadata":{"annotations":{},"name":"map-reinvoke-1-reader-binding"},"spec":{"matchResources":{"namespaceSelector":{"matchLabels":{"kubernetes.io/metadata.name":"s2"}},"objectSelector":{"matchLabels":{"fathom.dev/mutate":"reinvoke"}}},"policyName":"map-reinvoke-1-reader"}}
+    creationTimestamp: "2026-09-17T22:17:19Z"
+    generation: 1
+    name: map-reinvoke-1-reader-binding
+    resourceVersion: "1187"
+    uid: 1739989a-d2f0-4aa1-8b38-637d2912e58e
+  spec:
+    matchResources:
+      matchPolicy: Equivalent
+      namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: s2
+      objectSelector:
+        matchLabels:
+          fathom.dev/mutate: reinvoke
+    policyName: map-reinvoke-1-reader
+- apiVersion: admissionregistration.k8s.io/v1
+  kind: MutatingAdmissionPolicyBinding
+  metadata:
+    annotations:
+      kubectl.kubernetes.io/last-applied-configuration: |
+        {"apiVersion":"admissionregistration.k8s.io/v1","kind":"MutatingAdmissionPolicyBinding","metadata":{"annotations":{},"name":"map-reinvoke-2-setter-binding"},"spec":{"matchResources":{"namespaceSelector":{"matchLabels":{"kubernetes.io/metadata.name":"s2"}},"objectSelector":{"matchLabels":{"fathom.dev/mutate":"reinvoke"}}},"policyName":"map-reinvoke-2-setter"}}
+    creationTimestamp: "2026-09-17T22:17:19Z"
+    generation: 1
+    name: map-reinvoke-2-setter-binding
+    resourceVersion: "1188"
+    uid: 20407d39-0eb9-478e-ad8f-dc5fd4048e8c
+  spec:
+    matchResources:
+      matchPolicy: Equivalent
+      namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: s2
+      objectSelector:
+        matchLabels:
+          fathom.dev/mutate: reinvoke
+    policyName: map-reinvoke-2-setter
+kind: List
+metadata:
+  resourceVersion: ""

@@ -1,0 +1,3 @@
+The Widget "cel-fail" is invalid: 
+* spec: Invalid value: replicas must not exceed maxReplicas
+* spec.name: Invalid value: "UPPER": name must be lowercase, got UPPER

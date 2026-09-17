@@ -1,0 +1,59 @@
+apiVersion: v1
+items:
+- apiVersion: admissionregistration.k8s.io/v1
+  kind: ValidatingAdmissionPolicy
+  metadata:
+    annotations:
+      kubectl.kubernetes.io/last-applied-configuration: |
+        {"apiVersion":"admissionregistration.k8s.io/v1","kind":"ValidatingAdmissionPolicy","metadata":{"annotations":{},"name":"vap-deny"},"spec":{"failurePolicy":"Fail","matchConditions":[{"expression":"!has(object.metadata.labels) || !('fathom.dev/skip-vap' in object.metadata.labels)","name":"exclude-opted-out"}],"matchConstraints":{"resourceRules":[{"apiGroups":["apps"],"apiVersions":["v1"],"operations":["CREATE","UPDATE"],"resources":["deployments"]}]},"paramKind":{"apiVersion":"v1","kind":"ConfigMap"},"validations":[{"expression":"object.spec.replicas \u003c= variables.maxReplicas","messageExpression":"'replicas ' + string(object.spec.replicas) + ' exceeds maxReplicas ' + string(variables.maxReplicas) + ' from ConfigMap ' + params.metadata.name","reason":"Invalid"},{"expression":"variables.env != 'prod' || (has(object.metadata.labels) \u0026\u0026 'team' in object.metadata.labels \u0026\u0026 object.metadata.labels['team'] == namespaceObject.metadata.labels['team'])","message":"deployments in a prod namespace must carry the namespace's team label","reason":"Forbidden"},{"expression":"authorizer.group('').resource('configmaps').namespace(namespaceObject.metadata.name).check('get').allowed()","message":"requester may not get configmaps in the target namespace","reason":"Forbidden"}],"variables":[{"expression":"int(params.data.maxReplicas)","name":"maxReplicas"},{"expression":"namespaceObject.metadata.labels['environment']","name":"env"}]}}
+    creationTimestamp: "2026-09-17T22:17:18Z"
+    generation: 1
+    name: vap-deny
+    resourceVersion: "1176"
+    uid: 78259388-fe0c-4248-bf79-2d7dff2e3709
+  spec:
+    failurePolicy: Fail
+    matchConditions:
+    - expression: '!has(object.metadata.labels) || !(''fathom.dev/skip-vap'' in object.metadata.labels)'
+      name: exclude-opted-out
+    matchConstraints:
+      matchPolicy: Equivalent
+      namespaceSelector: {}
+      objectSelector: {}
+      resourceRules:
+      - apiGroups:
+        - apps
+        apiVersions:
+        - v1
+        operations:
+        - CREATE
+        - UPDATE
+        resources:
+        - deployments
+        scope: '*'
+    paramKind:
+      apiVersion: v1
+      kind: ConfigMap
+    validations:
+    - expression: object.spec.replicas <= variables.maxReplicas
+      messageExpression: '''replicas '' + string(object.spec.replicas) + '' exceeds
+        maxReplicas '' + string(variables.maxReplicas) + '' from ConfigMap '' + params.metadata.name'
+      reason: Invalid
+    - expression: variables.env != 'prod' || (has(object.metadata.labels) && 'team'
+        in object.metadata.labels && object.metadata.labels['team'] == namespaceObject.metadata.labels['team'])
+      message: deployments in a prod namespace must carry the namespace's team label
+      reason: Forbidden
+    - expression: authorizer.group('').resource('configmaps').namespace(namespaceObject.metadata.name).check('get').allowed()
+      message: requester may not get configmaps in the target namespace
+      reason: Forbidden
+    variables:
+    - expression: int(params.data.maxReplicas)
+      name: maxReplicas
+    - expression: namespaceObject.metadata.labels['environment']
+      name: env
+  status:
+    observedGeneration: 1
+    typeChecking: {}
+kind: List
+metadata:
+  resourceVersion: ""

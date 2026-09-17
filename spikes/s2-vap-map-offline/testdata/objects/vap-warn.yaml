@@ -1,0 +1,22 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vap-warn
+  namespace: s2
+  labels:
+    app: vap-warn
+    fathom.dev/enforce: warn
+    team: other
+spec:
+  replicas: 5
+  selector:
+    matchLabels:
+      app: vap-warn
+  template:
+    metadata:
+      labels:
+        app: vap-warn
+    spec:
+      containers:
+        - name: web
+          image: nginx:1.27

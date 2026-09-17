@@ -1,0 +1,10 @@
+apiVersion: spike.fathom.dev/v1
+kind: Widget
+metadata:
+  name: structural
+  namespace: s1
+spec:
+  replicas: "two"
+  maxReplicas: 3
+  name: lower
+  colour: blue

@@ -1,0 +1,9 @@
+apiVersion: spike.fathom.dev/v1
+kind: Widget
+metadata:
+  name: cel-pass
+  namespace: s1
+spec:
+  replicas: 2
+  maxReplicas: 3
+  name: lower

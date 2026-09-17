@@ -1,0 +1,3 @@
+Warning: Validation failed for ValidatingAdmissionPolicy 'vap-deny' with binding 'vap-warn-binding': replicas 5 exceeds maxReplicas 3 from ConfigMap vap-limits
+Warning: Validation failed for ValidatingAdmissionPolicy 'vap-deny' with binding 'vap-warn-binding': deployments in a prod namespace must carry the namespace's team label
+deployment.apps/vap-warn created (server dry run)

@@ -1,0 +1,15 @@
+apiVersion: spike.fathom.dev/v1
+kind: Gadget
+metadata:
+  annotations:
+    kubectl.kubernetes.io/last-applied-configuration: |
+      {"apiVersion":"spike.fathom.dev/v1","kind":"Gadget","metadata":{"annotations":{},"name":"ratchet","namespace":"s1"},"spec":{"name":"UPPER","replicas":1}}
+  creationTimestamp: "2026-09-17T22:19:13Z"
+  generation: 1
+  name: ratchet
+  namespace: s1
+  resourceVersion: "1362"
+  uid: 70ecdd7b-6ae0-4893-8a01-587d35779a96
+spec:
+  name: UPPER
+  replicas: 1

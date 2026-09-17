@@ -1,0 +1,9 @@
+apiVersion: spike.fathom.dev/v1
+kind: Widget
+metadata:
+  name: cel-fail
+  namespace: s1
+spec:
+  replicas: 5
+  maxReplicas: 3
+  name: UPPER

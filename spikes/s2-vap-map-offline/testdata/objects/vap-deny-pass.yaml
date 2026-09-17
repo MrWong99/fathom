@@ -1,0 +1,22 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vap-deny-pass
+  namespace: s2
+  labels:
+    app: vap-deny-pass
+    fathom.dev/enforce: deny
+    team: shop
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: vap-deny-pass
+  template:
+    metadata:
+      labels:
+        app: vap-deny-pass
+    spec:
+      containers:
+        - name: web
+          image: nginx:1.27

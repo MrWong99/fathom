@@ -1,0 +1,81 @@
+# Scenario 6: ordering and reinvocation. MAPs run in alphabetical order by name:
+# "map-reinvoke-1-reader" runs first and records the tier label it sees ("unset"
+# on the first pass), then "map-reinvoke-2-setter" sets the label. Because the
+# reader has reinvocationPolicy IfNeeded and the object changed after it ran,
+# the reader is reinvoked and the final annotation reads "backend".
+apiVersion: admissionregistration.k8s.io/v1
+kind: MutatingAdmissionPolicy
+metadata:
+  name: map-reinvoke-1-reader
+spec:
+  failurePolicy: Fail
+  reinvocationPolicy: IfNeeded
+  matchConstraints:
+    resourceRules:
+      - apiGroups: ["apps"]
+        apiVersions: ["v1"]
+        operations: ["CREATE", "UPDATE"]
+        resources: ["deployments"]
+  mutations:
+    - patchType: ApplyConfiguration
+      applyConfiguration:
+        expression: >-
+          Object{
+            metadata: Object.metadata{
+              annotations: {
+                "fathom.dev/tier-seen": (has(object.metadata.labels) && 'fathom.dev/tier' in object.metadata.labels)
+                  ? object.metadata.labels['fathom.dev/tier'] : "unset"
+              }
+            }
+          }
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: MutatingAdmissionPolicy
+metadata:
+  name: map-reinvoke-2-setter
+spec:
+  failurePolicy: Fail
+  reinvocationPolicy: Never
+  matchConstraints:
+    resourceRules:
+      - apiGroups: ["apps"]
+        apiVersions: ["v1"]
+        operations: ["CREATE", "UPDATE"]
+        resources: ["deployments"]
+  mutations:
+    - patchType: ApplyConfiguration
+      applyConfiguration:
+        expression: >-
+          Object{
+            metadata: Object.metadata{
+              labels: {"fathom.dev/tier": "backend"}
+            }
+          }
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: MutatingAdmissionPolicyBinding
+metadata:
+  name: map-reinvoke-1-reader-binding
+spec:
+  policyName: map-reinvoke-1-reader
+  matchResources:
+    namespaceSelector:
+      matchLabels:
+        kubernetes.io/metadata.name: s2
+    objectSelector:
+      matchLabels:
+        fathom.dev/mutate: reinvoke
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: MutatingAdmissionPolicyBinding
+metadata:
+  name: map-reinvoke-2-setter-binding
+spec:
+  policyName: map-reinvoke-2-setter
+  matchResources:
+    namespaceSelector:
+      matchLabels:
+        kubernetes.io/metadata.name: s2
+    objectSelector:
+      matchLabels:
+        fathom.dev/mutate: reinvoke

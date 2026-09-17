@@ -1,0 +1,53 @@
+# Scenario 1: ValidatingAdmissionPolicy with paramKind ConfigMap, variables,
+# message + messageExpression, matchCondition, namespaceObject and authorizer.
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicy
+metadata:
+  name: vap-deny
+spec:
+  failurePolicy: Fail
+  paramKind:
+    apiVersion: v1
+    kind: ConfigMap
+  matchConstraints:
+    resourceRules:
+      - apiGroups: ["apps"]
+        apiVersions: ["v1"]
+        operations: ["CREATE", "UPDATE"]
+        resources: ["deployments"]
+  matchConditions:
+    - name: exclude-opted-out
+      expression: "!has(object.metadata.labels) || !('fathom.dev/skip-vap' in object.metadata.labels)"
+  variables:
+    - name: maxReplicas
+      expression: "int(params.data.maxReplicas)"
+    - name: env
+      expression: "namespaceObject.metadata.labels['environment']"
+  validations:
+    - expression: "object.spec.replicas <= variables.maxReplicas"
+      messageExpression: "'replicas ' + string(object.spec.replicas) + ' exceeds maxReplicas ' + string(variables.maxReplicas) + ' from ConfigMap ' + params.metadata.name"
+      reason: Invalid
+    - expression: "variables.env != 'prod' || (has(object.metadata.labels) && 'team' in object.metadata.labels && object.metadata.labels['team'] == namespaceObject.metadata.labels['team'])"
+      message: "deployments in a prod namespace must carry the namespace's team label"
+      reason: Forbidden
+    - expression: "authorizer.group('').resource('configmaps').namespace(namespaceObject.metadata.name).check('get').allowed()"
+      message: "requester may not get configmaps in the target namespace"
+      reason: Forbidden
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicyBinding
+metadata:
+  name: vap-deny-binding
+spec:
+  policyName: vap-deny
+  validationActions: [Deny]
+  paramRef:
+    name: vap-limits
+    parameterNotFoundAction: Deny
+  matchResources:
+    namespaceSelector:
+      matchLabels:
+        kubernetes.io/metadata.name: s2
+    objectSelector:
+      matchLabels:
+        fathom.dev/enforce: deny

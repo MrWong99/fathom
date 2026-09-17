@@ -1,0 +1,3 @@
+The Widget "structural-type" is invalid: 
+* spec.replicas: Invalid value: "string": spec.replicas in body must be of type integer: "string"
+* <nil>: Invalid value: null: some validation rules were not checked because the object was invalid; correct the existing errors to complete validation

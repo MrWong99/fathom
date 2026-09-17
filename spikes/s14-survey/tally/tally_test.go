@@ -84,6 +84,45 @@ func TestWeightsTolerateLabelVariants(t *testing.T) {
 			t.Errorf("latenessWeight(%q) = %v, want %v", in, got, want)
 		}
 	}
+	// German labels from SURVEY.de.md (the Google Forms version)
+	german := map[string]float64{"Nie": 0, "Ein- oder zweimal": 1, "Etwa monatlich": 2, "Etwa wöchentlich": 4, "Täglich oder öfter": 8}
+	for in, want := range german {
+		if got := frequencyWeight(in); got != want {
+			t.Errorf("frequencyWeight(%q) = %v, want %v", in, got, want)
+		}
+	}
+	germanStages := map[string]float64{
+		"Vor dem Push, auf meinem Rechner": 0.5, "In der CI, vor dem Merge": 1,
+		"Beim GitOps-Sync oder `helm upgrade`, nach dem Merge": 2, "Pods Pending, abstürzend oder zur Laufzeit": 3,
+		"Der Kunde hat es zuerst bemerkt": 4,
+	}
+	for in, want := range germanStages {
+		if got := latenessWeight(in); got != want {
+			t.Errorf("latenessWeight(%q) = %v, want %v", in, got, want)
+		}
+	}
+}
+
+func TestDecideUnderstandsGermanLabels(t *testing.T) {
+	t.Parallel()
+	csv := "C4.1,C4.2,C4.3,C12.1,C12.2,C12.3\n" +
+		"GitLab self-managed,\"es gibt kein Git-Repository, Values werden per Mail oder Ticket übergeben\",GitHub.com,\"ja, in Produktion\",\"ja, nur Dev oder Test\",nein\n"
+	rs, err := ReadCSV(strings.NewReader(csv))
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, d := range Decide(rs) {
+		switch d.Rule {
+		case "3 GitLab timing":
+			if !strings.Contains(d.Evidence, "GitLab 1 of 2 Git rows") || !strings.Contains(d.Evidence, "handover without Git 1") {
+				t.Errorf("German no-git row not recognised: %s", d.Evidence)
+			}
+		case "5 Compose timing":
+			if !strings.Contains(d.Evidence, "1 of 3 rows") {
+				t.Errorf("German production row not recognised: %s", d.Evidence)
+			}
+		}
+	}
 }
 
 func TestDecide(t *testing.T) {
@@ -120,25 +159,24 @@ func TestCustomerRowsSplitsMultiSelect(t *testing.T) {
 // question ID the tally reads must appear in the survey text.
 func TestSurveyMentionsEveryID(t *testing.T) {
 	t.Parallel()
-	b, err := os.ReadFile(filepath.Join("..", "SURVEY.md"))
-	if err != nil {
-		t.Fatal(err)
-	}
-	survey := string(b)
-	ids := []string{"B3.first", "B3.second", "B3.third"}
-	for k := 1; k <= Kinds; k++ {
-		ids = append(ids, fmt.Sprintf("B1.%d", k))
-	}
-	for _, q := range []string{"C1", "C3", "C4", "C12"} {
-		ids = append(ids, q+" ")
-	}
-	for _, id := range ids {
-		if !strings.Contains(survey, id) {
-			t.Errorf("SURVEY.md does not mention %q", id)
+	for _, name := range []string{"SURVEY.md", "SURVEY.de.md"} {
+		b, err := os.ReadFile(filepath.Join("..", name))
+		if err != nil {
+			t.Fatal(err)
 		}
-	}
-	if !strings.Contains(survey, "Rows: B2.1 to B2.18") {
-		t.Errorf("SURVEY.md B2 grid rows changed; update Kinds")
+		survey := string(b)
+		ids := []string{"B3.first", "B3.second", "B3.third", "B2.1", "B2.18"}
+		for k := 1; k <= Kinds; k++ {
+			ids = append(ids, fmt.Sprintf("B1.%d", k))
+		}
+		for _, q := range []string{"C1", "C3", "C4", "C12"} {
+			ids = append(ids, q+" ")
+		}
+		for _, id := range ids {
+			if !strings.Contains(survey, id) {
+				t.Errorf("%s does not mention %q", name, id)
+			}
+		}
 	}
 }
 

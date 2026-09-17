@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  annotations:
+    kubectl.kubernetes.io/last-applied-configuration: |
+      {"apiVersion":"v1","kind":"Namespace","metadata":{"annotations":{},"name":"s2"},"spec":{},"status":{}}
+  creationTimestamp: "2026-09-17T22:17:18Z"
+  labels:
+    environment: prod
+    kubernetes.io/metadata.name: s2
+    team: shop
+  name: s2
+  resourceVersion: "1172"
+  uid: 050308ee-7ed0-46ce-9ade-1c77b305d80f
+spec:
+  finalizers:
+  - kubernetes
+status:
+  phase: Active

@@ -1,0 +1,84 @@
+apiVersion: v1
+items:
+- apiVersion: admissionregistration.k8s.io/v1
+  kind: ValidatingAdmissionPolicyBinding
+  metadata:
+    annotations:
+      kubectl.kubernetes.io/last-applied-configuration: |
+        {"apiVersion":"admissionregistration.k8s.io/v1","kind":"ValidatingAdmissionPolicyBinding","metadata":{"annotations":{},"name":"vap-deny-binding"},"spec":{"matchResources":{"namespaceSelector":{"matchLabels":{"kubernetes.io/metadata.name":"s2"}},"objectSelector":{"matchLabels":{"fathom.dev/enforce":"deny"}}},"paramRef":{"name":"vap-limits","parameterNotFoundAction":"Deny"},"policyName":"vap-deny","validationActions":["Deny"]}}
+    creationTimestamp: "2026-09-17T22:17:18Z"
+    generation: 1
+    name: vap-deny-binding
+    resourceVersion: "1175"
+    uid: e7bda6e1-2014-4d93-a89d-d60a34ee6a78
+  spec:
+    matchResources:
+      matchPolicy: Equivalent
+      namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: s2
+      objectSelector:
+        matchLabels:
+          fathom.dev/enforce: deny
+    paramRef:
+      name: vap-limits
+      parameterNotFoundAction: Deny
+    policyName: vap-deny
+    validationActions:
+    - Deny
+- apiVersion: admissionregistration.k8s.io/v1
+  kind: ValidatingAdmissionPolicyBinding
+  metadata:
+    annotations:
+      kubectl.kubernetes.io/last-applied-configuration: |
+        {"apiVersion":"admissionregistration.k8s.io/v1","kind":"ValidatingAdmissionPolicyBinding","metadata":{"annotations":{},"name":"vap-param-missing-binding"},"spec":{"matchResources":{"namespaceSelector":{"matchLabels":{"kubernetes.io/metadata.name":"s2"}},"objectSelector":{"matchLabels":{"fathom.dev/enforce":"param-missing"}}},"paramRef":{"name":"vap-limits-does-not-exist","parameterNotFoundAction":"Deny"},"policyName":"vap-deny","validationActions":["Deny"]}}
+    creationTimestamp: "2026-09-17T22:17:18Z"
+    generation: 1
+    name: vap-param-missing-binding
+    resourceVersion: "1178"
+    uid: f21d47ae-6056-4ff0-9216-45661aa771ad
+  spec:
+    matchResources:
+      matchPolicy: Equivalent
+      namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: s2
+      objectSelector:
+        matchLabels:
+          fathom.dev/enforce: param-missing
+    paramRef:
+      name: vap-limits-does-not-exist
+      parameterNotFoundAction: Deny
+    policyName: vap-deny
+    validationActions:
+    - Deny
+- apiVersion: admissionregistration.k8s.io/v1
+  kind: ValidatingAdmissionPolicyBinding
+  metadata:
+    annotations:
+      kubectl.kubernetes.io/last-applied-configuration: |
+        {"apiVersion":"admissionregistration.k8s.io/v1","kind":"ValidatingAdmissionPolicyBinding","metadata":{"annotations":{},"name":"vap-warn-binding"},"spec":{"matchResources":{"namespaceSelector":{"matchLabels":{"kubernetes.io/metadata.name":"s2"}},"objectSelector":{"matchLabels":{"fathom.dev/enforce":"warn"}}},"paramRef":{"name":"vap-limits","parameterNotFoundAction":"Deny"},"policyName":"vap-deny","validationActions":["Warn","Audit"]}}
+    creationTimestamp: "2026-09-17T22:17:18Z"
+    generation: 1
+    name: vap-warn-binding
+    resourceVersion: "1177"
+    uid: b81a1577-9425-44e3-9240-0937ae56adf5
+  spec:
+    matchResources:
+      matchPolicy: Equivalent
+      namespaceSelector:
+        matchLabels:
+          kubernetes.io/metadata.name: s2
+      objectSelector:
+        matchLabels:
+          fathom.dev/enforce: warn
+    paramRef:
+      name: vap-limits
+      parameterNotFoundAction: Deny
+    policyName: vap-deny
+    validationActions:
+    - Warn
+    - Audit
+kind: List
+metadata:
+  resourceVersion: ""

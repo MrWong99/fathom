@@ -81,21 +81,33 @@ func HeaderID(h string) string {
 	return h
 }
 
+// has reports whether the lower-cased answer contains any of the substrings.
+// Labels are matched in English (SURVEY.md) and German (SURVEY.de.md, the
+// Google Forms version), so an export in either language tallies the same.
+func has(l string, subs ...string) bool {
+	for _, s := range subs {
+		if strings.Contains(l, s) {
+			return true
+		}
+	}
+	return false
+}
+
 // frequencyWeight maps a B1 grid answer to the rule-1 weight.
 func frequencyWeight(s string) float64 {
 	l := strings.ToLower(s)
 	switch {
 	case l == "":
 		return 0
-	case strings.Contains(l, "never"):
+	case has(l, "never", "nie"):
 		return 0
-	case strings.Contains(l, "once"):
+	case has(l, "once", "ein- oder zweimal", "einmal"):
 		return 1
-	case strings.Contains(l, "month"):
+	case has(l, "month", "monat"):
 		return 2
-	case strings.Contains(l, "week"):
+	case has(l, "week", "wöchentlich", "woche"):
 		return 4
-	case strings.Contains(l, "daily"):
+	case has(l, "daily", "täglich"):
 		return 8
 	}
 	return 0
@@ -107,15 +119,15 @@ func latenessWeight(s string) float64 {
 	switch {
 	case l == "":
 		return 0
-	case strings.Contains(l, "before pushing"):
+	case has(l, "before pushing", "vor dem push"):
 		return 0.5
-	case strings.Contains(l, "in ci"):
+	case has(l, "in ci", "in der ci", "in ci,"):
 		return 1
-	case strings.Contains(l, "sync") || strings.Contains(l, "after merge"):
+	case has(l, "sync", "after merge", "nach dem merge"):
 		return 2
-	case strings.Contains(l, "pending") || strings.Contains(l, "runtime"):
+	case has(l, "pending", "runtime", "laufzeit"):
 		return 3
-	case strings.Contains(l, "customer"):
+	case has(l, "customer", "kunde"):
 		return 4
 	}
 	return 0
@@ -237,7 +249,7 @@ func Decide(rs []Response) []Decision {
 
 	// Rule 3: GitLab adapter timing.
 	scm, _ := CustomerRows(rs, "C4")
-	noGit := sumMatching(scm, func(s string) bool { return strings.Contains(s, "no git") })
+	noGit := sumMatching(scm, func(s string) bool { return has(s, "no git", "kein git") })
 	gitRows := 0
 	for _, v := range scm {
 		gitRows += v
@@ -265,7 +277,7 @@ func Decide(rs []Response) []Decision {
 
 	// Rule 5: Compose host snapshot timing.
 	compose, composeRows := CustomerRows(rs, "C12")
-	prod := sumMatching(compose, func(s string) bool { return strings.Contains(s, "production") })
+	prod := sumMatching(compose, func(s string) bool { return has(s, "production", "produktion") })
 	out = "Compose host snapshot stays in phase 2"
 	if composeRows > 0 && pct(prod, composeRows) > 40 {
 		out = "Compose host snapshot: open decision 9 goes to the owner"

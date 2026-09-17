@@ -1,0 +1,46 @@
+# Scenario 4: ApplyConfiguration mutation: label + pod securityContext.runAsNonRoot default.
+apiVersion: admissionregistration.k8s.io/v1
+kind: MutatingAdmissionPolicy
+metadata:
+  name: map-apply
+spec:
+  failurePolicy: Fail
+  reinvocationPolicy: Never
+  matchConstraints:
+    resourceRules:
+      - apiGroups: ["apps"]
+        apiVersions: ["v1"]
+        operations: ["CREATE", "UPDATE"]
+        resources: ["deployments"]
+  mutations:
+    - patchType: ApplyConfiguration
+      applyConfiguration:
+        expression: >-
+          Object{
+            metadata: Object.metadata{
+              labels: {"fathom.dev/mutated-by": "map-apply"}
+            },
+            spec: Object.spec{
+              template: Object.spec.template{
+                spec: Object.spec.template.spec{
+                  securityContext: Object.spec.template.spec.securityContext{
+                    runAsNonRoot: true
+                  }
+                }
+              }
+            }
+          }
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: MutatingAdmissionPolicyBinding
+metadata:
+  name: map-apply-binding
+spec:
+  policyName: map-apply
+  matchResources:
+    namespaceSelector:
+      matchLabels:
+        kubernetes.io/metadata.name: s2
+    objectSelector:
+      matchLabels:
+        fathom.dev/mutate: apply

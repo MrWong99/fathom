@@ -1,0 +1,9 @@
+# Update that changes only spec.replicas; spec.name stays UPPER (unchanged, invalid under B).
+apiVersion: spike.fathom.dev/v1
+kind: Gadget
+metadata:
+  name: ratchet
+  namespace: s1
+spec:
+  name: UPPER
+  replicas: 2

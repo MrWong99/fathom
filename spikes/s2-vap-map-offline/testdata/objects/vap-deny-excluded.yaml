@@ -1,0 +1,23 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vap-deny-excluded
+  namespace: s2
+  labels:
+    app: vap-deny-excluded
+    fathom.dev/enforce: deny
+    fathom.dev/skip-vap: "true"
+    team: other
+spec:
+  replicas: 5
+  selector:
+    matchLabels:
+      app: vap-deny-excluded
+  template:
+    metadata:
+      labels:
+        app: vap-deny-excluded
+    spec:
+      containers:
+        - name: web
+          image: nginx:1.27
