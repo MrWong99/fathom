@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: lr-pod-level-cpu
+  namespace: s4
+spec:
+  # pod-level resources (PodLevelResources, beta on since 1.34): cpu 3 at pod
+  # level overrides the container sum (1) in the Pod max check.
+  resources:
+    requests: {cpu: "3", memory: 512Mi}
+    limits: {cpu: "3", memory: 512Mi}
+  containers:
+  - name: a
+    image: registry.k8s.io/pause:3.10
+    resources:
+      requests: {cpu: "1", memory: 256Mi}
+      limits: {cpu: "1", memory: 256Mi}

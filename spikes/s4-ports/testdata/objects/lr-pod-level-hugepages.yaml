@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: lr-pod-level-hugepages
+  namespace: s4
+spec:
+  # pod-level hugepages-2Mi 128Mi is above the Pod max (64Mi) but the container
+  # sum (32Mi) is not: LimitRanger's local pod-level override accepts only cpu
+  # and memory, so the server checks 32Mi and admits.
+  resources:
+    requests: {cpu: 200m, memory: 128Mi, hugepages-2Mi: 128Mi}
+    limits: {cpu: 200m, memory: 128Mi, hugepages-2Mi: 128Mi}
+  containers:
+  - name: a
+    image: registry.k8s.io/pause:3.10
+    resources:
+      requests: {cpu: 100m, memory: 64Mi, hugepages-2Mi: 32Mi}
+      limits: {cpu: 100m, memory: 64Mi, hugepages-2Mi: 32Mi}

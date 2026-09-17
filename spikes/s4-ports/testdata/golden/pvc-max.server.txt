@@ -1,0 +1,1 @@
+Error from server (Forbidden): error when creating "objects/pvc-max.yaml": persistentvolumeclaims "pvc-max" is forbidden: maximum storage usage per PersistentVolumeClaim is 20Gi, but request is 30Gi

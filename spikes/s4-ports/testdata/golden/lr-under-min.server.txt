@@ -1,0 +1,1 @@
+Error from server (Forbidden): error when creating "objects/lr-under-min.yaml": pods "lr-under-min" is forbidden: minimum cpu usage per Container is 50m, but request is 20m

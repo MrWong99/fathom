@@ -1,0 +1,61 @@
+Third-party notices for spikes/s4-ports
+
+The files listed below are ports (copies re-typed to k8s.io/api types, with
+informer plumbing removed and feature gates pinned) of source files of the
+Kubernetes project, https://github.com/kubernetes/kubernetes, tag v1.37.0.
+They keep their original copyright header and are licensed under the Apache
+License, Version 2.0; the full license text is in LICENSE.apache-2.0 next to
+this file (a copy of LICENSE at that tag). Each ported file lists its
+changes against upstream in a comment block under the header.
+
+  port/limitranger/admission.go
+    from plugin/pkg/admission/limitranger/admission.go
+    Copyright 2014 The Kubernetes Authors
+
+  port/limitranger/interfaces.go
+    from plugin/pkg/admission/limitranger/interfaces.go (verbatim)
+    Copyright 2014 The Kubernetes Authors
+
+  port/quota/pods.go
+    from pkg/quota/v1/evaluator/core/pods.go
+    Copyright 2016 The Kubernetes Authors
+
+  port/quota/persistent_volume_claims.go
+    from pkg/quota/v1/evaluator/core/persistent_volume_claims.go
+    Copyright 2016 The Kubernetes Authors
+
+  port/quota/services.go
+    from pkg/quota/v1/evaluator/core/services.go
+    Copyright 2016 The Kubernetes Authors
+
+  port/quota/helpers.go
+    from pkg/apis/core/v1/helper/helpers.go (IsExtendedResourceName,
+    IsPrefixedNativeResource, IsNativeResource,
+    ScopedResourceSelectorRequirementsAsSelector) and
+    pkg/scheduler/util/utils.go (IsDRAExtendedResourceName)
+    Copyright 2014 The Kubernetes Authors (helpers.go)
+    Copyright 2017 The Kubernetes Authors (utils.go)
+
+  port/quota/qos.go
+    from pkg/apis/core/v1/helper/qos/qos.go
+    Copyright 2015 The Kubernetes Authors
+
+  port/quota/registry.go (MIT, fathom) carries the legacyObjectCountAliases
+    map from pkg/quota/v1/evaluator/core/registry.go
+    Copyright 2016 The Kubernetes Authors
+
+  port/rbac/rbac.go
+    from plugin/pkg/auth/authorizer/rbac/rbac.go
+    Copyright 2016 The Kubernetes Authors
+
+  port/rbac/evaluation_helpers.go
+    from pkg/apis/rbac/v1/evaluation_helpers.go (the five *Matches functions
+    verbatim; CompactString, SortableRuleSlice and the fmt import dropped)
+    Copyright 2018 The Kubernetes Authors
+
+  port/rbac/rule.go
+    from pkg/registry/rbac/validation/rule.go
+    Copyright 2016 The Kubernetes Authors
+
+All other Go files in this module are Copyright 2026 Lukas Schmidt,
+SPDX-License-Identifier: MIT.

@@ -1,0 +1,1 @@
+Error from server (Forbidden): error when creating "objects/lr-pod-max.yaml": pods "lr-pod-max" is forbidden: maximum cpu usage per Pod is 2, but limit is 3

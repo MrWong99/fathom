@@ -1,0 +1,1 @@
+Error from server (Forbidden): error when creating "objects/q-scope-high.yaml": pods "q-scope-high" is forbidden: exceeded quota: s4-quota-high, requested: pods=1, used: pods=1, limited: pods=1

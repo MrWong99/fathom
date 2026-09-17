@@ -1,0 +1,19 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  annotations:
+    kubectl.kubernetes.io/last-applied-configuration: |
+      {"apiVersion":"rbac.authorization.k8s.io/v1","kind":"RoleBinding","metadata":{"annotations":{},"name":"deployer-binding","namespace":"s4"},"roleRef":{"apiGroup":"rbac.authorization.k8s.io","kind":"Role","name":"deployer-role"},"subjects":[{"kind":"ServiceAccount","name":"deployer","namespace":"s4"}]}
+  creationTimestamp: "2026-09-17T22:50:17Z"
+  name: deployer-binding
+  namespace: s4
+  resourceVersion: "4896"
+  uid: ab53c333-68dc-4e87-8945-6ef3cf39bc65
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: deployer-role
+subjects:
+- kind: ServiceAccount
+  name: deployer
+  namespace: s4

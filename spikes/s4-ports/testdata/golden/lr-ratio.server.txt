@@ -1,0 +1,1 @@
+Error from server (Forbidden): error when creating "objects/lr-ratio.yaml": pods "lr-ratio" is forbidden: cpu max limit to request ratio per Container is 4, but provided ratio is 5.000000

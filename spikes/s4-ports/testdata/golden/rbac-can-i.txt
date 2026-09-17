@@ -1,0 +1,23 @@
+verb=create resource=deployments args=[-n s4] verdict=yes rc=0
+verb=list resource=deployments args=[-n s4] verdict=yes rc=0
+verb=delete resource=deployments args=[-n s4] verdict=no rc=1
+verb=get resource=deployments args=[-n default] verdict=no rc=1
+verb=get resource=deployments args=[--subresource=scale -n s4] verdict=no rc=1
+verb=update resource=deployments args=[--subresource=scale -n s4] verdict=no rc=1
+verb=get resource=deployments/scale args=[-n s4] verdict=yes rc=0
+verb=get resource=configmaps args=[-n s4] verdict=yes rc=0
+verb=get resource=configmaps/app-config args=[-n s4] verdict=yes rc=0
+verb=update resource=configmaps/app-config args=[-n s4] verdict=yes rc=0
+verb=update resource=configmaps/other-config args=[-n s4] verdict=no rc=1
+verb=update resource=configmaps args=[-n s4] verdict=no rc=1
+verb=get resource=secrets args=[-n s4] verdict=no rc=1
+verb=get resource=secrets/app-config args=[-n s4] verdict=no rc=1
+verb=delete resource=services args=[-n s4] verdict=yes rc=0
+verb=patch resource=services args=[-n s4] verdict=yes rc=0
+verb=get resource=services args=[-n default] verdict=no rc=1
+verb=get resource=nodes args=[] verdict=yes rc=0
+verb=list resource=nodes args=[] verdict=yes rc=0
+verb=delete resource=nodes args=[] verdict=no rc=1
+verb=get resource=nodes/fathom-oracle-control-plane args=[] verdict=yes rc=0
+verb=list resource=namespaces args=[] verdict=yes rc=0
+verb=get resource=pods args=[-n s4] verdict=no rc=1

@@ -1,0 +1,1 @@
+Error from server (Forbidden): error when creating "objects/q-pods-exceeded.yaml": pods "q-pods-exceeded" is forbidden: exceeded quota: s4-quota, requested: pods=1, used: pods=3, limited: pods=3

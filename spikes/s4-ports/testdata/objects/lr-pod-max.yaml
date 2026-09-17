@@ -1,0 +1,22 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: lr-pod-max
+  namespace: s4
+spec:
+  containers:
+  - name: a
+    image: registry.k8s.io/pause:3.10
+    resources:
+      requests: {cpu: "1", memory: 256Mi}
+      limits: {cpu: "1", memory: 256Mi}
+  - name: b
+    image: registry.k8s.io/pause:3.10
+    resources:
+      requests: {cpu: "1", memory: 256Mi}
+      limits: {cpu: "1", memory: 256Mi}
+  - name: c
+    image: registry.k8s.io/pause:3.10
+    resources:
+      requests: {cpu: "1", memory: 256Mi}
+      limits: {cpu: "1", memory: 256Mi}

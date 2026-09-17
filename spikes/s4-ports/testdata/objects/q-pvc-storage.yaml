@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: q-pvc-storage
+  namespace: s4
+spec:
+  accessModes: [ReadWriteOnce]
+  resources:
+    requests:
+      storage: 6Gi

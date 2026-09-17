@@ -1,0 +1,1 @@
+Error from server (Forbidden): error when creating "objects/pvc-min.yaml": persistentvolumeclaims "pvc-min" is forbidden: minimum storage usage per PersistentVolumeClaim is 1Gi, but request is 500Mi

@@ -1,0 +1,40 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  annotations:
+    kubectl.kubernetes.io/last-applied-configuration: |
+      {"apiVersion":"rbac.authorization.k8s.io/v1","kind":"Role","metadata":{"annotations":{},"name":"deployer-role","namespace":"s4"},"rules":[{"apiGroups":["apps"],"resources":["deployments"],"verbs":["create","get","list"]},{"apiGroups":[""],"resources":["configmaps"],"verbs":["get"]},{"apiGroups":[""],"resourceNames":["app-config"],"resources":["configmaps"],"verbs":["update"]},{"apiGroups":[""],"resources":["services"],"verbs":["*"]}]}
+  creationTimestamp: "2026-09-17T22:50:17Z"
+  name: deployer-role
+  namespace: s4
+  resourceVersion: "4895"
+  uid: 025c8e97-dc60-4210-afb9-cde70e2b4914
+rules:
+- apiGroups:
+  - apps
+  resources:
+  - deployments
+  verbs:
+  - create
+  - get
+  - list
+- apiGroups:
+  - ""
+  resources:
+  - configmaps
+  verbs:
+  - get
+- apiGroups:
+  - ""
+  resourceNames:
+  - app-config
+  resources:
+  - configmaps
+  verbs:
+  - update
+- apiGroups:
+  - ""
+  resources:
+  - services
+  verbs:
+  - '*'

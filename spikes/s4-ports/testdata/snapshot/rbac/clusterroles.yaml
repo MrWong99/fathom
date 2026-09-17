@@ -1,0 +1,65 @@
+apiVersion: v1
+items:
+- apiVersion: rbac.authorization.k8s.io/v1
+  kind: ClusterRole
+  metadata:
+    annotations:
+      kubectl.kubernetes.io/last-applied-configuration: |
+        {"apiVersion":"rbac.authorization.k8s.io/v1","kind":"ClusterRole","metadata":{"annotations":{},"name":"s4-view-nodes"},"rules":[{"apiGroups":[""],"resources":["nodes"],"verbs":["get","list"]}]}
+    creationTimestamp: "2026-09-17T22:50:17Z"
+    name: s4-view-nodes
+    resourceVersion: "4897"
+    uid: 884c3048-3ef6-43f3-9600-efbb6cd14574
+  rules:
+  - apiGroups:
+    - ""
+    resources:
+    - nodes
+    verbs:
+    - get
+    - list
+- aggregationRule:
+    clusterRoleSelectors:
+    - matchLabels:
+        rbac.fathom.dev/aggregate-to-s4: "true"
+  apiVersion: rbac.authorization.k8s.io/v1
+  kind: ClusterRole
+  metadata:
+    annotations:
+      kubectl.kubernetes.io/last-applied-configuration: |
+        {"aggregationRule":{"clusterRoleSelectors":[{"matchLabels":{"rbac.fathom.dev/aggregate-to-s4":"true"}}]},"apiVersion":"rbac.authorization.k8s.io/v1","kind":"ClusterRole","metadata":{"annotations":{},"name":"s4-aggregate"},"rules":[]}
+    creationTimestamp: "2026-09-17T22:50:17Z"
+    name: s4-aggregate
+    resourceVersion: "14272"
+    uid: 327ffbe2-7da8-48e4-96f3-d35f63334a53
+  rules:
+  - apiGroups:
+    - ""
+    resources:
+    - namespaces
+    verbs:
+    - get
+    - list
+- apiVersion: rbac.authorization.k8s.io/v1
+  kind: ClusterRole
+  metadata:
+    annotations:
+      kubectl.kubernetes.io/last-applied-configuration: |
+        {"apiVersion":"rbac.authorization.k8s.io/v1","kind":"ClusterRole","metadata":{"annotations":{},"labels":{"rbac.fathom.dev/aggregate-to-s4":"true"},"name":"s4-view-namespaces"},"rules":[{"apiGroups":[""],"resources":["namespaces"],"verbs":["get","list"]}]}
+    creationTimestamp: "2026-09-17T22:50:17Z"
+    labels:
+      rbac.fathom.dev/aggregate-to-s4: "true"
+    name: s4-view-namespaces
+    resourceVersion: "4900"
+    uid: 2a677d82-81f2-4280-a385-39f3fb3a5047
+  rules:
+  - apiGroups:
+    - ""
+    resources:
+    - namespaces
+    verbs:
+    - get
+    - list
+kind: List
+metadata:
+  resourceVersion: ""

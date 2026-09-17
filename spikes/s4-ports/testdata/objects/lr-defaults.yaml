@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: lr-defaults
+  namespace: s4
+spec:
+  containers:
+  - name: app
+    image: registry.k8s.io/pause:3.10

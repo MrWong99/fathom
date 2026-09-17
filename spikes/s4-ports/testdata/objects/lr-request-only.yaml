@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: lr-request-only
+  namespace: s4
+spec:
+  containers:
+  - name: app
+    image: registry.k8s.io/pause:3.10
+    resources:
+      requests:
+        cpu: 150m
+        memory: 100Mi

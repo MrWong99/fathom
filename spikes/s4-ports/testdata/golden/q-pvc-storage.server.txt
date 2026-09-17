@@ -1,0 +1,1 @@
+Error from server (Forbidden): error when creating "objects/q-pvc-storage.yaml": persistentvolumeclaims "q-pvc-storage" is forbidden: exceeded quota: s4-quota, requested: requests.storage=6Gi, used: requests.storage=5Gi, limited: requests.storage=10Gi

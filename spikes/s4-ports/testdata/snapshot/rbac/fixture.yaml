@@ -1,0 +1,98 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: deployer
+  namespace: s4
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: deployer-role
+  namespace: s4
+rules:
+- apiGroups: ["apps"]
+  resources: ["deployments"]
+  verbs: ["create", "get", "list"]
+- apiGroups: [""]
+  resources: ["configmaps"]
+  verbs: ["get"]
+- apiGroups: [""]
+  resources: ["configmaps"]
+  resourceNames: ["app-config"]
+  verbs: ["update"]
+- apiGroups: [""]
+  resources: ["services"]
+  verbs: ["*"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: deployer-binding
+  namespace: s4
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: deployer-role
+subjects:
+- kind: ServiceAccount
+  name: deployer
+  namespace: s4
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: s4-view-nodes
+rules:
+- apiGroups: [""]
+  resources: ["nodes"]
+  verbs: ["get", "list"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: s4-view-nodes-binding
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: s4-view-nodes
+subjects:
+- kind: ServiceAccount
+  name: deployer
+  namespace: s4
+---
+# Aggregated ClusterRole: s4-aggregate has no rules of its own; the
+# controller-manager copies in the rules of every ClusterRole carrying the
+# label below (here s4-view-namespaces).
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: s4-aggregate
+aggregationRule:
+  clusterRoleSelectors:
+  - matchLabels:
+      rbac.fathom.dev/aggregate-to-s4: "true"
+rules: []
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: s4-view-namespaces
+  labels:
+    rbac.fathom.dev/aggregate-to-s4: "true"
+rules:
+- apiGroups: [""]
+  resources: ["namespaces"]
+  verbs: ["get", "list"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: s4-aggregate-binding
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: s4-aggregate
+subjects:
+- kind: ServiceAccount
+  name: deployer
+  namespace: s4

@@ -1,0 +1,16 @@
+lr-defaults 0
+lr-request-only 0
+lr-over-max 1
+lr-under-min 1
+lr-ratio 1
+lr-pod-max 1
+lr-pod-level-cpu 1
+lr-pod-level-hugepages 0
+pvc-min 1
+pvc-max 1
+q-cpu-exceeded 1
+q-pvc-storage 1
+q-lb 1
+q-scope-high 1
+q-ok 0
+q-pods-exceeded 1

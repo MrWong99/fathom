@@ -1,0 +1,515 @@
+{
+  "spike": "s4-ports",
+  "purpose": "kubectl --dry-run=server oracle for the LimitRanger, ResourceQuota and RBAC ports (design section 3.4 calibration oracle).",
+  "oracle": {
+    "context": "kind-fathom-oracle",
+    "serverVersion": "v1.37.0",
+    "kubectlClientVersion": "v1.36.4",
+    "namespace": "s4",
+    "node": "fathom-oracle-control-plane",
+    "storageClass": "standard (rancher.io/local-path, WaitForFirstConsumer)",
+    "capturedAt": "2026-09-18"
+  },
+  "replay": "commands.sh",
+  "snapshot": {
+    "namespace": "snapshot/namespace.yaml",
+    "limitRange": "snapshot/limitrange.yaml",
+    "limitRangeHugepages": "snapshot/limitrange-hugepages.yaml (applied only for lr-pod-level-hugepages, then limitrange.yaml is re-applied)",
+    "priorityClass": "snapshot/priorityclass.yaml",
+    "resourceQuotas": "snapshot/quota.yaml",
+    "quotaStatusPhaseA": {
+      "file": "snapshot/quota-status.yaml",
+      "realObjects": [
+        "objects/real-pod-a.yaml",
+        "objects/real-pod-high.yaml",
+        "objects/real-pvc-a.yaml",
+        "objects/real-svc-lb.yaml"
+      ],
+      "used": {
+        "s4-quota": {
+          "count/configmaps": "1",
+          "limits.cpu": "700m",
+          "limits.memory": "768Mi",
+          "persistentvolumeclaims": "1",
+          "pods": "2",
+          "requests.cpu": "600m",
+          "requests.memory": "640Mi",
+          "requests.storage": "5Gi",
+          "services.loadbalancers": "1"
+        },
+        "s4-quota-high": {
+          "pods": "1"
+        }
+      }
+    },
+    "quotaStatusPhaseB": {
+      "file": "snapshot/quota-status-3pods.yaml",
+      "realObjects": [
+        "objects/real-pod-a.yaml",
+        "objects/real-pod-high.yaml",
+        "objects/real-pod-b.yaml",
+        "objects/real-pvc-a.yaml",
+        "objects/real-svc-lb.yaml"
+      ],
+      "used": {
+        "s4-quota": {
+          "count/configmaps": "1",
+          "limits.cpu": "900m",
+          "limits.memory": "1Gi",
+          "persistentvolumeclaims": "1",
+          "pods": "3",
+          "requests.cpu": "700m",
+          "requests.memory": "768Mi",
+          "requests.storage": "5Gi",
+          "services.loadbalancers": "1"
+        },
+        "s4-quota-high": {
+          "pods": "1"
+        }
+      }
+    },
+    "rbac": {
+      "fixture": "snapshot/rbac/fixture.yaml",
+      "exports": [
+        "snapshot/rbac/serviceaccount.yaml",
+        "snapshot/rbac/role.yaml",
+        "snapshot/rbac/rolebinding.yaml",
+        "snapshot/rbac/clusterroles.yaml",
+        "snapshot/rbac/clusterrolebindings.yaml"
+      ],
+      "canIVerdicts": "golden/rbac-can-i.txt"
+    }
+  },
+  "goldenConventions": {
+    "server.txt": "stderr of `kubectl apply --dry-run=server -f objects/<name>.yaml`, verbatim (paths are relative to testdata/ because commands.sh cds there); empty when admitted.",
+    "mutated.yaml": "stdout of the same call with -o yaml: the full server-mutated object (managed by admission, defaulting; includes creationTimestamp/uid which vary per run).",
+    "exitcodes.txt": "kubectl exit code per scenario (0 admitted, 1 forbidden)."
+  },
+  "scenarios": [
+    {
+      "name": "lr-defaults",
+      "area": "limitrange",
+      "kind": "Pod",
+      "objectFile": "objects/lr-defaults.yaml",
+      "goldenFile": "golden/lr-defaults.server.txt",
+      "serverAllowed": true,
+      "serverExitCode": 0,
+      "serverMessage": "",
+      "notes": "No requests/limits: LimitRanger sets limits to default (cpu 200m, memory 256Mi) and requests to defaultRequest (cpu 100m, memory 128Mi); annotation kubernetes.io/limit-ranger 'LimitRanger plugin set: cpu, memory request for container app; cpu, memory limit for container app'. qosClass Burstable.",
+      "mutatedFile": "golden/lr-defaults.mutated.yaml"
+    },
+    {
+      "name": "lr-request-only",
+      "area": "limitrange",
+      "kind": "Pod",
+      "objectFile": "objects/lr-request-only.yaml",
+      "goldenFile": "golden/lr-request-only.server.txt",
+      "serverAllowed": true,
+      "serverExitCode": 0,
+      "serverMessage": "",
+      "notes": "Requests set (cpu 150m, memory 100Mi), no limits: LimitRanger fills only the missing limits from `default` (200m/256Mi); the requests are kept untouched (defaultRequest is NOT applied because the key exists, and the limit is NOT copied from the request). Annotation lists only 'cpu, memory limit for container app'.",
+      "mutatedFile": "golden/lr-request-only.mutated.yaml"
+    },
+    {
+      "name": "lr-over-max",
+      "area": "limitrange",
+      "kind": "Pod",
+      "objectFile": "objects/lr-over-max.yaml",
+      "goldenFile": "golden/lr-over-max.server.txt",
+      "serverAllowed": false,
+      "serverExitCode": 1,
+      "serverMessage": "Error from server (Forbidden): error when creating \"objects/lr-over-max.yaml\": pods \"lr-over-max\" is forbidden: maximum cpu usage per Container is 1, but limit is 1500m",
+      "notes": "Container limit cpu 1500m > max 1. maxConstraint checks the limit first, then the request."
+    },
+    {
+      "name": "lr-under-min",
+      "area": "limitrange",
+      "kind": "Pod",
+      "objectFile": "objects/lr-under-min.yaml",
+      "goldenFile": "golden/lr-under-min.server.txt",
+      "serverAllowed": false,
+      "serverExitCode": 1,
+      "serverMessage": "Error from server (Forbidden): error when creating \"objects/lr-under-min.yaml\": pods \"lr-under-min\" is forbidden: minimum cpu usage per Container is 50m, but request is 20m",
+      "notes": "Container request cpu 20m < min 50m. minConstraint reports the request."
+    },
+    {
+      "name": "lr-ratio",
+      "area": "limitrange",
+      "kind": "Pod",
+      "objectFile": "objects/lr-ratio.yaml",
+      "goldenFile": "golden/lr-ratio.server.txt",
+      "serverAllowed": false,
+      "serverExitCode": 1,
+      "serverMessage": "Error from server (Forbidden): error when creating \"objects/lr-ratio.yaml\": pods \"lr-ratio\" is forbidden: cpu max limit to request ratio per Container is 4, but provided ratio is 5.000000",
+      "notes": "cpu limit 500m / request 100m = 5 > maxLimitRequestRatio 4. Observed ratio printed with %f (5.000000)."
+    },
+    {
+      "name": "lr-pod-max",
+      "area": "limitrange",
+      "kind": "Pod",
+      "objectFile": "objects/lr-pod-max.yaml",
+      "goldenFile": "golden/lr-pod-max.server.txt",
+      "serverAllowed": false,
+      "serverExitCode": 1,
+      "serverMessage": "Error from server (Forbidden): error when creating \"objects/lr-pod-max.yaml\": pods \"lr-pod-max\" is forbidden: maximum cpu usage per Pod is 2, but limit is 3",
+      "notes": "Three containers with cpu limit 1 each (sum 3 > Pod max 2). Two containers cannot exceed the Pod max because the Container max is 1 and the Pod max is 2 (2x1 == 2 is allowed), so a third container is used; each container is within the Container max. Pod limits are summed via component-helpers resource.PodLimits."
+    },
+    {
+      "name": "lr-pod-level-cpu",
+      "area": "limitrange",
+      "kind": "Pod",
+      "objectFile": "objects/lr-pod-level-cpu.yaml",
+      "goldenFile": "golden/lr-pod-level-cpu.server.txt",
+      "serverAllowed": false,
+      "serverExitCode": 1,
+      "serverMessage": "Error from server (Forbidden): error when creating \"objects/lr-pod-level-cpu.yaml\": pods \"lr-pod-level-cpu\" is forbidden: maximum cpu usage per Pod is 2, but limit is 3",
+      "notes": "Pod-level resources (spec.resources, PodLevelResources beta on since 1.34): one container with cpu 1, pod-level cpu 3. The Pod max check uses the pod-level value (3 > 2), not the container sum (1)."
+    },
+    {
+      "name": "lr-pod-level-hugepages",
+      "area": "limitrange",
+      "kind": "Pod",
+      "objectFile": "objects/lr-pod-level-hugepages.yaml",
+      "goldenFile": "golden/lr-pod-level-hugepages.server.txt",
+      "serverAllowed": true,
+      "serverExitCode": 0,
+      "serverMessage": "",
+      "notes": "Captured under snapshot/limitrange-hugepages.yaml (the shared LimitRange plus Pod max hugepages-2Mi 64Mi; it cannot stay in the namespace because a Pod max denies every pod without a limit for that resource). Pod-level hugepages-2Mi 128Mi is above the Pod max hugepages-2Mi 64Mi, the container sum (32Mi) is not. Admitted: LimitRanger's local podRequests/podLimits copy overrides only cpu and memory from spec.resources (supportedPodLevelResources), so the Pod max sees 32Mi. component-helpers' IsSupportedPodLevelResource also matches hugepages-* and would deny; this scenario pins the difference. All container resources are explicit, so LimitRanger sets nothing.",
+      "mutatedFile": "golden/lr-pod-level-hugepages.mutated.yaml",
+      "limitRangeFile": "snapshot/limitrange-hugepages.yaml"
+    },
+    {
+      "name": "pvc-min",
+      "area": "limitrange",
+      "kind": "PersistentVolumeClaim",
+      "objectFile": "objects/pvc-min.yaml",
+      "goldenFile": "golden/pvc-min.server.txt",
+      "serverAllowed": false,
+      "serverExitCode": 1,
+      "serverMessage": "Error from server (Forbidden): error when creating \"objects/pvc-min.yaml\": persistentvolumeclaims \"pvc-min\" is forbidden: minimum storage usage per PersistentVolumeClaim is 1Gi, but request is 500Mi",
+      "notes": "PVC storage request 500Mi < PersistentVolumeClaim min 1Gi."
+    },
+    {
+      "name": "pvc-max",
+      "area": "limitrange",
+      "kind": "PersistentVolumeClaim",
+      "objectFile": "objects/pvc-max.yaml",
+      "goldenFile": "golden/pvc-max.server.txt",
+      "serverAllowed": false,
+      "serverExitCode": 1,
+      "serverMessage": "Error from server (Forbidden): error when creating \"objects/pvc-max.yaml\": persistentvolumeclaims \"pvc-max\" is forbidden: maximum storage usage per PersistentVolumeClaim is 20Gi, but request is 30Gi",
+      "notes": "PVC storage request 30Gi > PersistentVolumeClaim max 20Gi. Run before the quota existed; LimitRanger denies before ResourceQuota would."
+    },
+    {
+      "name": "q-cpu-exceeded",
+      "area": "resourcequota",
+      "kind": "Pod",
+      "objectFile": "objects/q-cpu-exceeded.yaml",
+      "goldenFile": "golden/q-cpu-exceeded.server.txt",
+      "serverAllowed": false,
+      "serverExitCode": 1,
+      "serverMessage": "Error from server (Forbidden): error when creating \"objects/q-cpu-exceeded.yaml\": pods \"q-cpu-exceeded\" is forbidden: exceeded quota: s4-quota, requested: requests.cpu=700m, used: requests.cpu=600m, limited: requests.cpu=1",
+      "notes": "requests.cpu 700m on top of used 600m (real-pod-a 500m + real-pod-high 100m) > hard 1. Only the first exceeded resource set is reported.",
+      "quotaStatusFile": "snapshot/quota-status.yaml"
+    },
+    {
+      "name": "q-pvc-storage",
+      "area": "resourcequota",
+      "kind": "PersistentVolumeClaim",
+      "objectFile": "objects/q-pvc-storage.yaml",
+      "goldenFile": "golden/q-pvc-storage.server.txt",
+      "serverAllowed": false,
+      "serverExitCode": 1,
+      "serverMessage": "Error from server (Forbidden): error when creating \"objects/q-pvc-storage.yaml\": persistentvolumeclaims \"q-pvc-storage\" is forbidden: exceeded quota: s4-quota, requested: requests.storage=6Gi, used: requests.storage=5Gi, limited: requests.storage=10Gi",
+      "notes": "requests.storage 6Gi on top of used 5Gi > hard 10Gi; persistentvolumeclaims count (1+1=2) would still fit.",
+      "quotaStatusFile": "snapshot/quota-status.yaml"
+    },
+    {
+      "name": "q-lb",
+      "area": "resourcequota",
+      "kind": "Service",
+      "objectFile": "objects/q-lb.yaml",
+      "goldenFile": "golden/q-lb.server.txt",
+      "serverAllowed": false,
+      "serverExitCode": 1,
+      "serverMessage": "Error from server (Forbidden): error when creating \"objects/q-lb.yaml\": services \"q-lb\" is forbidden: exceeded quota: s4-quota, requested: services.loadbalancers=1, used: services.loadbalancers=1, limited: services.loadbalancers=1",
+      "notes": "Second LoadBalancer Service; services.loadbalancers used 1 == hard 1.",
+      "quotaStatusFile": "snapshot/quota-status.yaml"
+    },
+    {
+      "name": "q-scope-high",
+      "area": "resourcequota",
+      "kind": "Pod",
+      "objectFile": "objects/q-scope-high.yaml",
+      "goldenFile": "golden/q-scope-high.server.txt",
+      "serverAllowed": false,
+      "serverExitCode": 1,
+      "serverMessage": "Error from server (Forbidden): error when creating \"objects/q-scope-high.yaml\": pods \"q-scope-high\" is forbidden: exceeded quota: s4-quota-high, requested: pods=1, used: pods=1, limited: pods=1",
+      "notes": "Second pod with priorityClassName s4-high. Denied by the scoped quota s4-quota-high (pods 1/1). Run in phase A with 2 pods total so the unscoped quota (pods 3) still had room; with 3 real pods both quotas would be exceeded and the server reports whichever quota the lister returns first (non-deterministic).",
+      "quotaStatusFile": "snapshot/quota-status.yaml"
+    },
+    {
+      "name": "q-ok",
+      "area": "resourcequota",
+      "kind": "Pod",
+      "objectFile": "objects/q-ok.yaml",
+      "goldenFile": "golden/q-ok.server.txt",
+      "serverAllowed": true,
+      "serverExitCode": 0,
+      "serverMessage": "",
+      "notes": "Small pod (requests 100m/128Mi, limits 200m/256Mi) fits every hard limit at phase A usage. Allowed; mutated output is the admitted pod (no LimitRanger annotation since all resources were explicit).",
+      "mutatedFile": "golden/q-ok.mutated.yaml",
+      "quotaStatusFile": "snapshot/quota-status.yaml"
+    },
+    {
+      "name": "q-pods-exceeded",
+      "area": "resourcequota",
+      "kind": "Pod",
+      "objectFile": "objects/q-pods-exceeded.yaml",
+      "goldenFile": "golden/q-pods-exceeded.server.txt",
+      "serverAllowed": false,
+      "serverExitCode": 1,
+      "serverMessage": "Error from server (Forbidden): error when creating \"objects/q-pods-exceeded.yaml\": pods \"q-pods-exceeded\" is forbidden: exceeded quota: s4-quota, requested: pods=1, used: pods=3, limited: pods=3",
+      "notes": "Phase B: after real-pod-b was created (pods used 3/3) a 4th pod is denied on the pods count. requests.cpu (700m + 100m) would still fit.",
+      "quotaStatusFile": "snapshot/quota-status-3pods.yaml"
+    }
+  ],
+  "rbacChecks": [
+    {
+      "subject": "system:serviceaccount:s4:deployer",
+      "verb": "create",
+      "resource": "deployments",
+      "allowed": true,
+      "kubectlVerdict": "yes",
+      "exitCode": 0,
+      "namespace": "s4"
+    },
+    {
+      "subject": "system:serviceaccount:s4:deployer",
+      "verb": "list",
+      "resource": "deployments",
+      "allowed": true,
+      "kubectlVerdict": "yes",
+      "exitCode": 0,
+      "namespace": "s4"
+    },
+    {
+      "subject": "system:serviceaccount:s4:deployer",
+      "verb": "delete",
+      "resource": "deployments",
+      "allowed": false,
+      "kubectlVerdict": "no",
+      "exitCode": 1,
+      "namespace": "s4",
+      "notes": "Verb not in rule [create get list]."
+    },
+    {
+      "subject": "system:serviceaccount:s4:deployer",
+      "verb": "get",
+      "resource": "deployments",
+      "allowed": false,
+      "kubectlVerdict": "no",
+      "exitCode": 1,
+      "namespace": "default",
+      "notes": "Namespace default: Role/RoleBinding are scoped to s4."
+    },
+    {
+      "subject": "system:serviceaccount:s4:deployer",
+      "verb": "get",
+      "resource": "deployments",
+      "allowed": false,
+      "kubectlVerdict": "no",
+      "exitCode": 1,
+      "subresource": "scale",
+      "namespace": "s4",
+      "notes": "Subresource check: a rule on resources [deployments] does not match deployments/scale (RBAC ResourceMatches needs 'deployments/scale' or '*/scale')."
+    },
+    {
+      "subject": "system:serviceaccount:s4:deployer",
+      "verb": "update",
+      "resource": "deployments",
+      "allowed": false,
+      "kubectlVerdict": "no",
+      "exitCode": 1,
+      "subresource": "scale",
+      "namespace": "s4",
+      "notes": "Subresource check, denied."
+    },
+    {
+      "subject": "system:serviceaccount:s4:deployer",
+      "verb": "get",
+      "resource": "deployments",
+      "allowed": true,
+      "kubectlVerdict": "yes",
+      "exitCode": 0,
+      "name": "scale",
+      "namespace": "s4",
+      "notes": "kubectl 'auth can-i get deployments/scale' parses TYPE/NAME as a resourceName check (deployment named 'scale'), NOT a subresource check; allowed because the role grants get on deployments. The real subresource check is the --subresource=scale entry (denied)."
+    },
+    {
+      "subject": "system:serviceaccount:s4:deployer",
+      "verb": "get",
+      "resource": "configmaps",
+      "allowed": true,
+      "kubectlVerdict": "yes",
+      "exitCode": 0,
+      "namespace": "s4"
+    },
+    {
+      "subject": "system:serviceaccount:s4:deployer",
+      "verb": "get",
+      "resource": "configmaps",
+      "allowed": true,
+      "kubectlVerdict": "yes",
+      "exitCode": 0,
+      "name": "app-config",
+      "namespace": "s4",
+      "notes": "Matches the unrestricted 'get configmaps' rule."
+    },
+    {
+      "subject": "system:serviceaccount:s4:deployer",
+      "verb": "update",
+      "resource": "configmaps",
+      "allowed": true,
+      "kubectlVerdict": "yes",
+      "exitCode": 0,
+      "name": "app-config",
+      "namespace": "s4",
+      "notes": "resourceNames match: rule configmaps [app-config] update."
+    },
+    {
+      "subject": "system:serviceaccount:s4:deployer",
+      "verb": "update",
+      "resource": "configmaps",
+      "allowed": false,
+      "kubectlVerdict": "no",
+      "exitCode": 1,
+      "name": "other-config",
+      "namespace": "s4",
+      "notes": "resourceNames mismatch."
+    },
+    {
+      "subject": "system:serviceaccount:s4:deployer",
+      "verb": "update",
+      "resource": "configmaps",
+      "allowed": false,
+      "kubectlVerdict": "no",
+      "exitCode": 1,
+      "namespace": "s4",
+      "notes": "Unnamed request against a resourceNames-restricted rule is denied (a rule with resourceNames never matches a request without a name)."
+    },
+    {
+      "subject": "system:serviceaccount:s4:deployer",
+      "verb": "get",
+      "resource": "secrets",
+      "allowed": false,
+      "kubectlVerdict": "no",
+      "exitCode": 1,
+      "namespace": "s4",
+      "notes": "Role grants no secrets."
+    },
+    {
+      "subject": "system:serviceaccount:s4:deployer",
+      "verb": "get",
+      "resource": "secrets",
+      "allowed": false,
+      "kubectlVerdict": "no",
+      "exitCode": 1,
+      "name": "app-config",
+      "namespace": "s4",
+      "notes": "resourceNames on configmaps does not spill over to secrets."
+    },
+    {
+      "subject": "system:serviceaccount:s4:deployer",
+      "verb": "delete",
+      "resource": "services",
+      "allowed": true,
+      "kubectlVerdict": "yes",
+      "exitCode": 0,
+      "namespace": "s4",
+      "notes": "Wildcard verb ['*'] on services."
+    },
+    {
+      "subject": "system:serviceaccount:s4:deployer",
+      "verb": "patch",
+      "resource": "services",
+      "allowed": true,
+      "kubectlVerdict": "yes",
+      "exitCode": 0,
+      "namespace": "s4",
+      "notes": "Wildcard verb ['*'] on services."
+    },
+    {
+      "subject": "system:serviceaccount:s4:deployer",
+      "verb": "get",
+      "resource": "services",
+      "allowed": false,
+      "kubectlVerdict": "no",
+      "exitCode": 1,
+      "namespace": "default",
+      "notes": "Namespace default: Role/RoleBinding are scoped to s4."
+    },
+    {
+      "subject": "system:serviceaccount:s4:deployer",
+      "verb": "get",
+      "resource": "nodes",
+      "allowed": true,
+      "kubectlVerdict": "yes",
+      "exitCode": 0,
+      "notes": "Cluster-scoped via ClusterRole s4-view-nodes + ClusterRoleBinding."
+    },
+    {
+      "subject": "system:serviceaccount:s4:deployer",
+      "verb": "list",
+      "resource": "nodes",
+      "allowed": true,
+      "kubectlVerdict": "yes",
+      "exitCode": 0
+    },
+    {
+      "subject": "system:serviceaccount:s4:deployer",
+      "verb": "delete",
+      "resource": "nodes",
+      "allowed": false,
+      "kubectlVerdict": "no",
+      "exitCode": 1,
+      "notes": "Verb not in ClusterRole."
+    },
+    {
+      "subject": "system:serviceaccount:s4:deployer",
+      "verb": "get",
+      "resource": "nodes",
+      "allowed": true,
+      "kubectlVerdict": "yes",
+      "exitCode": 0,
+      "name": "fathom-oracle-control-plane",
+      "notes": "Named cluster-scoped get; rule without resourceNames matches any name."
+    },
+    {
+      "subject": "system:serviceaccount:s4:deployer",
+      "verb": "list",
+      "resource": "namespaces",
+      "allowed": true,
+      "kubectlVerdict": "yes",
+      "exitCode": 0,
+      "notes": "Granted only through the aggregated ClusterRole s4-aggregate (rules copied from s4-view-namespaces by the aggregation controller)."
+    },
+    {
+      "subject": "system:serviceaccount:s4:deployer",
+      "verb": "get",
+      "resource": "pods",
+      "allowed": false,
+      "kubectlVerdict": "no",
+      "exitCode": 1,
+      "namespace": "s4",
+      "notes": "No rule on pods."
+    }
+  ],
+  "notes": [
+    "Admission order observed: LimitRanger mutates and validates before ResourceQuota; a pod denied by LimitRange never reaches quota. On a replay with the quota present, the LimitRange scenarios are still admitted because real-pod-b is removed first (pods 2/3).",
+    "count/configmaps used is 1 from the auto-created kube-root-ca.crt.",
+    "The PriorityClass s4-high is cluster-scoped and stays on the cluster; namespace s4, the LimitRange, both quotas, real-pod-a/b/high, real-pvc-a, real-svc-lb and the RBAC objects are kept on purpose.",
+    "The real PVC stays Pending (WaitForFirstConsumer) and the LoadBalancer stays <pending>; quota counts them regardless.",
+    "The quota admission reports only the first exceeded quota in lister order, so scenarios were arranged so each denial is attributable to exactly one quota."
+  ]
+}

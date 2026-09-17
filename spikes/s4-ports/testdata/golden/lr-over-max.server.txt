@@ -1,0 +1,1 @@
+Error from server (Forbidden): error when creating "objects/lr-over-max.yaml": pods "lr-over-max" is forbidden: maximum cpu usage per Container is 1, but limit is 1500m

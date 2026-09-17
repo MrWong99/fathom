@@ -1,0 +1,73 @@
+apiVersion: v1
+items:
+- apiVersion: v1
+  kind: ResourceQuota
+  metadata:
+    annotations:
+      kubectl.kubernetes.io/last-applied-configuration: |
+        {"apiVersion":"v1","kind":"ResourceQuota","metadata":{"annotations":{},"name":"s4-quota","namespace":"s4"},"spec":{"hard":{"count/configmaps":"5","limits.cpu":"2","limits.memory":"2Gi","persistentvolumeclaims":"2","pods":"3","requests.cpu":"1","requests.memory":"1Gi","requests.storage":"10Gi","services.loadbalancers":"1"}}}
+    creationTimestamp: "2026-09-17T22:50:15Z"
+    name: s4-quota
+    namespace: s4
+    resourceVersion: "13361"
+    uid: 27102e20-0a0a-4eea-ab78-2dbd15a4365b
+  spec:
+    hard:
+      count/configmaps: "5"
+      limits.cpu: "2"
+      limits.memory: 2Gi
+      persistentvolumeclaims: "2"
+      pods: "3"
+      requests.cpu: "1"
+      requests.memory: 1Gi
+      requests.storage: 10Gi
+      services.loadbalancers: "1"
+  status:
+    hard:
+      count/configmaps: "5"
+      limits.cpu: "2"
+      limits.memory: 2Gi
+      persistentvolumeclaims: "2"
+      pods: "3"
+      requests.cpu: "1"
+      requests.memory: 1Gi
+      requests.storage: 10Gi
+      services.loadbalancers: "1"
+    used:
+      count/configmaps: "1"
+      limits.cpu: 700m
+      limits.memory: 768Mi
+      persistentvolumeclaims: "1"
+      pods: "2"
+      requests.cpu: 600m
+      requests.memory: 640Mi
+      requests.storage: 5Gi
+      services.loadbalancers: "1"
+- apiVersion: v1
+  kind: ResourceQuota
+  metadata:
+    annotations:
+      kubectl.kubernetes.io/last-applied-configuration: |
+        {"apiVersion":"v1","kind":"ResourceQuota","metadata":{"annotations":{},"name":"s4-quota-high","namespace":"s4"},"spec":{"hard":{"pods":"1"},"scopeSelector":{"matchExpressions":[{"operator":"In","scopeName":"PriorityClass","values":["s4-high"]}]}}}
+    creationTimestamp: "2026-09-17T22:50:15Z"
+    name: s4-quota-high
+    namespace: s4
+    resourceVersion: "4858"
+    uid: 2da48ab2-3d9a-44b6-89b0-d9cb95ed4056
+  spec:
+    hard:
+      pods: "1"
+    scopeSelector:
+      matchExpressions:
+      - operator: In
+        scopeName: PriorityClass
+        values:
+        - s4-high
+  status:
+    hard:
+      pods: "1"
+    used:
+      pods: "1"
+kind: List
+metadata:
+  resourceVersion: ""

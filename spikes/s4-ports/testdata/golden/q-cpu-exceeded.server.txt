@@ -1,0 +1,1 @@
+Error from server (Forbidden): error when creating "objects/q-cpu-exceeded.yaml": pods "q-cpu-exceeded" is forbidden: exceeded quota: s4-quota, requested: requests.cpu=700m, used: requests.cpu=600m, limited: requests.cpu=1
