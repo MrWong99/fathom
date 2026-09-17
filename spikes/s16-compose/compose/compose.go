@@ -371,7 +371,7 @@ func (r *Result) Findings(env map[string]string, allowedExtensions []string, swa
 				Side:             "deployer",
 			}
 			if v.DefaultValue != "" {
-				f.RuleID, f.Severity = "variable-default-used", report.Warning
+				f.RuleID, f.Severity = "variable-default-used", report.Info // owner decision 2026-09-18: a default is the author's intent
 				f.Message = fmt.Sprintf("%s is not set; %s uses the default %q", n, describe(res), v.DefaultValue)
 				f.ProposedValue = v.DefaultValue
 			} else {

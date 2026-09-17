@@ -31,7 +31,7 @@ Findings by rule on the fixture:
 |---|---|---|---|
 | `variable-required-unset` (from the schema's 2020-12 output unit) | Blocking, `wouldFailAt: schema` | 2 (api, worker) | `instanceLocation ""`, `keywordLocation /required`, `valuesPointer /API_TAG`, `source compose.yaml:12:44` |
 | `variable-unset-empty` (compose substitutes `""` and only logs a warning) | Blocking, `runtime` | 1 (`SMTP_HOST`) | `keywordLocation /properties/SMTP_HOST` |
-| `variable-default-used` | Warning, `runtime`, `proposedValue` = the default | 4 | one per usage service, including the included file |
+| `variable-default-used` | Info (owner decision 2026-09-18; design 6 said Warning), `runtime`, `proposedValue` = the default | 4 | one per usage service, including the included file |
 | `extension-unknown` (`x-depends-on`; `x-fathom-*` allow-listed) | Info, `developer` side | 1 | `instanceLocation /x-depends-on` |
 | `deploy-swarm-only` (`placement`, `update_config`, `mode`, `endpoint_mode`; `replicas` and `resources` are honoured by compose and not flagged) | Warning, `unobserved: [host:engine]` | 4 | `/services/<svc>/deploy/<key>`; suppressed when the host is Swarm |
 
@@ -55,9 +55,10 @@ wouldFailAt`. All are section 2.4 fields; `resource` uses the
    unset variable without default to `""` and emits only a logrus warning
    (`The "SMTP_HOST" variable is not set. Defaulting to a blank string.`),
    not a structured result; fathom's `variable-unset-empty` is the structured
-   form. The design's severities (unset → Blocking, defaulted → Warning) are
-   implemented as written; consider Info for the defaulted case, since a
-   default is the author's intent (owner decision, not measured here).
+   form. The design's severities were implemented as written (unset → Blocking,
+   defaulted → Warning); on 2026-09-18 the owner decided the defaulted case
+   is Info, since a default is the author's intent. Design 6 and the spike
+   were updated.
 3. **Variable set follows compose's merge, positions follow the raw files.**
    `!override`/`!reset` and `include` change what is effective; the raw scan
    keeps a usage the merge removed (`API_PORT`). The product should map
@@ -77,6 +78,7 @@ wouldFailAt`. All are section 2.4 fields; `resource` uses the
    `LoadWithContext`; `LoadModelWithContext` returns the merged map before
    typing, so pass 1 needs no typed model at all.
 
-Design impact: section 2.2 (finding identity tuple), section 6 (severity of
-the defaulted case is an owner decision; usage mapping through the merged
-model), section 3.1 (one YAML module). Section 2.4 unchanged.
+Design impact: section 2.2 (finding identity tuple, applied 2026-09-18),
+section 6 (defaulted case now Info, applied 2026-09-18; usage mapping through
+the merged model still open), section 3.1 (one YAML module). Section 2.4
+unchanged.

@@ -136,7 +136,7 @@
   },
   {
     "id": "01e27d73c63257e9",
-    "severity": "Warning",
+    "severity": "Info",
     "message": "DEBUG is not set; service api in compose.override.yaml uses the default \"true\"",
     "engine": "compose-interpolation",
     "ruleId": "variable-default-used",
@@ -169,7 +169,7 @@
   },
   {
     "id": "eb1f01e061d71109",
-    "severity": "Warning",
+    "severity": "Info",
     "message": "METRICS_PORT is not set; service metrics in compose.monitoring.yaml uses the default \"9100\"",
     "engine": "compose-interpolation",
     "ruleId": "variable-default-used",
@@ -202,7 +202,7 @@
   },
   {
     "id": "eb69a28e95d5b710",
-    "severity": "Warning",
+    "severity": "Info",
     "message": "NODE_EXPORTER_TAG is not set; service metrics in compose.monitoring.yaml uses the default \"v1.8.2\"",
     "engine": "compose-interpolation",
     "ruleId": "variable-default-used",
@@ -235,7 +235,7 @@
   },
   {
     "id": "ea78b51377dd98e1",
-    "severity": "Warning",
+    "severity": "Info",
     "message": "QUEUE_NAME is not set; service worker in compose.yaml uses the default \"orders\"",
     "engine": "compose-interpolation",
     "ruleId": "variable-default-used",
