@@ -35,7 +35,7 @@ practitioner survey at the company).
 | S11 | SCC port sizing: `sccmatching` + strategies + range parser re-typed to external types; offline `ConstraintAppliesTo` vs `oc adm policy scc-subject-review` on 4.18+ | Port size and identical selection on 20 fixture pods; else data tier only | not started |
 | S12 | AKS Azure Policy cluster: `k8sazure*` as CEL (generated VAP) or Rego? | Decides OPA phase 2 vs 3 | not started |
 | S13 | Troubleshoot analyzers on a snapshot-as-bundle adapter | `storageClass`, `clusterVersion`, `customResourceDefinition`, `nodeResources` pass on a synthetic bundle | not started |
-| S14 | Practitioner survey at the company: failure-class frequency, distributions, SCM mix, how customers run Helm, task-based form-vs-editor arm | Orders the backlog; confirms OpenShift-first; decides GitLab timing and the form's residual | not started |
+| S14 | Practitioner survey at the company: failure-class frequency, distributions, SCM mix, how customers run Helm, task-based form-vs-editor arm | Orders the backlog; confirms OpenShift-first; decides GitLab timing and the form's residual | in progress: survey drafted 2026-09-17 (`s14-survey/SURVEY.md`), waiting to be sent; task arm weeks 5 to 6 |
 | S15 | (phase-3 gate) envtest/KWOK boot with restored snapshot and `--admission-control-config-file`; Gatekeeper `k8scel` `request.userInfo` offline | Boot time measured | not started |
 | S16 | Compose: compose-go two-pass load of a company project, `ExtractVariables` to schema, three findings in `pkg/report` shape | No domain-model field changes | not started |
 
