@@ -1,0 +1,6 @@
+Error from server: error when creating "objects/protected.yaml": admission webhook "validate.kyverno.svc-fail" denied the request: 
+
+resource Deployment/s3/web-protected was blocked due to the following policies 
+
+restrict-protected-deployer:
+  argocd-only: protected Deployments may only be applied by the argocd service account (group system:serviceaccounts:argocd); requester kubernetes-admin has groups ["kubeadm:cluster-admins","system:authenticated"]

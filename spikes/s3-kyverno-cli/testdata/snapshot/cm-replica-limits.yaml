@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: replica-limits
+  namespace: s3
+data:
+  maxReplicas: "3"

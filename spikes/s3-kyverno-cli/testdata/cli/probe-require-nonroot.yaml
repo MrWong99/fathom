@@ -1,0 +1,24 @@
+# Probe only: validates the field that (b) mutates in, to test whether one
+# `kyverno apply` invocation validates the mutated object (mutate -> validate).
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: probe-require-nonroot
+spec:
+  background: false
+  rules:
+  - name: nonroot-set
+    match:
+      any:
+      - resources:
+          kinds: [Deployment]
+          namespaces: [s3]
+    validate:
+      failureAction: Enforce
+      message: "spec.template.spec.securityContext.runAsNonRoot must be true"
+      pattern:
+        spec:
+          template:
+            spec:
+              securityContext:
+                runAsNonRoot: true

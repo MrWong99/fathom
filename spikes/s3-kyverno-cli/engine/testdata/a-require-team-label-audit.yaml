@@ -1,0 +1,30 @@
+# Spike fixture: (a) with failureAction Audit, to prove a fail on an Audit
+# policy is a Warning (fathom exit 0) even though the CLI exits 1 without
+# --audit-warn.
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: require-team-label-audit
+spec:
+  background: false
+  rules:
+  - name: team-label-allowed
+    match:
+      any:
+      - resources:
+          kinds: [Deployment]
+          namespaces: [s3]
+    context:
+    - name: allowedTeams
+      configMap:
+        name: allowed-teams
+        namespace: s3
+    validate:
+      failureAction: Audit
+      message: "label team={{ request.object.metadata.labels.team || 'MISSING' }} is not one of the allowed teams [{{ allowedTeams.data.teams }}] (ConfigMap s3/allowed-teams)"
+      deny:
+        conditions:
+          all:
+          - key: "{{ request.object.metadata.labels.team || '' }}"
+            operator: AnyNotIn
+            value: "{{ allowedTeams.data.teams | split(@, ',') }}"

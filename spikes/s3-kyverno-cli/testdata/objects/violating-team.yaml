@@ -1,0 +1,25 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web-violating
+  namespace: s3
+  labels:
+    app: web-violating
+    team: pirates
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: web-violating
+  template:
+    metadata:
+      labels:
+        app: web-violating
+    spec:
+      containers:
+      - name: web
+        image: nginx:1.27
+        resources:
+          requests:
+            cpu: 10m
+            memory: 16Mi

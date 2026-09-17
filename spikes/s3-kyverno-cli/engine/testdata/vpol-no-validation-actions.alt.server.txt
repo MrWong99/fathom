@@ -1,0 +1,6 @@
+Error from server: error when creating "objects/violating-team.yaml": admission webhook "validate.kyverno.svc-fail" denied the request: 
+
+resource Deployment/s3/web-violating was blocked due to the following policies 
+
+require-team-label:
+  team-label-allowed: label team=pirates is not one of the allowed teams [platform,payments,search] (ConfigMap s3/allowed-teams)

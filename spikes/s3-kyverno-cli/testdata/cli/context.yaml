@@ -1,0 +1,22 @@
+# --context-file: side data for CEL policies (resource.get / resource.list).
+apiVersion: cli.kyverno.io/v1alpha1
+kind: Context
+metadata:
+  name: s3-snapshot
+spec:
+  resources:
+  - apiVersion: v1
+    kind: ConfigMap
+    metadata:
+      name: allowed-teams
+      namespace: s3
+    data:
+      teams: platform,payments,search
+  - apiVersion: v1
+    kind: Namespace
+    metadata:
+      name: s3
+      labels:
+        kubernetes.io/metadata.name: s3
+        environment: staging
+        team: platform

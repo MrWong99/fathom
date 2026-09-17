@@ -1,0 +1,30 @@
+# (a) ClusterPolicy validate whose deny condition and message both read a
+# ConfigMap context entry (s3/allowed-teams). Offline evaluation needs that
+# ConfigMap as side data.
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: require-team-label
+spec:
+  background: false
+  rules:
+  - name: team-label-allowed
+    match:
+      any:
+      - resources:
+          kinds: [Deployment]
+          namespaces: [s3]
+    context:
+    - name: allowedTeams
+      configMap:
+        name: allowed-teams
+        namespace: s3
+    validate:
+      failureAction: Enforce
+      message: "label team={{ request.object.metadata.labels.team || 'MISSING' }} is not one of the allowed teams [{{ allowedTeams.data.teams }}] (ConfigMap s3/allowed-teams)"
+      deny:
+        conditions:
+          all:
+          - key: "{{ request.object.metadata.labels.team || '' }}"
+            operator: AnyNotIn
+            value: "{{ allowedTeams.data.teams | split(@, ',') }}"

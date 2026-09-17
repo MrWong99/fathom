@@ -1,0 +1,26 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web-protected
+  namespace: s3
+  labels:
+    app: web-protected
+    team: platform
+    fathom.dev/protected: "true"
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: web-protected
+  template:
+    metadata:
+      labels:
+        app: web-protected
+    spec:
+      containers:
+      - name: web
+        image: nginx:1.27
+        resources:
+          requests:
+            cpu: 10m
+            memory: 16Mi

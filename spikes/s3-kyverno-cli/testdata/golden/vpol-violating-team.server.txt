@@ -1,0 +1,1 @@
+Error from server: error when creating "objects/violating-team.yaml": admission webhook "vpol.validate.kyverno.svc-fail" denied the request: Policy vpol-require-team-label failed: label team=pirates is not one of the allowed teams [platform,payments,search] (ConfigMap s3/allowed-teams)

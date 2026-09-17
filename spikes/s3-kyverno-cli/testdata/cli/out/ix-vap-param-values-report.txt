@@ -1,0 +1,30 @@
+apiVersion: openreports.io/v1alpha1
+kind: ClusterReport
+metadata:
+  name: merged
+results:
+- message: replicas 5 exceeds maxReplicas 3 from ConfigMap replica-limits
+  policy: s3-replica-limit
+  properties:
+    binding: s3-replica-limit-binding
+    process: background scan
+  resources:
+  - apiVersion: apps/v1
+    kind: Deployment
+    name: web-too-many
+    namespace: s3
+  result: fail
+  rule: s3-replica-limit
+  scored: true
+  source: ValidatingAdmissionPolicy
+  timestamp:
+    nanos: 0
+    seconds: 1789686007
+source: ""
+summary:
+  error: 0
+  fail: 1
+  pass: 0
+  skip: 0
+  warn: 0
+

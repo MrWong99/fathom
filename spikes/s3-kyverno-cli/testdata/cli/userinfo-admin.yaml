@@ -1,0 +1,12 @@
+# The plain kind admin identity (what kubectl uses without --as).
+apiVersion: cli.kyverno.io/v1alpha1
+kind: UserInfo
+metadata:
+  name: kubernetes-admin
+roles: []
+clusterRoles: []
+userInfo:
+  username: kubernetes-admin
+  groups:
+  - kubeadm:cluster-admins
+  - system:authenticated

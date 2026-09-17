@@ -1,0 +1,44 @@
+# Spike fixture: MutatingAdmissionPolicy + binding with a paramRef to ConfigMap
+# s3/replica-limits; stamps the ConfigMap's maxReplicas onto a label.
+# Written at admissionregistration.k8s.io/v1alpha1 because Kyverno CLI 1.19.1
+# parses MutatingAdmissionPolicy only at v1alpha1 (v1 and v1beta1 documents
+# are dropped with a non-fatal "kind MutatingAdmissionPolicy not found in
+# ... groupversion" and "Applying 0 policy rule(s)"). The oracle (server
+# v1.37.0) serves it at v1; engine/testdata/probes.sh substitutes the
+# apiVersion when applying it there.
+apiVersion: admissionregistration.k8s.io/v1alpha1
+kind: MutatingAdmissionPolicy
+metadata:
+  name: s3-max-replicas-label
+spec:
+  failurePolicy: Fail
+  reinvocationPolicy: Never
+  paramKind:
+    apiVersion: v1
+    kind: ConfigMap
+  matchConstraints:
+    resourceRules:
+    - apiGroups: ["apps"]
+      apiVersions: ["v1"]
+      operations: ["CREATE", "UPDATE"]
+      resources: ["deployments"]
+  mutations:
+  - patchType: ApplyConfiguration
+    applyConfiguration:
+      expression: >-
+        Object{metadata: Object.metadata{labels: {"fathom.dev/max-replicas": params.data.maxReplicas}}}
+---
+apiVersion: admissionregistration.k8s.io/v1alpha1
+kind: MutatingAdmissionPolicyBinding
+metadata:
+  name: s3-max-replicas-label-binding
+spec:
+  policyName: s3-max-replicas-label
+  paramRef:
+    name: replica-limits
+    namespace: s3
+    parameterNotFoundAction: Deny
+  matchResources:
+    namespaceSelector:
+      matchLabels:
+        kubernetes.io/metadata.name: s3

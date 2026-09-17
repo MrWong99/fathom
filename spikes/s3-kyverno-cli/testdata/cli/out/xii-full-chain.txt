@@ -1,0 +1,33 @@
+Warning: policies/a-require-team-label.yaml: kyverno.io/v1 ClusterPolicy is deprecated and will be removed in a future release; migrate to ValidatingPolicy, MutatingPolicy, GeneratingPolicy or ImageValidatingPolicy (policies.kyverno.io), see https://kyverno.io/docs/guides/migration-to-cel/
+Warning: policies/b-add-default-securitycontext.yaml: kyverno.io/v1 ClusterPolicy is deprecated and will be removed in a future release; migrate to ValidatingPolicy, MutatingPolicy, GeneratingPolicy or ImageValidatingPolicy (policies.kyverno.io), see https://kyverno.io/docs/guides/migration-to-cel/
+Warning: policies/c-restrict-protected-deployer.yaml: kyverno.io/v1 ClusterPolicy is deprecated and will be removed in a future release; migrate to ValidatingPolicy, MutatingPolicy, GeneratingPolicy or ImageValidatingPolicy (policies.kyverno.io), see https://kyverno.io/docs/guides/migration-to-cel/
+Warning: policies/e-polex-legacy-app.yaml: kyverno.io/v2 PolicyException is deprecated and will be removed in a future release; migrate to PolicyException (policies.kyverno.io), see https://kyverno.io/docs/guides/migration-to-cel/
+
+Applying 5 policy rule(s) to 5 resource(s) with 1 exception(s)...
+
+
+Mutation:
+Mutation has been applied successfully.
+
+Mutation:
+Mutation has been applied successfully.
+
+Mutation:
+Mutation has been applied successfully.
+
+Mutation:
+Mutation has been applied successfully.
+
+Mutation:
+Mutation has been applied successfully.policy require-team-label -> resource s3/Deployment/web-violating failed:
+1 - team-label-allowed label team=pirates is not one of the allowed teams [platform,payments,search] (ConfigMap s3/allowed-teams)
+policy vpol-require-team-label -> resource s3/Deployment/web-violating failed:
+1 -  label team=pirates is not one of the allowed teams [platform,payments,search] (ConfigMap s3/allowed-teams)
+policy vpol-require-team-label -> resource s3/Deployment/legacy-app failed:
+1 -  label team=MISSING is not one of the allowed teams [platform,payments,search] (ConfigMap s3/allowed-teams)
+policy restrict-protected-deployer -> resource s3/Deployment/web-protected failed:
+1 - argocd-only protected Deployments may only be applied by the argocd service account (group system:serviceaccounts:argocd); requester kubernetes-admin has groups ["kubeadm:cluster-admins","system:authenticated"]
+policy s3-replica-limit -> resource s3/Deployment/web-too-many failed:
+1 - s3-replica-limit replicas 5 exceeds maxReplicas 3 from ConfigMap replica-limits
+
+pass: 15, fail: 5, warn: 0, error: 0, skip: 1 

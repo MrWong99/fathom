@@ -1,0 +1,32 @@
+Warning: policies/a-require-team-label.yaml: kyverno.io/v1 ClusterPolicy is deprecated and will be removed in a future release; migrate to ValidatingPolicy, MutatingPolicy, GeneratingPolicy or ImageValidatingPolicy (policies.kyverno.io), see https://kyverno.io/docs/guides/migration-to-cel/
+apiVersion: openreports.io/v1alpha1
+kind: ClusterReport
+metadata:
+  name: merged
+results:
+- message: 'failed to check deny conditions: failed to substitute variables in condition
+    value: failed to resolve allowedTeams.data.teams | split(@, '','') at path : JMESPath
+    query failed: Invalid type for: <nil>, expected: []jmespath.JpType{"string"}'
+  policy: require-team-label
+  properties:
+    process: admission review
+  resources:
+  - apiVersion: apps/v1
+    kind: Deployment
+    name: web-violating
+    namespace: s3
+  result: error
+  rule: team-label-allowed
+  scored: true
+  source: kyverno
+  timestamp:
+    nanos: 0
+    seconds: 1789686002
+source: ""
+summary:
+  error: 1
+  fail: 0
+  pass: 0
+  skip: 0
+  warn: 0
+

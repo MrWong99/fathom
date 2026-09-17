@@ -1,0 +1,31 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+    labels:
+        app: web-passing
+        fathom.dev/mutated-by: add-default-securitycontext
+        team: platform
+    name: web-passing
+    namespace: s3
+spec:
+    replicas: 1
+    selector:
+        matchLabels:
+            app: web-passing
+    template:
+        metadata:
+            labels:
+                app: web-passing
+        spec:
+            containers:
+                - image: nginx:1.27
+                  name: web
+                  resources:
+                    requests:
+                        cpu: 10m
+                        memory: 16Mi
+            securityContext:
+                runAsNonRoot: true
+
+---
+

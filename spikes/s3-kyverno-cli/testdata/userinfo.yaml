@@ -1,0 +1,15 @@
+# Kyverno CLI --userinfo side file (cli.kyverno.io/v1alpha1 UserInfo embeds
+# kyverno.io/v2 RequestInfo: roles, clusterRoles, userInfo{username,groups}).
+# Same identity kubectl impersonates in commands.sh with --as/--as-group.
+apiVersion: cli.kyverno.io/v1alpha1
+kind: UserInfo
+metadata:
+  name: argocd-application-controller
+roles: []
+clusterRoles: []
+userInfo:
+  username: system:serviceaccount:argocd:argocd-application-controller
+  groups:
+  - system:serviceaccounts:argocd
+  - system:serviceaccounts
+  - system:authenticated

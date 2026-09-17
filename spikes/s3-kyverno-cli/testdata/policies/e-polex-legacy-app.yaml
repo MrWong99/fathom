@@ -1,0 +1,16 @@
+# (e) PolicyException excusing Deployment s3/legacy-app from (a).
+apiVersion: kyverno.io/v2
+kind: PolicyException
+metadata:
+  name: legacy-app-team-label
+  namespace: s3
+spec:
+  exceptions:
+  - policyName: require-team-label
+    ruleNames: [team-label-allowed]
+  match:
+    any:
+    - resources:
+        kinds: [Deployment]
+        namespaces: [s3]
+        names: [legacy-app]

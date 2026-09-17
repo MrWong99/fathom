@@ -1,0 +1,29 @@
+# (f) policies.kyverno.io/v1 ValidatingPolicy (CEL) equivalent of (a); reads
+# the same ConfigMap through resource.get(). Offline it needs --context-file.
+apiVersion: policies.kyverno.io/v1
+kind: ValidatingPolicy
+metadata:
+  name: vpol-require-team-label
+spec:
+  failurePolicy: Fail
+  validationActions: [Deny]
+  evaluation:
+    background:
+      enabled: false
+  matchConstraints:
+    namespaceSelector:
+      matchLabels:
+        kubernetes.io/metadata.name: s3
+    resourceRules:
+    - apiGroups: ["apps"]
+      apiVersions: ["v1"]
+      operations: ["CREATE", "UPDATE"]
+      resources: ["deployments"]
+  variables:
+  - name: allowedTeams
+    expression: "resource.get('v1', 'configmaps', 's3', 'allowed-teams').data.teams.split(',')"
+  - name: team
+    expression: "has(object.metadata.labels) && 'team' in object.metadata.labels ? object.metadata.labels['team'] : 'MISSING'"
+  validations:
+  - expression: "variables.team in variables.allowedTeams"
+    messageExpression: "'label team=' + variables.team + ' is not one of the allowed teams [' + variables.allowedTeams.join(',') + '] (ConfigMap s3/allowed-teams)'"

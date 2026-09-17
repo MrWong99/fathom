@@ -1,0 +1,32 @@
+Warning: policies/a-require-team-label.yaml: kyverno.io/v1 ClusterPolicy is deprecated and will be removed in a future release; migrate to ValidatingPolicy, MutatingPolicy, GeneratingPolicy or ImageValidatingPolicy (policies.kyverno.io), see https://kyverno.io/docs/guides/migration-to-cel/
+Warning: policies/e-polex-legacy-app.yaml: kyverno.io/v2 PolicyException is deprecated and will be removed in a future release; migrate to PolicyException (policies.kyverno.io), see https://kyverno.io/docs/guides/migration-to-cel/
+apiVersion: openreports.io/v1alpha1
+kind: ClusterReport
+metadata:
+  name: merged
+results:
+- message: rule is skipped due to policy exceptionss3/legacy-app-team-label
+  policy: require-team-label
+  properties:
+    exceptions: legacy-app-team-label
+    process: admission review
+  resources:
+  - apiVersion: apps/v1
+    kind: Deployment
+    name: legacy-app
+    namespace: s3
+  result: skip
+  rule: team-label-allowed
+  scored: true
+  source: kyverno
+  timestamp:
+    nanos: 0
+    seconds: 1789686009
+source: ""
+summary:
+  error: 0
+  fail: 0
+  pass: 0
+  skip: 1
+  warn: 0
+

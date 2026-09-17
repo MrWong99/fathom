@@ -1,0 +1,24 @@
+# Spike fixture: a Deployment outside namespace s3, which no fixture policy
+# matches. Used to check the no-match report and the -o output for an object
+# the mutate rule did not touch.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web-elsewhere
+  namespace: other
+  labels:
+    app: web-elsewhere
+    team: pirates
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: web-elsewhere
+  template:
+    metadata:
+      labels:
+        app: web-elsewhere
+    spec:
+      containers:
+      - name: web
+        image: nginx:1.27

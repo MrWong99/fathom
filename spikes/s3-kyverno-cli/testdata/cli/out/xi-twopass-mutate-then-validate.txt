@@ -1,0 +1,41 @@
+Warning: policies/b-add-default-securitycontext.yaml: kyverno.io/v1 ClusterPolicy is deprecated and will be removed in a future release; migrate to ValidatingPolicy, MutatingPolicy, GeneratingPolicy or ImageValidatingPolicy (policies.kyverno.io), see https://kyverno.io/docs/guides/migration-to-cel/
+Warning: cli/probe-require-nonroot.yaml: kyverno.io/v1 ClusterPolicy is deprecated and will be removed in a future release; migrate to ValidatingPolicy, MutatingPolicy, GeneratingPolicy or ImageValidatingPolicy (policies.kyverno.io), see https://kyverno.io/docs/guides/migration-to-cel/
+
+Applying 2 policy rule(s) to 1 resource(s)...
+
+policy add-default-securitycontext applied to s3/Deployment/web-passing:
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+    labels:
+        app: web-passing
+        fathom.dev/mutated-by: add-default-securitycontext
+        team: platform
+    name: web-passing
+    namespace: s3
+spec:
+    replicas: 1
+    selector:
+        matchLabels:
+            app: web-passing
+    template:
+        metadata:
+            labels:
+                app: web-passing
+        spec:
+            containers:
+                - image: nginx:1.27
+                  name: web
+                  resources:
+                    requests:
+                        cpu: 10m
+                        memory: 16Mi
+            securityContext:
+                runAsNonRoot: true
+
+---
+
+
+Mutation:
+Mutation has been applied successfully.
+pass: 2, fail: 0, warn: 0, error: 0, skip: 0 

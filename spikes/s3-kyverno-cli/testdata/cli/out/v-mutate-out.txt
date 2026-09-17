@@ -1,0 +1,8 @@
+Warning: policies/b-add-default-securitycontext.yaml: kyverno.io/v1 ClusterPolicy is deprecated and will be removed in a future release; migrate to ValidatingPolicy, MutatingPolicy, GeneratingPolicy or ImageValidatingPolicy (policies.kyverno.io), see https://kyverno.io/docs/guides/migration-to-cel/
+
+Applying 1 policy rule(s) to 1 resource(s)...
+
+
+Mutation:
+Mutation has been applied successfully.
+pass: 1, fail: 0, warn: 0, error: 0, skip: 0 

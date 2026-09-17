@@ -1,0 +1,25 @@
+# (b) ClusterPolicy mutate: sets pod-template runAsNonRoot (only when absent)
+# and stamps a label on Deployments in s3.
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: add-default-securitycontext
+spec:
+  background: false
+  rules:
+  - name: run-as-non-root
+    match:
+      any:
+      - resources:
+          kinds: [Deployment]
+          namespaces: [s3]
+    mutate:
+      patchStrategicMerge:
+        metadata:
+          labels:
+            fathom.dev/mutated-by: add-default-securitycontext
+        spec:
+          template:
+            spec:
+              securityContext:
+                +(runAsNonRoot): true

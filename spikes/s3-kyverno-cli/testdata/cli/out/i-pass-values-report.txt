@@ -1,0 +1,30 @@
+Warning: policies/a-require-team-label.yaml: kyverno.io/v1 ClusterPolicy is deprecated and will be removed in a future release; migrate to ValidatingPolicy, MutatingPolicy, GeneratingPolicy or ImageValidatingPolicy (policies.kyverno.io), see https://kyverno.io/docs/guides/migration-to-cel/
+apiVersion: openreports.io/v1alpha1
+kind: ClusterReport
+metadata:
+  name: merged
+results:
+- message: validation rule 'team-label-allowed' passed.
+  policy: require-team-label
+  properties:
+    process: admission review
+  resources:
+  - apiVersion: apps/v1
+    kind: Deployment
+    name: web-passing
+    namespace: s3
+  result: pass
+  rule: team-label-allowed
+  scored: true
+  source: kyverno
+  timestamp:
+    nanos: 0
+    seconds: 1789686002
+source: ""
+summary:
+  error: 0
+  fail: 0
+  pass: 1
+  skip: 0
+  warn: 0
+

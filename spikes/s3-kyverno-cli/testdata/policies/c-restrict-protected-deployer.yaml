@@ -1,0 +1,29 @@
+# (c) ClusterPolicy validate gated on request.userInfo: Deployments labelled
+# fathom.dev/protected=true may only be created/updated by a requester in the
+# group system:serviceaccounts:argocd. The precondition reads request.userInfo,
+# so offline evaluation needs --userinfo.
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: restrict-protected-deployer
+spec:
+  background: false
+  rules:
+  - name: argocd-only
+    match:
+      any:
+      - resources:
+          kinds: [Deployment]
+          namespaces: [s3]
+          selector:
+            matchLabels:
+              fathom.dev/protected: "true"
+    preconditions:
+      all:
+      - key: "system:serviceaccounts:argocd"
+        operator: AnyNotIn
+        value: "{{ request.userInfo.groups || `[]` }}"
+    validate:
+      failureAction: Enforce
+      message: "protected Deployments may only be applied by the argocd service account (group system:serviceaccounts:argocd); requester {{ request.userInfo.username || 'UNKNOWN' }} has groups {{ request.userInfo.groups || `[]` }}"
+      deny: {}

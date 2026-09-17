@@ -1,0 +1,41 @@
+# Spike fixture: (d) with validationActions [Warn], to prove the CLI ignores
+# the binding action (result fail, exit 1) while fathom maps it to a Warning
+# (exit 0).
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicy
+metadata:
+  name: s3-replica-limit
+spec:
+  failurePolicy: Fail
+  paramKind:
+    apiVersion: v1
+    kind: ConfigMap
+  matchConstraints:
+    resourceRules:
+    - apiGroups: ["apps"]
+      apiVersions: ["v1"]
+      operations: ["CREATE", "UPDATE"]
+      resources: ["deployments"]
+  variables:
+  - name: maxReplicas
+    expression: int(params.data.maxReplicas)
+  validations:
+  - expression: "!has(object.spec.replicas) || object.spec.replicas <= variables.maxReplicas"
+    messageExpression: "'replicas ' + string(object.spec.replicas) + ' exceeds maxReplicas ' + string(variables.maxReplicas) + ' from ConfigMap ' + params.metadata.name"
+    reason: Invalid
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingAdmissionPolicyBinding
+metadata:
+  name: s3-replica-limit-binding
+spec:
+  policyName: s3-replica-limit
+  validationActions: [Warn]
+  paramRef:
+    name: replica-limits
+    namespace: s3
+    parameterNotFoundAction: Deny
+  matchResources:
+    namespaceSelector:
+      matchLabels:
+        kubernetes.io/metadata.name: s3

@@ -1,0 +1,229 @@
+{
+  "oracle": {
+    "context": "kind-fathom-oracle",
+    "server": "v1.37.0",
+    "kubectlClient": "v1.36.4",
+    "helm": "v4.3.0",
+    "kyvernoChart": "kyverno/kyverno 3.9.1",
+    "kyvernoAppVersion": "v1.19.1",
+    "kyvernoNamespace": "kyverno",
+    "kyvernoValues": {
+      "admissionController.replicas": 1,
+      "features.policyExceptions.enabled": true,
+      "features.policyExceptions.namespace": "s3",
+      "resource requests": "cpu 20-50m, memory 32-64Mi per controller"
+    },
+    "kyvernoCli": {
+      "path": "/home/luk/go/bin/kyverno",
+      "version": "1.19.1",
+      "sha256": "dfa1ffe747e43d0d5a34cbc676ff96ecafdf7ef979eee1c6d9d6606e3613c138",
+      "bytes": 265433250
+    },
+    "namespace": "s3",
+    "command": "kubectl --context kind-fathom-oracle apply --dry-run=server -f <objectFile> (real apply for passing-mutated); serverMessage is stdout+stderr verbatim",
+    "cliInvocation": "env -i HOME=<scratch> PATH=/usr/bin:/bin /home/luk/go/bin/kyverno apply <policies> --resource <object> [side-file flags]; cli/out/<case>.txt is stdout+stderr verbatim",
+    "replay": "commands.sh"
+  },
+  "scenarios": [
+    {
+      "name": "violating-team",
+      "policyFiles": [
+        "policies/a-require-team-label.yaml"
+      ],
+      "objectFile": "objects/violating-team.yaml",
+      "sideFiles": [
+        "snapshot/cm-allowed-teams.yaml",
+        "snapshot/namespace.yaml"
+      ],
+      "serverAllowed": false,
+      "goldenFile": "golden/violating-team.server.txt",
+      "cliCase": "vi-cpol-ctx-values",
+      "cliExit": 1,
+      "cliSummary": "pass: 0, fail: 1, warn: 0, error: 0, skip: 0",
+      "notes": "ClusterPolicy deny condition and message both read ConfigMap s3/allowed-teams (context entry configMap). Offline the CLI only honours the ConfigMap through --values-file rule values (policies[].rules[].values.allowedTeams.data.teams); --resource and --context-file leave the context nil (error result). Message text identical to the server.",
+      "serverMessage": "Error from server: error when creating \"objects/violating-team.yaml\": admission webhook \"validate.kyverno.svc-fail\" denied the request: \n\nresource Deployment/s3/web-violating was blocked due to the following policies \n\nrequire-team-label:\n  team-label-allowed: label team=pirates is not one of the allowed teams [platform,payments,search] (ConfigMap s3/allowed-teams)\n"
+    },
+    {
+      "name": "passing-mutated",
+      "policyFiles": [
+        "policies/b-add-default-securitycontext.yaml",
+        "policies/a-require-team-label.yaml"
+      ],
+      "objectFile": "objects/passing-mutated.yaml",
+      "sideFiles": [
+        "snapshot/cm-allowed-teams.yaml"
+      ],
+      "serverAllowed": true,
+      "goldenFile": "golden/passing-mutated.server.txt",
+      "mutatedFile": "golden/passing-mutated.mutated.yaml",
+      "cliCase": "v-mutate-out",
+      "cliExit": 0,
+      "cliSummary": "pass: 1, fail: 0, warn: 0, error: 0, skip: 0",
+      "notes": "Real apply; the cluster stored runAsNonRoot=true and label fathom.dev/mutated-by. kyverno apply -o <dir> writes <name>-mutated.yaml (4-space indent, trailing ---) with the same labels and securityContext (cli/out/web-passing-mutated.cli.yaml); no Kyverno patch annotation on the server object. golden/passing-mutated-dryrun.server.txt is the --dry-run=server verdict.",
+      "serverMessage": "deployment.apps/web-passing created\n"
+    },
+    {
+      "name": "excused",
+      "policyFiles": [
+        "policies/a-require-team-label.yaml",
+        "policies/e-polex-legacy-app.yaml"
+      ],
+      "objectFile": "objects/excused.yaml",
+      "sideFiles": [
+        "snapshot/cm-allowed-teams.yaml"
+      ],
+      "serverAllowed": true,
+      "goldenFile": "golden/excused.server.txt",
+      "cliCase": "x-polex",
+      "cliExit": 0,
+      "cliSummary": "pass: 0, fail: 0, warn: 0, error: 0, skip: 1",
+      "notes": "No team label at all; kyverno.io/v2 PolicyException legacy-app-team-label excuses it. Chart default is --enablePolicyException=false; the oracle runs with features.policyExceptions.enabled=true, namespace=s3. CLI: --exception <file> turns the rule into result skip (report message 'rule is skipped due to policy exceptionss3/legacy-app-team-label', sic). Without --exception the CLI gives error (nil context) not fail.",
+      "serverMessage": "deployment.apps/legacy-app created (server dry run)\n"
+    },
+    {
+      "name": "protected-admin",
+      "policyFiles": [
+        "policies/c-restrict-protected-deployer.yaml"
+      ],
+      "objectFile": "objects/protected.yaml",
+      "sideFiles": [
+        "snapshot/identity-admin.yaml",
+        "cli/userinfo-admin.yaml"
+      ],
+      "serverAllowed": false,
+      "goldenFile": "golden/protected-admin.server.txt",
+      "cliCase": "viii-userinfo-admin",
+      "cliExit": 1,
+      "cliSummary": "pass: 0, fail: 1, warn: 0, error: 0, skip: 0",
+      "notes": "Precondition on request.userInfo.groups (AnyNotIn system:serviceaccounts:argocd) then deny: {}. CLI --userinfo cli/userinfo-admin.yaml reproduces the server message verbatim including the JSON-rendered groups list. Without --userinfo the CLI still fails but renders 'requester UNKNOWN has groups []'.",
+      "serverMessage": "Error from server: error when creating \"objects/protected.yaml\": admission webhook \"validate.kyverno.svc-fail\" denied the request: \n\nresource Deployment/s3/web-protected was blocked due to the following policies \n\nrestrict-protected-deployer:\n  argocd-only: protected Deployments may only be applied by the argocd service account (group system:serviceaccounts:argocd); requester kubernetes-admin has groups [\"kubeadm:cluster-admins\",\"system:authenticated\"]\n"
+    },
+    {
+      "name": "protected-argocd",
+      "policyFiles": [
+        "policies/c-restrict-protected-deployer.yaml"
+      ],
+      "objectFile": "objects/protected.yaml",
+      "sideFiles": [
+        "snapshot/identity-argocd.yaml",
+        "snapshot/rbac-argocd.yaml",
+        "userinfo.yaml"
+      ],
+      "serverAllowed": true,
+      "goldenFile": "golden/protected-argocd.server.txt",
+      "cliCase": "viii-userinfo-argocd",
+      "cliExit": 0,
+      "cliSummary": "pass: 0, fail: 0, warn: 0, error: 0, skip: 1",
+      "notes": "kubectl --as=system:serviceaccount:argocd:argocd-application-controller --as-group=system:serviceaccounts:argocd --as-group=system:serviceaccounts --as-group=system:authenticated; RoleBinding snapshot/rbac-argocd.yaml is needed so the impersonated subject passes RBAC. CLI with --userinfo userinfo.yaml: precondition false -> result skip (pass: 0, skip: 1), exit 0.",
+      "serverMessage": "deployment.apps/web-protected created (server dry run)\n"
+    },
+    {
+      "name": "vap-violating",
+      "policyFiles": [
+        "policies/d-vap-replica-limit.yaml"
+      ],
+      "objectFile": "objects/vap-violating.yaml",
+      "sideFiles": [
+        "snapshot/cm-replica-limits.yaml",
+        "snapshot/namespace.yaml",
+        "cli/values.yaml"
+      ],
+      "serverAllowed": false,
+      "goldenFile": "golden/vap-violating.server.txt",
+      "cliCase": "ix-vap-param-values",
+      "cliExit": 1,
+      "cliSummary": "pass: 0, fail: 1, warn: 0, error: 0, skip: 0",
+      "notes": "apiserver enforces the VAP itself (no Kyverno involved). CLI: --parameter-resource alone yields pass 0/fail 0/skip 0 because the binding's namespaceSelector cannot be matched; adding --values-file namespaceSelector[].labels for s3 makes it fail with the server's messageExpression text. Supplying the Namespace via --resource instead makes the CLI evaluate the VAP against the Namespace object too (error: no such key: spec). Missing parameter -> error ('composited variable \"maxReplicas\" fails to evaluate: no such key: data'), not the binding's parameterNotFoundAction=Deny.",
+      "serverMessage": "The deployments \"web-too-many\" is invalid: : ValidatingAdmissionPolicy 's3-replica-limit' with binding 's3-replica-limit-binding' denied request: replicas 5 exceeds maxReplicas 3 from ConfigMap replica-limits\n"
+    },
+    {
+      "name": "vpol-excused",
+      "policyFiles": [
+        "policies/f-vpol-require-team-label.yaml"
+      ],
+      "objectFile": "objects/excused.yaml",
+      "sideFiles": [
+        "snapshot/cm-allowed-teams.yaml",
+        "cli/context.yaml"
+      ],
+      "serverAllowed": false,
+      "goldenFile": "golden/vpol-excused.server.txt",
+      "cliCase": "vii-vpol-ctx-contextfile",
+      "cliExit": 1,
+      "cliSummary": "pass: 0, fail: 1, warn: 0, error: 0, skip: 0",
+      "notes": "policies.kyverno.io/v1 ValidatingPolicy is served by v1.19.1 (kubectl api-resources: validatingpolicies vpol). Applied to the cluster separately and removed afterwards. Its webhook is vpol.validate.kyverno.svc-fail and the denial format is 'Policy <name> failed: <message>' (one line). The kyverno.io/v2 PolicyException does not cover it, so legacy-app is denied. Offline it needs --context-file (cli.kyverno.io/v1alpha1 Context, spec.resources[] holding the ConfigMap) for resource.get('v1','configmaps','s3','allowed-teams'); --resource and --values-file give error. vpol-violating-team.server.txt shows the ClusterPolicy webhook answering first for the team=pirates object, vpol-passing.server.txt the allow. vpol-violating-team.server.txt is NOT deterministic: both Kyverno validating webhooks (validate.kyverno.svc-fail for the ClusterPolicy, vpol.validate.kyverno.svc-fail for the ValidatingPolicy) deny the object, the apiserver calls them in parallel and kubectl prints whichever fails first; both observed texts are kept (golden/vpol-violating-team.server.txt and golden/vpol-violating-team.alt.server.txt). fathom must therefore report every denial, not the first one.",
+      "serverMessage": "Error from server: error when creating \"objects/excused.yaml\": admission webhook \"vpol.validate.kyverno.svc-fail\" denied the request: Policy vpol-require-team-label failed: label team=MISSING is not one of the allowed teams [platform,payments,search] (ConfigMap s3/allowed-teams)\n"
+    }
+  ],
+  "cliSideFiles": {
+    "clusterPolicyConfigMapContext": {
+      "works": "--values-file (cli/values.yaml: policies[].rules[].values.<contextName>)",
+      "fails": [
+        "--resource <configmap> (CLI logs 'disabled loading of ConfigMap context entry'; context nil -> result error)",
+        "--context-file (only feeds CEL policies)"
+      ]
+    },
+    "validatingPolicyConfigMapContext": {
+      "works": "--context-file (cli/context.yaml: cli.kyverno.io/v1alpha1 Context spec.resources[])",
+      "fails": [
+        "--resource <configmap>",
+        "--values-file"
+      ]
+    },
+    "userinfo": "userinfo.yaml: cli.kyverno.io/v1alpha1 UserInfo with roles[], clusterRoles[], userInfo{username, groups[]} (kyverno create user-info emits the same without apiVersion/kind)",
+    "vapParameter": "--parameter-resource <configmap file> plus --values-file namespaceSelector[] for the binding's namespaceSelector",
+    "exception": "--exception <kyverno.io/v2 PolicyException file>; matched rule -> result skip",
+    "mutateOutput": "-o <dir> writes <name>-mutated.yaml per resource; plain output prints 'policy <p> applied to <ns>/<Kind>/<name>:' + YAML when more than one policy runs"
+  },
+  "cliOutput": {
+    "header": "Applying N policy rule(s) to M resource(s)[ with K exception(s)]...",
+    "summaryLine": "pass: N, fail: N, warn: N, error: N, skip: N  (trailing space)",
+    "failLines": [
+      "policy <policy> -> resource <ns>/<Kind>/<name> failed:",
+      "<i> - <rule> <message>   (rule name empty for ValidatingPolicy: '1 -  <message>')"
+    ],
+    "errorLines": "none in plain or --detailed-results output; only the summary count and the report's message reveal an error",
+    "mutationLines": [
+      "Mutation:",
+      "Mutation has been applied successfully."
+    ],
+    "deprecation": "Warning: <file>: kyverno.io/v1 ClusterPolicy is deprecated and will be removed in a future release; migrate to ... (also for kyverno.io/v2 PolicyException)",
+    "exitCodes": {
+      "0": "no fail and no error",
+      "1": "any fail ('exit as there are policy violations') or any error ('exit as there are policy errors'); --warn-exit-code N for warnings"
+    },
+    "policyReport": {
+      "apiVersion": "openreports.io/v1alpha1",
+      "kind": "ClusterReport",
+      "metadata.name": "merged",
+      "results[]": "message, policy, rule (absent for ValidatingPolicy), result pass|fail|skip|error, scored, source kyverno|ValidatingAdmissionPolicy|KyvernoValidatingPolicy, properties{process, binding, exceptions, cel.validationIndex}, resources[], timestamp{seconds,nanos}",
+      "summary": "error/fail/pass/skip/warn",
+      "passMessage": "validation rule '<rule>' passed.",
+      "vpolPassMessage": "success",
+      "mutateMessage": "mutated <Kind>/<name> in namespace <ns>",
+      "note": "VAP results carry properties.process 'background scan' even offline; --output-format json emits the same object as JSON"
+    }
+  },
+  "twoPass": "One kyverno apply invocation runs mutate before validate on the same object: probe cli/probe-require-nonroot.yaml fails alone (xi-twopass-validate-only, exit 1) and passes together with (b) (xi-twopass-mutate-then-validate, pass: 2). Full chain (xii-full-chain: a,b,c,d,f + all side files, 5 objects): pass 15, fail 5, skip 1; the five failures are exactly the five server denials.",
+  "coldStartMs": [
+    226,
+    224,
+    235,
+    231,
+    226
+  ],
+  "coldStartCommand": "date +%s%N around: kyverno apply policies/a-require-team-label.yaml --resource objects/passing-mutated.yaml --values-file cli/values.yaml",
+  "coldStartMsReplay": [
+    241,
+    228,
+    225,
+    225,
+    236
+  ],
+  "replayVerified": "commands.sh replayed end-to-end after the first capture: every golden/*.server.txt byte-identical except the webhook race noted for vpol-violating-team; every cli/out/*.txt identical modulo report timestamps and result ordering in the multi-object report (xii-full-chain-report results are emitted in nondeterministic order).",
+  "clusterStateLeft": {
+    "namespace kyverno": "helm release kyverno (chart 3.9.1, revision 3 after the replay's upgrade --install)",
+    "namespace s3": "ConfigMaps allowed-teams, replica-limits; RoleBinding argocd-edit; Deployment web-passing (mutated, pods do not start: nginx as non-root is irrelevant to the spike); PolicyException legacy-app-team-label",
+    "cluster-scoped": "ClusterPolicies require-team-label, add-default-securitycontext, restrict-protected-deployer; VAP s3-replica-limit + binding s3-replica-limit-binding (namespace-selected to s3); ValidatingPolicy vpol-require-team-label is removed at the end of commands.sh"
+  }
+}

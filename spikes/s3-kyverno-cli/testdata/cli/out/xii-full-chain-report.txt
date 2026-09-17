@@ -1,0 +1,531 @@
+Warning: policies/a-require-team-label.yaml: kyverno.io/v1 ClusterPolicy is deprecated and will be removed in a future release; migrate to ValidatingPolicy, MutatingPolicy, GeneratingPolicy or ImageValidatingPolicy (policies.kyverno.io), see https://kyverno.io/docs/guides/migration-to-cel/
+Warning: policies/b-add-default-securitycontext.yaml: kyverno.io/v1 ClusterPolicy is deprecated and will be removed in a future release; migrate to ValidatingPolicy, MutatingPolicy, GeneratingPolicy or ImageValidatingPolicy (policies.kyverno.io), see https://kyverno.io/docs/guides/migration-to-cel/
+Warning: policies/c-restrict-protected-deployer.yaml: kyverno.io/v1 ClusterPolicy is deprecated and will be removed in a future release; migrate to ValidatingPolicy, MutatingPolicy, GeneratingPolicy or ImageValidatingPolicy (policies.kyverno.io), see https://kyverno.io/docs/guides/migration-to-cel/
+Warning: policies/e-polex-legacy-app.yaml: kyverno.io/v2 PolicyException is deprecated and will be removed in a future release; migrate to PolicyException (policies.kyverno.io), see https://kyverno.io/docs/guides/migration-to-cel/
+
+policy add-default-securitycontext applied to s3/Deployment/web-violating:
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+    labels:
+        app: web-violating
+        fathom.dev/mutated-by: add-default-securitycontext
+        team: pirates
+    name: web-violating
+    namespace: s3
+spec:
+    replicas: 1
+    selector:
+        matchLabels:
+            app: web-violating
+    template:
+        metadata:
+            labels:
+                app: web-violating
+        spec:
+            containers:
+                - image: nginx:1.27
+                  name: web
+                  resources:
+                    requests:
+                        cpu: 10m
+                        memory: 16Mi
+            securityContext:
+                runAsNonRoot: true
+
+---
+
+
+Mutation:
+Mutation has been applied successfully.
+policy add-default-securitycontext applied to s3/Deployment/web-passing:
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+    labels:
+        app: web-passing
+        fathom.dev/mutated-by: add-default-securitycontext
+        team: platform
+    name: web-passing
+    namespace: s3
+spec:
+    replicas: 1
+    selector:
+        matchLabels:
+            app: web-passing
+    template:
+        metadata:
+            labels:
+                app: web-passing
+        spec:
+            containers:
+                - image: nginx:1.27
+                  name: web
+                  resources:
+                    requests:
+                        cpu: 10m
+                        memory: 16Mi
+            securityContext:
+                runAsNonRoot: true
+
+---
+
+
+Mutation:
+Mutation has been applied successfully.
+policy add-default-securitycontext applied to s3/Deployment/legacy-app:
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+    labels:
+        app: legacy-app
+        fathom.dev/mutated-by: add-default-securitycontext
+    name: legacy-app
+    namespace: s3
+spec:
+    replicas: 1
+    selector:
+        matchLabels:
+            app: legacy-app
+    template:
+        metadata:
+            labels:
+                app: legacy-app
+        spec:
+            containers:
+                - image: nginx:1.27
+                  name: web
+                  resources:
+                    requests:
+                        cpu: 10m
+                        memory: 16Mi
+            securityContext:
+                runAsNonRoot: true
+
+---
+
+
+Mutation:
+Mutation has been applied successfully.
+policy add-default-securitycontext applied to s3/Deployment/web-protected:
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+    labels:
+        app: web-protected
+        fathom.dev/mutated-by: add-default-securitycontext
+        fathom.dev/protected: "true"
+        team: platform
+    name: web-protected
+    namespace: s3
+spec:
+    replicas: 1
+    selector:
+        matchLabels:
+            app: web-protected
+    template:
+        metadata:
+            labels:
+                app: web-protected
+        spec:
+            containers:
+                - image: nginx:1.27
+                  name: web
+                  resources:
+                    requests:
+                        cpu: 10m
+                        memory: 16Mi
+            securityContext:
+                runAsNonRoot: true
+
+---
+
+
+Mutation:
+Mutation has been applied successfully.
+policy add-default-securitycontext applied to s3/Deployment/web-too-many:
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+    labels:
+        app: web-too-many
+        fathom.dev/mutated-by: add-default-securitycontext
+        team: platform
+    name: web-too-many
+    namespace: s3
+spec:
+    replicas: 5
+    selector:
+        matchLabels:
+            app: web-too-many
+    template:
+        metadata:
+            labels:
+                app: web-too-many
+        spec:
+            containers:
+                - image: nginx:1.27
+                  name: web
+                  resources:
+                    requests:
+                        cpu: 10m
+                        memory: 16Mi
+            securityContext:
+                runAsNonRoot: true
+
+---
+
+
+Mutation:
+Mutation has been applied successfully.apiVersion: openreports.io/v1alpha1
+kind: ClusterReport
+metadata:
+  name: merged
+results:
+- message: mutated Deployment/web-protected in namespace s3
+  policy: add-default-securitycontext
+  properties:
+    process: admission review
+  resources:
+  - apiVersion: apps/v1
+    kind: Deployment
+    name: web-protected
+    namespace: s3
+  result: pass
+  rule: run-as-non-root
+  scored: true
+  source: kyverno
+  timestamp:
+    nanos: 0
+    seconds: 1789686010
+- policy: s3-replica-limit
+  properties:
+    binding: s3-replica-limit-binding
+    process: background scan
+  resources:
+  - apiVersion: apps/v1
+    kind: Deployment
+    name: web-protected
+    namespace: s3
+  result: pass
+  rule: s3-replica-limit
+  scored: true
+  source: ValidatingAdmissionPolicy
+  timestamp:
+    nanos: 0
+    seconds: 1789686010
+- message: label team=pirates is not one of the allowed teams [platform,payments,search]
+    (ConfigMap s3/allowed-teams)
+  policy: vpol-require-team-label
+  properties:
+    cel.validationIndex: "0"
+    process: admission review
+  resources:
+  - apiVersion: apps/v1
+    kind: Deployment
+    name: web-violating
+    namespace: s3
+  result: fail
+  scored: true
+  source: KyvernoValidatingPolicy
+  timestamp:
+    nanos: 0
+    seconds: 1789686010
+- message: success
+  policy: vpol-require-team-label
+  properties:
+    process: admission review
+  resources:
+  - apiVersion: apps/v1
+    kind: Deployment
+    name: web-passing
+    namespace: s3
+  result: pass
+  scored: true
+  source: KyvernoValidatingPolicy
+  timestamp:
+    nanos: 0
+    seconds: 1789686010
+- message: rule is skipped due to policy exceptionss3/legacy-app-team-label
+  policy: require-team-label
+  properties:
+    exceptions: legacy-app-team-label
+    process: admission review
+  resources:
+  - apiVersion: apps/v1
+    kind: Deployment
+    name: legacy-app
+    namespace: s3
+  result: skip
+  rule: team-label-allowed
+  scored: true
+  source: kyverno
+  timestamp:
+    nanos: 0
+    seconds: 1789686010
+- message: validation rule 'team-label-allowed' passed.
+  policy: require-team-label
+  properties:
+    process: admission review
+  resources:
+  - apiVersion: apps/v1
+    kind: Deployment
+    name: web-protected
+    namespace: s3
+  result: pass
+  rule: team-label-allowed
+  scored: true
+  source: kyverno
+  timestamp:
+    nanos: 0
+    seconds: 1789686010
+- message: success
+  policy: vpol-require-team-label
+  properties:
+    process: admission review
+  resources:
+  - apiVersion: apps/v1
+    kind: Deployment
+    name: web-protected
+    namespace: s3
+  result: pass
+  scored: true
+  source: KyvernoValidatingPolicy
+  timestamp:
+    nanos: 0
+    seconds: 1789686010
+- message: mutated Deployment/web-violating in namespace s3
+  policy: add-default-securitycontext
+  properties:
+    process: admission review
+  resources:
+  - apiVersion: apps/v1
+    kind: Deployment
+    name: web-violating
+    namespace: s3
+  result: pass
+  rule: run-as-non-root
+  scored: true
+  source: kyverno
+  timestamp:
+    nanos: 0
+    seconds: 1789686010
+- message: label team=pirates is not one of the allowed teams [platform,payments,search]
+    (ConfigMap s3/allowed-teams)
+  policy: require-team-label
+  properties:
+    process: admission review
+  resources:
+  - apiVersion: apps/v1
+    kind: Deployment
+    name: web-violating
+    namespace: s3
+  result: fail
+  rule: team-label-allowed
+  scored: true
+  source: kyverno
+  timestamp:
+    nanos: 0
+    seconds: 1789686010
+- message: mutated Deployment/web-passing in namespace s3
+  policy: add-default-securitycontext
+  properties:
+    process: admission review
+  resources:
+  - apiVersion: apps/v1
+    kind: Deployment
+    name: web-passing
+    namespace: s3
+  result: pass
+  rule: run-as-non-root
+  scored: true
+  source: kyverno
+  timestamp:
+    nanos: 0
+    seconds: 1789686010
+- message: mutated Deployment/legacy-app in namespace s3
+  policy: add-default-securitycontext
+  properties:
+    process: admission review
+  resources:
+  - apiVersion: apps/v1
+    kind: Deployment
+    name: legacy-app
+    namespace: s3
+  result: pass
+  rule: run-as-non-root
+  scored: true
+  source: kyverno
+  timestamp:
+    nanos: 0
+    seconds: 1789686010
+- message: label team=MISSING is not one of the allowed teams [platform,payments,search]
+    (ConfigMap s3/allowed-teams)
+  policy: vpol-require-team-label
+  properties:
+    cel.validationIndex: "0"
+    process: admission review
+  resources:
+  - apiVersion: apps/v1
+    kind: Deployment
+    name: legacy-app
+    namespace: s3
+  result: fail
+  scored: true
+  source: KyvernoValidatingPolicy
+  timestamp:
+    nanos: 0
+    seconds: 1789686010
+- message: protected Deployments may only be applied by the argocd service account
+    (group system:serviceaccounts:argocd); requester kubernetes-admin has groups ["kubeadm:cluster-admins","system:authenticated"]
+  policy: restrict-protected-deployer
+  properties:
+    process: admission review
+  resources:
+  - apiVersion: apps/v1
+    kind: Deployment
+    name: web-protected
+    namespace: s3
+  result: fail
+  rule: argocd-only
+  scored: true
+  source: kyverno
+  timestamp:
+    nanos: 0
+    seconds: 1789686010
+- message: validation rule 'team-label-allowed' passed.
+  policy: require-team-label
+  properties:
+    process: admission review
+  resources:
+  - apiVersion: apps/v1
+    kind: Deployment
+    name: web-too-many
+    namespace: s3
+  result: pass
+  rule: team-label-allowed
+  scored: true
+  source: kyverno
+  timestamp:
+    nanos: 0
+    seconds: 1789686010
+- message: success
+  policy: vpol-require-team-label
+  properties:
+    process: admission review
+  resources:
+  - apiVersion: apps/v1
+    kind: Deployment
+    name: web-too-many
+    namespace: s3
+  result: pass
+  scored: true
+  source: KyvernoValidatingPolicy
+  timestamp:
+    nanos: 0
+    seconds: 1789686010
+- policy: s3-replica-limit
+  properties:
+    binding: s3-replica-limit-binding
+    process: background scan
+  resources:
+  - apiVersion: apps/v1
+    kind: Deployment
+    name: web-violating
+    namespace: s3
+  result: pass
+  rule: s3-replica-limit
+  scored: true
+  source: ValidatingAdmissionPolicy
+  timestamp:
+    nanos: 0
+    seconds: 1789686010
+- message: validation rule 'team-label-allowed' passed.
+  policy: require-team-label
+  properties:
+    process: admission review
+  resources:
+  - apiVersion: apps/v1
+    kind: Deployment
+    name: web-passing
+    namespace: s3
+  result: pass
+  rule: team-label-allowed
+  scored: true
+  source: kyverno
+  timestamp:
+    nanos: 0
+    seconds: 1789686010
+- policy: s3-replica-limit
+  properties:
+    binding: s3-replica-limit-binding
+    process: background scan
+  resources:
+  - apiVersion: apps/v1
+    kind: Deployment
+    name: web-passing
+    namespace: s3
+  result: pass
+  rule: s3-replica-limit
+  scored: true
+  source: ValidatingAdmissionPolicy
+  timestamp:
+    nanos: 0
+    seconds: 1789686010
+- policy: s3-replica-limit
+  properties:
+    binding: s3-replica-limit-binding
+    process: background scan
+  resources:
+  - apiVersion: apps/v1
+    kind: Deployment
+    name: legacy-app
+    namespace: s3
+  result: pass
+  rule: s3-replica-limit
+  scored: true
+  source: ValidatingAdmissionPolicy
+  timestamp:
+    nanos: 0
+    seconds: 1789686010
+- message: mutated Deployment/web-too-many in namespace s3
+  policy: add-default-securitycontext
+  properties:
+    process: admission review
+  resources:
+  - apiVersion: apps/v1
+    kind: Deployment
+    name: web-too-many
+    namespace: s3
+  result: pass
+  rule: run-as-non-root
+  scored: true
+  source: kyverno
+  timestamp:
+    nanos: 0
+    seconds: 1789686010
+- message: replicas 5 exceeds maxReplicas 3 from ConfigMap replica-limits
+  policy: s3-replica-limit
+  properties:
+    binding: s3-replica-limit-binding
+    process: background scan
+  resources:
+  - apiVersion: apps/v1
+    kind: Deployment
+    name: web-too-many
+    namespace: s3
+  result: fail
+  rule: s3-replica-limit
+  scored: true
+  source: ValidatingAdmissionPolicy
+  timestamp:
+    nanos: 0
+    seconds: 1789686010
+source: ""
+summary:
+  error: 0
+  fail: 5
+  pass: 15
+  skip: 1
+  warn: 0
+

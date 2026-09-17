@@ -1,0 +1,20 @@
+# --values-file: overrides JMESPath context variables per policy rule and
+# declares namespace labels for namespaceSelector matching.
+apiVersion: cli.kyverno.io/v1alpha1
+kind: Values
+metadata:
+  name: s3-values
+policies:
+- name: require-team-label
+  rules:
+  - name: team-label-allowed
+    values:
+      allowedTeams:
+        data:
+          teams: platform,payments,search
+namespaceSelector:
+- name: s3
+  labels:
+    kubernetes.io/metadata.name: s3
+    environment: staging
+    team: platform

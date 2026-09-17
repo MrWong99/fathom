@@ -1,0 +1,29 @@
+# Spike fixture: (f) without spec.validationActions, to check what a
+# ValidatingPolicy enforces when the field is absent (the served CRD has no
+# default). The oracle denies (engine/testdata/vpol-no-validation-actions.server.txt).
+apiVersion: policies.kyverno.io/v1
+kind: ValidatingPolicy
+metadata:
+  name: vpol-default-action-probe
+spec:
+  failurePolicy: Fail
+  evaluation:
+    background:
+      enabled: false
+  matchConstraints:
+    namespaceSelector:
+      matchLabels:
+        kubernetes.io/metadata.name: s3
+    resourceRules:
+    - apiGroups: ["apps"]
+      apiVersions: ["v1"]
+      operations: ["CREATE", "UPDATE"]
+      resources: ["deployments"]
+  variables:
+  - name: allowedTeams
+    expression: "resource.get('v1', 'configmaps', 's3', 'allowed-teams').data.teams.split(',')"
+  - name: team
+    expression: "has(object.metadata.labels) && 'team' in object.metadata.labels ? object.metadata.labels['team'] : 'MISSING'"
+  validations:
+  - expression: "variables.team in variables.allowedTeams"
+    messageExpression: "'label team=' + variables.team + ' is not one of the allowed teams [' + variables.allowedTeams.join(',') + '] (ConfigMap s3/allowed-teams)'"

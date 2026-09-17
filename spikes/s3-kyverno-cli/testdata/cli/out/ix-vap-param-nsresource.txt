@@ -1,0 +1,4 @@
+
+Applying 1 policy rule(s) to 2 resource(s)...
+
+pass: 0, fail: 0, warn: 0, error: 1, skip: 0 

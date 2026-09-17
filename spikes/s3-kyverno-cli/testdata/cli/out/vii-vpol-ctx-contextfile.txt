@@ -1,0 +1,6 @@
+
+Applying 1 policy rule(s) to 1 resource(s)...
+policy vpol-require-team-label -> resource s3/Deployment/web-violating failed:
+1 -  label team=pirates is not one of the allowed teams [platform,payments,search] (ConfigMap s3/allowed-teams)
+
+pass: 0, fail: 1, warn: 0, error: 0, skip: 0 

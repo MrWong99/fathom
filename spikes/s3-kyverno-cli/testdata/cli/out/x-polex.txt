@@ -1,0 +1,6 @@
+Warning: policies/a-require-team-label.yaml: kyverno.io/v1 ClusterPolicy is deprecated and will be removed in a future release; migrate to ValidatingPolicy, MutatingPolicy, GeneratingPolicy or ImageValidatingPolicy (policies.kyverno.io), see https://kyverno.io/docs/guides/migration-to-cel/
+Warning: policies/e-polex-legacy-app.yaml: kyverno.io/v2 PolicyException is deprecated and will be removed in a future release; migrate to PolicyException (policies.kyverno.io), see https://kyverno.io/docs/guides/migration-to-cel/
+
+Applying 1 policy rule(s) to 2 resource(s) with 1 exception(s)...
+
+pass: 0, fail: 0, warn: 0, error: 0, skip: 1 

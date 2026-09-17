@@ -1,0 +1,24 @@
+# Spike fixture: a Deployment with the same metadata.name as
+# objects/passing-mutated.yaml in another namespace, to exercise the refusal of
+# duplicate names in the mutate pass (kyverno apply -o names files by name only).
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web-passing
+  namespace: other
+  labels:
+    app: web-passing
+    team: platform
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: web-passing
+  template:
+    metadata:
+      labels:
+        app: web-passing
+    spec:
+      containers:
+      - name: web
+        image: nginx:1.27

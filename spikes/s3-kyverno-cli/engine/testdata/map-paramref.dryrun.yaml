@@ -1,0 +1,50 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    kubectl.kubernetes.io/last-applied-configuration: |
+      {"apiVersion":"apps/v1","kind":"Deployment","metadata":{"annotations":{},"labels":{"app":"web-map","team":"platform"},"name":"web-map","namespace":"s3"},"spec":{"replicas":1,"selector":{"matchLabels":{"app":"web-map"}},"template":{"metadata":{"labels":{"app":"web-map"}},"spec":{"containers":[{"image":"nginx:1.27","name":"web","resources":{"requests":{"cpu":"10m","memory":"16Mi"}}}]}}}}
+  creationTimestamp: "2026-09-17T23:33:41Z"
+  generation: 1
+  labels:
+    app: web-map
+    fathom.dev/max-replicas: "3"
+    fathom.dev/mutated-by: add-default-securitycontext
+    team: platform
+  name: web-map
+  namespace: s3
+  uid: eecc21e5-cc1a-4056-b7d2-1cb9c7e2891b
+spec:
+  progressDeadlineSeconds: 600
+  replicas: 1
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      app: web-map
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: web-map
+    spec:
+      containers:
+      - image: nginx:1.27
+        imagePullPolicy: IfNotPresent
+        name: web
+        resources:
+          requests:
+            cpu: 10m
+            memory: 16Mi
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext:
+        runAsNonRoot: true
+      terminationGracePeriodSeconds: 30
+status: {}

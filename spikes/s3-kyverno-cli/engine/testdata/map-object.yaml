@@ -1,0 +1,28 @@
+# Spike fixture: a Deployment in s3 that passes every fixture policy and is
+# mutated by (b) and by the MutatingAdmissionPolicy (g). Its name is not used
+# by commands.sh so the oracle dry-run is a CREATE.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web-map
+  namespace: s3
+  labels:
+    app: web-map
+    team: platform
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: web-map
+  template:
+    metadata:
+      labels:
+        app: web-map
+    spec:
+      containers:
+      - name: web
+        image: nginx:1.27
+        resources:
+          requests:
+            cpu: 10m
+            memory: 16Mi

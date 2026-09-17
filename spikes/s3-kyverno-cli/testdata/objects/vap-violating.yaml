@@ -1,0 +1,25 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web-too-many
+  namespace: s3
+  labels:
+    app: web-too-many
+    team: platform
+spec:
+  replicas: 5
+  selector:
+    matchLabels:
+      app: web-too-many
+  template:
+    metadata:
+      labels:
+        app: web-too-many
+    spec:
+      containers:
+      - name: web
+        image: nginx:1.27
+        resources:
+          requests:
+            cpu: 10m
+            memory: 16Mi

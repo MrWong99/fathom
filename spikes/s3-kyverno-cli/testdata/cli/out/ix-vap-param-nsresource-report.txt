@@ -1,0 +1,30 @@
+apiVersion: openreports.io/v1alpha1
+kind: ClusterReport
+metadata:
+  name: merged
+results:
+- message: 'expression ''!has(object.spec.replicas) || object.spec.replicas <= variables.maxReplicas''
+    resulted in error: no such key: spec'
+  policy: s3-replica-limit
+  properties:
+    binding: s3-replica-limit-binding
+    process: background scan
+  resources:
+  - apiVersion: v1
+    kind: Namespace
+    name: s3
+  result: error
+  rule: s3-replica-limit
+  scored: true
+  source: ValidatingAdmissionPolicy
+  timestamp:
+    nanos: 0
+    seconds: 1789686007
+source: ""
+summary:
+  error: 1
+  fail: 0
+  pass: 0
+  skip: 0
+  warn: 0
+

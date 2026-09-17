@@ -1,0 +1,15 @@
+# Lets the impersonated argocd identity pass RBAC in s3 (impersonation is
+# authorised as the impersonated subject, so it needs its own bindings).
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: argocd-edit
+  namespace: s3
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: edit
+subjects:
+- kind: Group
+  apiGroup: rbac.authorization.k8s.io
+  name: system:serviceaccounts:argocd
