@@ -1,0 +1,5 @@
+services:
+  metrics:
+    image: prom/node-exporter:${NODE_EXPORTER_TAG:-v1.8.2}
+    ports:
+      - "${METRICS_PORT:-9100}:9100"

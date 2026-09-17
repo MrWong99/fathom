@@ -1,0 +1,371 @@
+[
+  {
+    "id": "99b84386eb63438f",
+    "severity": "Warning",
+    "message": "deploy.placement on service api is only honoured by Swarm; this host runs docker compose",
+    "engine": "compose-host",
+    "ruleId": "deploy-swarm-only",
+    "resource": {
+      "file": "compose.yaml",
+      "service": "api"
+    },
+    "instanceLocation": "/services/api/deploy/placement",
+    "keywordLocation": "/x-fathom-host/swarm",
+    "lineage": "none",
+    "admissionContext": {
+      "user": "docker compose",
+      "operation": "up"
+    },
+    "fidelity": {
+      "tier": "t0a",
+      "exactness": "exact",
+      "unobserved": [
+        "host:engine"
+      ]
+    },
+    "wouldFailAt": "runtime",
+    "side": "developer"
+  },
+  {
+    "id": "cad8f604bde59940",
+    "severity": "Warning",
+    "message": "deploy.update_config on service api is only honoured by Swarm; this host runs docker compose",
+    "engine": "compose-host",
+    "ruleId": "deploy-swarm-only",
+    "resource": {
+      "file": "compose.yaml",
+      "service": "api"
+    },
+    "instanceLocation": "/services/api/deploy/update_config",
+    "keywordLocation": "/x-fathom-host/swarm",
+    "lineage": "none",
+    "admissionContext": {
+      "user": "docker compose",
+      "operation": "up"
+    },
+    "fidelity": {
+      "tier": "t0a",
+      "exactness": "exact",
+      "unobserved": [
+        "host:engine"
+      ]
+    },
+    "wouldFailAt": "runtime",
+    "side": "developer"
+  },
+  {
+    "id": "d31fd408a0300cd1",
+    "severity": "Warning",
+    "message": "deploy.endpoint_mode on service worker is only honoured by Swarm; this host runs docker compose",
+    "engine": "compose-host",
+    "ruleId": "deploy-swarm-only",
+    "resource": {
+      "file": "compose.yaml",
+      "service": "worker"
+    },
+    "instanceLocation": "/services/worker/deploy/endpoint_mode",
+    "keywordLocation": "/x-fathom-host/swarm",
+    "lineage": "none",
+    "admissionContext": {
+      "user": "docker compose",
+      "operation": "up"
+    },
+    "fidelity": {
+      "tier": "t0a",
+      "exactness": "exact",
+      "unobserved": [
+        "host:engine"
+      ]
+    },
+    "wouldFailAt": "runtime",
+    "side": "developer"
+  },
+  {
+    "id": "b98da0ffe53e846e",
+    "severity": "Warning",
+    "message": "deploy.mode on service worker is only honoured by Swarm; this host runs docker compose",
+    "engine": "compose-host",
+    "ruleId": "deploy-swarm-only",
+    "resource": {
+      "file": "compose.yaml",
+      "service": "worker"
+    },
+    "instanceLocation": "/services/worker/deploy/mode",
+    "keywordLocation": "/x-fathom-host/swarm",
+    "lineage": "none",
+    "admissionContext": {
+      "user": "docker compose",
+      "operation": "up"
+    },
+    "fidelity": {
+      "tier": "t0a",
+      "exactness": "exact",
+      "unobserved": [
+        "host:engine"
+      ]
+    },
+    "wouldFailAt": "runtime",
+    "side": "developer"
+  },
+  {
+    "id": "ffb24de2555119a2",
+    "severity": "Info",
+    "message": "extension key x-depends-on is not in the contract's allow-list; docker compose ignores it",
+    "engine": "compose-contract",
+    "ruleId": "extension-unknown",
+    "policyRef": {
+      "name": "values.schema.json"
+    },
+    "resource": {
+      "file": "compose.yaml"
+    },
+    "instanceLocation": "/x-depends-on",
+    "keywordLocation": "/x-fathom-extensions",
+    "lineage": "none",
+    "admissionContext": {
+      "user": "docker compose",
+      "operation": "config"
+    },
+    "fidelity": {
+      "tier": "t0a",
+      "exactness": "exact",
+      "unobserved": []
+    },
+    "wouldFailAt": "runtime",
+    "side": "developer"
+  },
+  {
+    "id": "01e27d73c63257e9",
+    "severity": "Warning",
+    "message": "DEBUG is not set; service api in compose.override.yaml uses the default \"true\"",
+    "engine": "compose-interpolation",
+    "ruleId": "variable-default-used",
+    "resource": {
+      "file": "compose.override.yaml",
+      "service": "api"
+    },
+    "instanceLocation": "",
+    "keywordLocation": "/properties/DEBUG",
+    "valuesPointer": "/DEBUG",
+    "layer": ".env",
+    "source": {
+      "file": "compose.override.yaml",
+      "line": 5,
+      "col": 14
+    },
+    "lineage": "targets",
+    "admissionContext": {
+      "user": "docker compose",
+      "operation": "config"
+    },
+    "fidelity": {
+      "tier": "t0a",
+      "exactness": "exact",
+      "unobserved": []
+    },
+    "wouldFailAt": "runtime",
+    "side": "deployer",
+    "proposedValue": "true"
+  },
+  {
+    "id": "eb1f01e061d71109",
+    "severity": "Warning",
+    "message": "METRICS_PORT is not set; service metrics in compose.monitoring.yaml uses the default \"9100\"",
+    "engine": "compose-interpolation",
+    "ruleId": "variable-default-used",
+    "resource": {
+      "file": "compose.monitoring.yaml",
+      "service": "metrics"
+    },
+    "instanceLocation": "",
+    "keywordLocation": "/properties/METRICS_PORT",
+    "valuesPointer": "/METRICS_PORT",
+    "layer": ".env",
+    "source": {
+      "file": "compose.monitoring.yaml",
+      "line": 5,
+      "col": 10
+    },
+    "lineage": "targets",
+    "admissionContext": {
+      "user": "docker compose",
+      "operation": "config"
+    },
+    "fidelity": {
+      "tier": "t0a",
+      "exactness": "exact",
+      "unobserved": []
+    },
+    "wouldFailAt": "runtime",
+    "side": "deployer",
+    "proposedValue": "9100"
+  },
+  {
+    "id": "eb69a28e95d5b710",
+    "severity": "Warning",
+    "message": "NODE_EXPORTER_TAG is not set; service metrics in compose.monitoring.yaml uses the default \"v1.8.2\"",
+    "engine": "compose-interpolation",
+    "ruleId": "variable-default-used",
+    "resource": {
+      "file": "compose.monitoring.yaml",
+      "service": "metrics"
+    },
+    "instanceLocation": "",
+    "keywordLocation": "/properties/NODE_EXPORTER_TAG",
+    "valuesPointer": "/NODE_EXPORTER_TAG",
+    "layer": ".env",
+    "source": {
+      "file": "compose.monitoring.yaml",
+      "line": 3,
+      "col": 31
+    },
+    "lineage": "targets",
+    "admissionContext": {
+      "user": "docker compose",
+      "operation": "config"
+    },
+    "fidelity": {
+      "tier": "t0a",
+      "exactness": "exact",
+      "unobserved": []
+    },
+    "wouldFailAt": "runtime",
+    "side": "deployer",
+    "proposedValue": "v1.8.2"
+  },
+  {
+    "id": "ea78b51377dd98e1",
+    "severity": "Warning",
+    "message": "QUEUE_NAME is not set; service worker in compose.yaml uses the default \"orders\"",
+    "engine": "compose-interpolation",
+    "ruleId": "variable-default-used",
+    "resource": {
+      "file": "compose.yaml",
+      "service": "worker"
+    },
+    "instanceLocation": "",
+    "keywordLocation": "/properties/QUEUE_NAME",
+    "valuesPointer": "/QUEUE_NAME",
+    "layer": ".env",
+    "source": {
+      "file": "compose.yaml",
+      "line": 54,
+      "col": 14
+    },
+    "lineage": "targets",
+    "admissionContext": {
+      "user": "docker compose",
+      "operation": "config"
+    },
+    "fidelity": {
+      "tier": "t0a",
+      "exactness": "exact",
+      "unobserved": []
+    },
+    "wouldFailAt": "runtime",
+    "side": "deployer",
+    "proposedValue": "orders"
+  },
+  {
+    "id": "c4976194f2c0f3b2",
+    "severity": "Blocking",
+    "message": "required variable API_TAG is not set; service api in compose.yaml will fail at `docker compose config`",
+    "engine": "compose-contract",
+    "ruleId": "variable-required-unset",
+    "policyRef": {
+      "name": "values.schema.json"
+    },
+    "resource": {
+      "file": "compose.yaml",
+      "service": "api"
+    },
+    "instanceLocation": "",
+    "keywordLocation": "/required",
+    "valuesPointer": "/API_TAG",
+    "layer": ".env",
+    "source": {
+      "file": "compose.yaml",
+      "line": 12,
+      "col": 44
+    },
+    "lineage": "targets",
+    "admissionContext": {
+      "user": "docker compose",
+      "operation": "config"
+    },
+    "fidelity": {
+      "tier": "t0a",
+      "exactness": "exact",
+      "unobserved": []
+    },
+    "wouldFailAt": "schema",
+    "side": "deployer"
+  },
+  {
+    "id": "05a3bdd109c0b839",
+    "severity": "Blocking",
+    "message": "required variable API_TAG is not set; service worker in compose.yaml will fail at `docker compose config`",
+    "engine": "compose-contract",
+    "ruleId": "variable-required-unset",
+    "policyRef": {
+      "name": "values.schema.json"
+    },
+    "resource": {
+      "file": "compose.yaml",
+      "service": "worker"
+    },
+    "instanceLocation": "",
+    "keywordLocation": "/required",
+    "valuesPointer": "/API_TAG",
+    "layer": ".env",
+    "source": {
+      "file": "compose.yaml",
+      "line": 51,
+      "col": 47
+    },
+    "lineage": "targets",
+    "admissionContext": {
+      "user": "docker compose",
+      "operation": "config"
+    },
+    "fidelity": {
+      "tier": "t0a",
+      "exactness": "exact",
+      "unobserved": []
+    },
+    "wouldFailAt": "schema",
+    "side": "deployer"
+  },
+  {
+    "id": "b76fc29b0fe07d23",
+    "severity": "Blocking",
+    "message": "SMTP_HOST is not set and has no default; docker compose substitutes an empty string in service api in compose.yaml",
+    "engine": "compose-interpolation",
+    "ruleId": "variable-unset-empty",
+    "resource": {
+      "file": "compose.yaml",
+      "service": "api"
+    },
+    "instanceLocation": "",
+    "keywordLocation": "/properties/SMTP_HOST",
+    "valuesPointer": "/SMTP_HOST",
+    "layer": ".env",
+    "source": {
+      "file": "compose.yaml",
+      "line": 17,
+      "col": 18
+    },
+    "lineage": "targets",
+    "admissionContext": {
+      "user": "docker compose",
+      "operation": "config"
+    },
+    "fidelity": {
+      "tier": "t0a",
+      "exactness": "exact",
+      "unobserved": []
+    },
+    "wouldFailAt": "runtime",
+    "side": "deployer"
+  }
+]

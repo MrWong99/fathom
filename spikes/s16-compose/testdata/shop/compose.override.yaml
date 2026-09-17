@@ -1,0 +1,7 @@
+# Developer overrides; picked up automatically by docker compose.
+services:
+  api:
+    environment:
+      DEBUG: ${DEBUG:-true}
+    ports: !override
+      - "18080:8080"

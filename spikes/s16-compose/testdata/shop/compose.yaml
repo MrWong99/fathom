@@ -1,0 +1,60 @@
+# Shop stack. Deployed on customer hosts with docker compose (no Swarm).
+name: shop
+
+include:
+  - compose.monitoring.yaml
+
+x-fathom-owner: team-shop          # known extension: allowed
+x-depends-on: db                   # typo of depends_on: unknown extension
+
+services:
+  api:
+    image: ${REGISTRY:-docker.io}/shop/api:${API_TAG:?API_TAG must be set}
+    env_file:
+      - .env
+    environment:
+      DATABASE_URL: postgres://shop:${DB_PASSWORD:?}@db:5432/shop
+      SMTP_HOST: ${SMTP_HOST}
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+    ports:
+      - "${API_PORT:-8080}:8080"
+    volumes:
+      - ${DATA_DIR:?DATA_DIR must point at the persistent volume}:/data
+    depends_on:
+      db:
+        condition: service_healthy
+    deploy:
+      replicas: 2
+      resources:
+        limits:
+          memory: 512M
+      placement:
+        constraints:
+          - node.role == worker
+      update_config:
+        parallelism: 1
+    x-fathom-persona: deployer
+
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?}
+      POSTGRES_USER: shop
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U shop"]
+      interval: 5s
+      retries: 10
+
+  worker:
+    image: ${REGISTRY:-docker.io}/shop/worker:${API_TAG:?API_TAG must be set}
+    profiles: [batch]
+    environment:
+      QUEUE: ${QUEUE_NAME:-orders}
+    deploy:
+      mode: global
+      endpoint_mode: dnsrr
+
+volumes:
+  pgdata: {}
