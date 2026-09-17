@@ -1,0 +1,35 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "parent values",
+  "type": "object",
+  "x-fathom-persona": "deployer",
+  "properties": {
+    "global": { "type": "object" },
+    "child": {
+      "type": "object",
+      "properties": { "enabled": { "type": "boolean" }, "replicas": { "type": "integer", "minimum": 1 } }
+    },
+    "persistence": {
+      "type": "object",
+      "properties": {
+        "enabled": { "type": "boolean", "default": true },
+        "storageClass": { "type": "string", "x-fathom-cluster-ref": "storageclass" },
+        "size": { "$ref": "#/$defs/quantity" }
+      },
+      "dependentRequired": { "storageClass": ["size"] },
+      "unevaluatedProperties": false
+    },
+    "ingress": {
+      "type": "object",
+      "properties": { "enabled": { "type": "boolean" }, "host": { "type": "string" } },
+      "if": { "properties": { "enabled": { "const": true } }, "required": ["enabled"] },
+      "then": { "properties": { "host": { "minLength": 1 } }, "required": ["host"] },
+      "x-fathom-show-if": "values.ingress.enabled"
+    },
+    "password": { "type": "string", "x-fathom-secret": true }
+  },
+  "$defs": {
+    "quantity": { "type": "string", "pattern": "^[0-9]+(Ki|Mi|Gi|Ti)$", "x-fathom-unit": "bytes" }
+  },
+  "additionalProperties": true
+}

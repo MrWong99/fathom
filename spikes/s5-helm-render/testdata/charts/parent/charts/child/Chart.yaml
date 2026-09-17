@@ -1,0 +1,4 @@
+apiVersion: v2
+name: child
+version: 0.1.0
+description: S5 fixture subchart with its own 2020-12 schema

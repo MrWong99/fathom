@@ -1,0 +1,33 @@
+{{- $existing := lookup "v1" "Secret" .Release.Namespace "existing" }}
+{{- $ca := genCA "parent-ca" 365 }}
+{{- $cert := genSelfSignedCert "parent.example.com" (list "10.0.0.1") (list "parent.svc") 365 }}
+{{- $signed := genSignedCert "parent.example.com" nil (list "parent.svc") 365 $ca }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-parent
+  namespace: {{ .Release.Namespace }}
+data:
+  kubeVersion: {{ .Capabilities.KubeVersion.Version | quote }}
+  kubeMinor: {{ .Capabilities.KubeVersion.Minor | quote }}
+  hasRoute: {{ .Capabilities.APIVersions.Has "route.openshift.io/v1" | quote }}
+  hasServiceMonitor: {{ .Capabilities.APIVersions.Has "monitoring.coreos.com/v1" | quote }}
+  existingSecret: {{ if $existing }}{{ index $existing.data "password" | quote }}{{ else }}"none"{{ end }}
+  {{- $secrets := lookup "v1" "Secret" .Release.Namespace "" }}
+  secretCount: {{ if $secrets }}{{ len $secrets.items | quote }}{{ else }}"0"{{ end }}
+  storageClass: {{ .Values.persistence.storageClass | quote }}
+  generated: {{ randAlphaNum 16 | quote }}
+  generated2: {{ randAlphaNum 16 | quote }}
+  alpha: {{ randAlpha 8 | quote }}
+  numeric: {{ randNumeric 6 | quote }}
+  uuid: {{ uuidv4 | quote }}
+  renderedAt: {{ now | date "2006-01-02T15:04:05Z07:00" | quote }}
+  derived: {{ derivePassword 1 "long" "master" "user" "example.com" | quote }}
+  caCertSha: {{ $ca.Cert | sha256sum | quote }}
+  certSha: {{ $cert.Cert | sha256sum | quote }}
+  signedSha: {{ $signed.Cert | sha256sum | quote }}
+  bcrypt: {{ "secret" | bcrypt | quote }}
+  htpasswd: {{ htpasswd "user" "secret" | quote }}
+  randInt: {{ randInt 1 1000 | quote }}
+  shuffled: {{ shuffle "abcdefgh" | quote }}
+  randBytes: {{ randBytes 12 | quote }}

@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-child
+  namespace: {{ .Release.Namespace }}
+data:
+  replicas: {{ .Values.replicas | quote }}
+  registry: {{ .Values.global.imageRegistry | quote }}
+  kubeVersion: {{ .Capabilities.KubeVersion.Version | quote }}

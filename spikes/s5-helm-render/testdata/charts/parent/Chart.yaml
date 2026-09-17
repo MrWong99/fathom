@@ -1,0 +1,10 @@
+apiVersion: v2
+name: parent
+version: 0.1.0
+appVersion: "1.0"
+description: S5 fixture; exercises Capabilities, lookup, every non-deterministic function and a 2020-12 schema with a subchart schema
+dependencies:
+  - name: child
+    version: 0.1.0
+    condition: child.enabled
+icon: https://fathom.dev/icon.svg

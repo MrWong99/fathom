@@ -1,0 +1,67 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "redis values contract (fathom S5 fixture)",
+  "type": "object",
+  "x-fathom-contract": { "version": 1 },
+  "properties": {
+    "architecture": {
+      "type": "string",
+      "enum": ["standalone", "replication"],
+      "x-fathom-persona": "deployer"
+    },
+    "image": {
+      "type": "object",
+      "properties": {
+        "registry": { "type": "string", "x-fathom-cluster-ref": "registry" },
+        "repository": { "type": "string" },
+        "tag": { "type": "string" }
+      }
+    },
+    "auth": {
+      "type": "object",
+      "properties": {
+        "enabled": { "type": "boolean" },
+        "password": { "type": "string", "x-fathom-secret": true },
+        "existingSecret": { "type": "string", "x-fathom-cluster-ref": "secret" },
+        "existingSecretPasswordKey": { "type": "string", "x-fathom-cluster-ref": "secret-key" }
+      },
+      "dependentSchemas": {
+        "existingSecretPasswordKey": { "required": ["existingSecret"] }
+      }
+    },
+    "master": {
+      "type": "object",
+      "properties": {
+        "persistence": {
+          "type": "object",
+          "properties": {
+            "enabled": { "type": "boolean" },
+            "storageClass": {
+              "type": "string",
+              "x-fathom-cluster-ref": "storageclass",
+              "x-fathom-targets": [
+                { "kind": "StatefulSet", "name": "*-master", "pointer": "/spec/volumeClaimTemplates/0/spec/storageClassName" }
+              ]
+            },
+            "size": { "$ref": "#/$defs/quantity" }
+          }
+        }
+      }
+    },
+    "replica": {
+      "type": "object",
+      "properties": {
+        "replicaCount": { "type": "integer", "minimum": 0, "x-fathom-show-if": "values.architecture == 'replication'" }
+      }
+    },
+    "metrics": {
+      "type": "object",
+      "properties": { "enabled": { "type": "boolean" } },
+      "x-fathom-advanced": true
+    }
+  },
+  "$defs": {
+    "quantity": { "type": "string", "pattern": "^[0-9]+(Ki|Mi|Gi|Ti)$", "x-fathom-unit": "bytes" }
+  },
+  "additionalProperties": true
+}

@@ -1,0 +1,13 @@
+global:
+  imageRegistry: ""
+child:
+  enabled: true
+  replicas: 1
+persistence:
+  enabled: true
+  storageClass: ""
+  size: 8Gi
+ingress:
+  enabled: false
+  host: ""
+password: ""
