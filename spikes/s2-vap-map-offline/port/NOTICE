@@ -1,0 +1,48 @@
+Spike S2: files in this directory are copies of unexported symbols from
+k8s.io/apiserver v0.37.0 (Apache License 2.0, Copyright The Kubernetes Authors).
+The Apache-2.0 header is kept on every file. Each copied range is listed here so
+the copied line count and the refresh burden per Kubernetes minor are visible.
+Only mechanical edits were made: unexported identifiers exported, package-local
+references qualified with the upstream package, and the lazily initialised
+composition environment replaced by a caller-supplied *environment.EnvSet.
+
+Base: /home/luk/go/pkg/mod/k8s.io/apiserver@v0.37.0/pkg/admission
+
+Counting rule: "lines" is the length of the upstream range (blank and comment
+lines inside it included); ranges do not overlap. A range starts at the
+declaration, except compilation.go:31 which starts at compilePolicy's doc
+comment (the "65-line compilePolicy" quoted in RESULT.md). Doc comments that
+precede a range (e.g. reinvocation.go:31-34) are carried in the copy but not
+counted. Exported upstream symbols that sit between copied ranges
+(validating.ValidationFailureValue, dispatcher.go:358-366) are used from the
+upstream package, not copied.
+
+file                 upstream symbol                                             upstream file:lines                              lines
+vap_compile.go       validating.compilePolicy                                    plugin/policy/validating/plugin.go:147-181          35
+vap_compile.go       validating.convertv1Validations                             plugin/policy/validating/plugin.go:183-194          12
+vap_compile.go       validating.convertv1MessageExpressions                      plugin/policy/validating/plugin.go:196-207          12
+vap_compile.go       validating.convertv1AuditAnnotations                        plugin/policy/validating/plugin.go:209-219          11
+vap_compile.go       validating.convertv1beta1Variables                          plugin/policy/validating/plugin.go:221-227           7
+vap_dispatch.go      validating.dispatcher (struct), NewDispatcher,
+                     policyDecisionWithMetadata (61-65), Start (67-69)           plugin/policy/validating/dispatcher.go:42-69        28
+vap_dispatch.go      validating.dispatcher.Dispatch                              plugin/policy/validating/dispatcher.go:72-320      249
+vap_dispatch.go      validating.maxValidationFailures (325) +
+                     publishValidationFailureAnnotations (327-346)               plugin/policy/validating/dispatcher.go:322-346      25
+vap_dispatch.go      validating.formatPoliciesBindings                           plugin/policy/validating/dispatcher.go:348-354       7
+vap_dispatch.go      validating.maxAuditAnnotationValueLength                    plugin/policy/validating/dispatcher.go:356           1
+vap_dispatch.go      validating.auditAnnotationCollector (+methods)              plugin/policy/validating/dispatcher.go:368-401      34
+vap_dispatch.go      validating.wrappedParam (+methods)                          plugin/policy/validating/dispatcher.go:403-446      44
+vap_dispatch.go      validating.reasonToCode                                     plugin/policy/validating/policy_decision.go:73-87   15
+map_compile.go       mutating.compilePolicy (doc comment 31-35, func 36-82)      plugin/policy/mutating/compilation.go:31-82         52
+map_compile.go       mutating.convertV1Variables                                 plugin/policy/mutating/compilation.go:84-96         13
+map_dispatch.go      mutating.NewDispatcher (46-59) + dispatcher (struct, 61-66)
+                     (Start, 68-71, is not copied)                               plugin/policy/mutating/dispatcher.go:46-66          21
+map_dispatch.go      mutating.dispatcher.dispatchInvocations                     plugin/policy/mutating/dispatcher.go:73-227        155
+map_dispatch.go      mutating.dispatcher.dispatchOne                             plugin/policy/mutating/dispatcher.go:229-277        49
+map_dispatch.go      mutating.keyFor                                             plugin/policy/mutating/dispatcher.go:279-305        27
+map_reinvoke.go      mutating.key, mutating.policyReinvokeContext                plugin/policy/mutating/reinvocationcontext.go:26-76 51
+reinvoker.go         admission.reinvoker.Admit (doc comment 31-34 carried)       reinvocation.go:35-51                               17
+                                                                                                                              total 865
+
+Per file: vap_compile.go 77, vap_dispatch.go 403, map_compile.go 65,
+map_dispatch.go 252, map_reinvoke.go 51, reinvoker.go 17.
