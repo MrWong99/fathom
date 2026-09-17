@@ -1,0 +1,19 @@
+# yaml-language-server: $schema=../../.fathom/schema.eu-prod.json
+# eu-prod overrides. Only what differs from common/values.yaml belongs here.
+
+auth:
+  existingSecret: redis-eu-prod   # ref://vault/shop/eu-prod#redis
+
+master:
+  persistence:
+    storageClass: ocs-storagecluster-ceph-rbd
+    size: 20Gi
+
+replica:
+  replicaCount: 3
+  tolerations: null       # prod nodes are not tainted: drop the common toleration
+
+metrics:
+  enabled: true
+  serviceMonitor:
+    enabled: true

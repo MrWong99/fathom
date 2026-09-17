@@ -1,0 +1,64 @@
+# yaml-language-server: $schema=../.fathom/schema.partial.json
+# Common values for redis across all environments.
+# Owner: platform team. Environment layers override single leaves only.
+
+x-defaults: &resources          # anchor reused by master and replica
+  requests:
+    cpu: 100m
+    memory: 128Mi
+  limits:
+    cpu: 500m           # keep in sync with the LimitRange in prod
+    memory: 512Mi
+
+architecture: replication
+
+image:
+  registry: docker.io
+  repository: bitnami/redis
+  tag: "8.2.1"          # @schema type:string
+
+auth:
+  enabled: true
+  existingSecret: ""    # set per environment; fathom refuses literal passwords
+
+
+master:
+  resources: *resources
+  persistence:
+    enabled: true
+    storageClass: ""    # empty = cluster default
+    size: 8Gi
+  podLabels:
+    app.kubernetes.io/part-of: shop
+  extraFlags: []
+
+replica:
+  replicaCount: 1
+  resources:
+    <<: *resources
+    limits:
+      cpu: '1'
+      memory: 1Gi
+  tolerations:
+    - key: dedicated
+      operator: Equal
+      value: cache
+      effect: NoSchedule
+
+metrics:
+  enabled: false
+  serviceMonitor:
+    enabled: false
+
+commonAnnotations:
+  description: >-
+    Redis for the shop, shared between the order and cart services;
+    contact the platform team before changing memory limits.
+  mode: "NO"            # quoted on purpose: YAML 1.1 would read NO as false
+
+initScript: |
+  #!/bin/sh
+  # keep this comment: it is part of the script, not YAML
+  echo "starting"
+
+# trailing comment at the end of the file

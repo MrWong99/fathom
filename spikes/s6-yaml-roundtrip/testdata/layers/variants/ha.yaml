@@ -1,0 +1,6 @@
+# HA variant: sits between common and the environment layer.
+replica:
+  replicaCount: 2
+master:
+  persistence:
+    size: 16Gi
