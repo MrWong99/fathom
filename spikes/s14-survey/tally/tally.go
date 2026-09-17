@@ -10,6 +10,7 @@ import (
 	"encoding/csv"
 	"fmt"
 	"io"
+	"regexp"
 	"sort"
 	"strconv"
 	"strings"
@@ -53,11 +54,31 @@ func ReadCSV(r io.Reader) ([]Response, error) {
 		}
 		resp := Response{}
 		for j, v := range row {
-			resp[strings.TrimSpace(head[j])] = strings.TrimSpace(v)
+			resp[HeaderID(head[j])] = strings.TrimSpace(v)
 		}
 		out = append(out, resp)
 	}
 	return out, nil
+}
+
+var idPattern = regexp.MustCompile(`\b([A-E][0-9]+(?:\.[A-Za-z0-9_-]+)?)\b`)
+
+// HeaderID reduces an export column header to its question ID. Google Forms
+// exports a grid as "Question title [Row label]" and a plain question as its
+// title, so the form is built with the ID at the start of every title and
+// row label ("B1.3 Rendered manifest rejected ..."); the ID inside the
+// brackets wins, then the leading ID of the title, then the raw header.
+func HeaderID(h string) string {
+	h = strings.TrimSpace(h)
+	if i := strings.LastIndex(h, "["); i >= 0 {
+		if m := idPattern.FindStringSubmatch(h[i:]); m != nil {
+			return m[1]
+		}
+	}
+	if m := idPattern.FindStringSubmatch(h); m != nil && strings.HasPrefix(h, m[1]) {
+		return m[1]
+	}
+	return h
 }
 
 // frequencyWeight maps a B1 grid answer to the rule-1 weight.

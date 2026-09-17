@@ -142,6 +142,35 @@ func TestSurveyMentionsEveryID(t *testing.T) {
 	}
 }
 
+func TestHeaderIDHandlesGoogleFormsExport(t *testing.T) {
+	t.Parallel()
+	cases := map[string]string{
+		"B1.3": "B1.3",
+		"B1 Wie oft ... [B1.3 Manifest abgelehnt]":    "B1.3",
+		"B2 Wo entdeckt? [B2.17 Docker Compose: ...]": "B2.17",
+		"C1.2 Distribution (Kunde 2)":                 "C1.2",
+		"B3.first Teuerste Fehlerart":                 "B3.first",
+		"D6.registry ... Registry":                    "D6.registry",
+		"Zeitstempel":                                 "Zeitstempel",
+		"A1 Rolle":                                    "A1",
+	}
+	for in, want := range cases {
+		if got := HeaderID(in); got != want {
+			t.Errorf("HeaderID(%q) = %q, want %q", in, got, want)
+		}
+	}
+	rs, err := ReadCSV(strings.NewReader("Zeitstempel,A1 Rolle,\"B1 Grid [B1.10 Referenz fehlt]\",\"B2 Grid [B2.10 Referenz fehlt]\",B3.first x\n2026-09-18,Consultant,About weekly,The customer noticed first,10\n"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if rs[0]["A1"] != "Consultant" || rs[0]["B1.10"] != "About weekly" || rs[0]["B3.first"] != "10" {
+		t.Errorf("google forms header mapping failed: %v", rs[0])
+	}
+	if got := BacklogOrder(rs)[0]; got.Kind != 10 || got.Score != 16 {
+		t.Errorf("kind 10 from forms export = %+v, want score 16 (weekly 4 x customer 4)", got)
+	}
+}
+
 func TestMarkdownRenders(t *testing.T) {
 	t.Parallel()
 	md := Markdown(load(t))
