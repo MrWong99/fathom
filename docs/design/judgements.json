@@ -1,0 +1,449 @@
+[
+ {
+  "lens": "PERSONA AND ADOPTION \u2014 a consultant who deploys other people's Helm charts into customer OpenShift/AKS/EKS clusters and mentors developers who want to deploy themselves. Judged on: does it remove my daily pain (SCC/UID, quota, PSA, missing StorageClass/IngressClass/Secret, policy denials found 40 minutes after merge), would I trust it on a customer site, how long until first value with no developer cooperation, is the transition story real, and does the UI/CLI split match how consultants (form + pickers, offline at the customer) and developers (CLI, CI, editor) actually work.",
+  "scores": [
+   {
+    "proposal": "pr-native",
+    "pain_removal": 9,
+    "persona_fit": 9,
+    "gitops_fit": 9,
+    "feasibility": 6,
+    "plugin_depth": 9,
+    "differentiation": 8,
+    "total": 50,
+    "fatal_flaws": [
+     "MVP scope (\u00a710) includes Compose with a Docker-API host snapshot, an OpenShift profile, an RJSF island, cosign verification, and both zhi ui and zhi check in 5\u20137 months for 1\u20132 people; the \u00a713 half-time list is honest but the headline MVP is not \u2014 first value for a consultant slips if Compose is not cut on day one.",
+     "\u00a713 cuts the local UI first. For a developer that is fine; for a supporter who does not know the chart, the form is the only surface that tells them what is configurable. If the UI is cut, the deployer half of the persona brief is served by a yaml-language-server modeline, which is a developer tool.",
+     "No deployer-side contract location for charts the consultant does not own (Bitnami, vendor charts). \u00a72 says zhi 'offers to write it back' to the chart \u2014 a consultant cannot push to the vendor's repo. The synthesized schema needs a home in the GitOps repo, unstated."
+    ],
+    "best_ideas_to_graft": [
+     "\u00a72 closing paragraph: map report \u00a73.1 failure classes to the persona that stops paying for each \u2014 the clearest adoption argument in the set; put it on the landing page.",
+     "\u00a74.6: findings with no values pointer are tagged 'developer-side' with template file:line \u2014 tells the consultant 'not yours to fix, send it back across the border'; this is the split made operational.",
+     "\u00a74.2 step 5: zhi check re-validates every environment whose files changed and refuses to clear Blocking on a snapshot older than maxAge \u2014 the bot is the product for CI-first shops.",
+     "\u00a74.2 step 6 / \u00a76 Post-merge: zhi feedback comments the controller outcome on the merged PR and records 'caught pre-push vs would have failed at' \u2014 the trust-building loop for skeptical customers.",
+     "\u00a75 (c): zhiStorageClassCapability via CSIDriver and zhiQuotaHeadroom analyzers referencing chosen values \u2014 the two checks I hit most that Troubleshoot lacks.",
+     "\u00a76: allowDirectPush per environment, default off, and the documented Argo/Flux values precedence tables.",
+     "\u00a74.3 step 12: SCC ConstraintAppliesTo through the snapshot-backed authorizer on OpenShift."
+    ],
+    "rationale": "This is the one that speaks my language: '\u00a71: this PVC will hang: no RWX-capable StorageClass in eu-prod' and 'restricted-v2 SCC will reject runAsUser: 1000' are the two sentences I say to customers weekly. \u00a72 is the best persona section on the panel \u2014 it names what each side stops paying for, hides x-zhi-advanced by default, phrases findings against the field the deployer touched with the policy cited, and treats the DevOps transition as a CODEOWNERS change, not a migration. \u00a76 is the most detailed GitOps integration (Argo precedence, Flux valuesFrom order, hydrateTo as read path, gitops-promoter CommitStatus, Kargo http step, branch protection on zhi check). Fidelity is honest (\u00a74.5: never 'will apply', badges for unobservables, T2 labelled separately, T1 explicitly out). One OpenShift-candidate profile is in the MVP (\u00a710 item 3), which matters more to me than anything else. What holds it at 6 on feasibility is that the stated MVP is the widest here after engine-first; if the owner takes \u00a713 literally from day one (bot first, UI second, no Compose) it becomes the most shippable proposal on the panel."
+   },
+   {
+    "proposal": "engine-first",
+    "pain_removal": 9,
+    "persona_fit": 8,
+    "gitops_fit": 9,
+    "feasibility": 6,
+    "plugin_depth": 9,
+    "differentiation": 8,
+    "total": 49,
+    "fatal_flaws": [
+     "\u00a710 phase 1 is ~8 months for two people, 12+ for one, and bundles Compose T0, T2, GitHub and GitLab, pre-commit hook, one profile, RJSF island \u2014 the longest road to first value on the panel. The ~35k Go + 3k TS estimate is the largest; nothing consultant-facing ships before month 6 unless \u00a713 is applied.",
+     "A Node build step (\u00a74.6) in a Go-only repo owned by 1\u20132 people is a maintenance tax the proposal admits (\u00a711) but does not bound; the committed dist/ check is the right mitigation but it still needs someone who owns the JS.",
+     "The thesis (\u00a71) is written for the engineer who runs helm template | kubeconform | kyverno apply \u2014 the deployer persona is 'a thin skin' in the opening paragraph, and only \u00a713 item 10 restores the form to first-class. A consultant reading \u00a71 will think this is a CI linter."
+    ],
+    "best_ideas_to_graft": [
+     "\u00a713 item 10: 'the form is what consultants need and is the last thing I would remove, not the first' \u2014 the correct cut order for this company; graft it into whichever proposal wins.",
+     "\u00a74.1: pkg/pipeline.Validate as a pure function of committed inputs plus a versioned snapshot, so pre-commit, CI, UI, LSP and MCP emit a byte-identical report digest \u2014 this is what lets a customer's platform team trust the consultant's laptop.",
+     "\u00a74.6: conditional visibility computed server-side in CEL and returned as a visibility map, so the browser never runs a second expression language (the Rancher Ember/Jexl divergence cannot recur).",
+     "\u00a74.3 step 7: on OpenShift, inject the project-request template's quota/LimitRange/NetworkPolicy before validating a PR that creates a namespace \u2014 a failure I hit every new tenant.",
+     "\u00a75: sc.rwxCapable derived from CSIDriver where reported and 'unknown' (Warning) otherwise \u2014 honest, and exactly the RWX trap.",
+     "\u00a74.7: exit-code contract (0 clean, 1 Blocking, --warn-exit-code, \u22653 tool error) and exporters so platform teams keep their existing kubeconform/kyverno CI steps while adopting the snapshot.",
+     "\u00a711 S11: practitioner survey on failure-class frequency before ordering the check backlog."
+    ],
+    "rationale": "On pain removal this is at least the equal of pr-native: the 17-step chain (\u00a74.3) is the most complete, includes OpenShift project-template injection and workload expansion, ships one profile in phase 1, T2 as a delta, and the giterminism guarantee (\u00a74.1) means green on my laptop is green in the customer's pipeline \u2014 that is the property that makes a customer security team accept a consultant-run tool. \u00a72 handles the transition with CODEOWNERS and separately signed halves for regulated buyers. The persona fit is real but voiced wrong: \u00a71 sells to the engineer, and the form for consultants only becomes first-class in \u00a713. Feasibility is the weakest point: the phase-1 scope and 8-month estimate mean the consultants at this company see nothing for two quarters unless the owner forces the \u00a713 order from the start. Ranked second because its engineering discipline (deterministic report, form-last cut order, honest 'unknown' handling) is what I would graft into pr-native."
+   },
+   {
+    "proposal": "fleet-and-evidence",
+    "pain_removal": 8,
+    "persona_fit": 9,
+    "gitops_fit": 9,
+    "feasibility": 5,
+    "plugin_depth": 8,
+    "differentiation": 9,
+    "total": 48,
+    "fatal_flaws": [
+     "Tier 2 live dry-run is phase 2 (\u00a710). For a consultant who does have a kubeconfig on-site, the live check is the calibration oracle that tells me whether the T0 emulation can be trusted on this customer's cluster; shipping v1 without it asks for trust before earning it. Every other proposal has T2 in v1.",
+     "\u00a710 'first four months producing the CLI-only vertical slice before any UI' plus 7\u20139 months to MVP: the deployer form \u2014 the surface the supporter persona actually uses \u2014 arrives last and latest. The 22\u201328k LOC estimate for evidence + FIPS + SBOM + air-gap + two matrices + OpenShift SCC emulation + JSON Forms is not credible against the other proposals' 28\u201335k for less; this is an under-estimate, not a small MVP.",
+     "Package identity is 'OCI ref + digest' with zhi package publish (\u00a72, \u00a73). Consultants deploy charts from Helm repos and vendor tarballs they do not control; there is no stated path for a git-path or repo-chart package without wrapping it into OCI first.",
+     "\u00a78 declares resolver/v1 'one loadable kind in v1' while \u00a713 cuts it; \u00a710 MVP does not list it. The plugin story is proportionate but inconsistent across sections."
+    ],
+    "best_ideas_to_graft": [
+     "\u00a73 'package \u00d7 environment compatibility matrix' \u2014 evaluate only the environment contract against every customer snapshot to answer 'which customers can take 4.7?'. This is the consultant's quarterly question and no competitor computes it; graft into any winner, even as a CLI table.",
+     "\u00a73 environment \u00d7 change matrix in promotion order grouped by tenant, cells carrying worst severity, fidelity tier and staleness; render as PR markdown if the UI is cut.",
+     "\u00a72/\u00a74 air-gap flow: import at the customer with read-only RBAC, sign, carry out as an OCI tarball reusing the current zhi-mirror bundle format, validate at the desk offline \u2014 the actual on-site workflow at banks.",
+     "\u00a75 requirements profiles: { supported: [...], unsupported: [gke-autopilot] } \u2014 lets developers declare where the chart is known not to work, which saves consultants a sales-cycle mistake.",
+     "\u00a74.6 x-zhi-targets developer-declared lineage (schema field \u2192 rendered pointer) as the cheap first answer to back-mapping before any perturbation spike.",
+     "\u00a76 post-merge predicted-vs-observed appended to an audit log \u2014 the calibration signal for profiles.",
+     "\u00a710 evidence bundle (DSSE + SLSA VSA bound to rendered + snapshot digests) as a release-pipeline feature once a regulated customer appears; the 'role separation' line (developer-signed contract, deployer-signed values) is what a bank's vendor review actually asks for."
+    ],
+    "rationale": "This proposal is written by someone who has shipped release 4.7 into eleven customer clusters (\u00a71) \u2014 the two matrices (\u00a73) and the air-gap tarball (\u00a74) are my week, and the regulated-procurement persona (\u00a72) is the customer who decides whether I may bring a tool onto their network at all. On persona fit it is the equal of pr-native and it is the most differentiated for a consultancy specifically (\u00a712: compatibility matrix and auditor-grade evidence, which nobody offers). The rank is held down by feasibility: it stacks evidence, FIPS, SBOM, air-gap, hash-chained audit log, two matrices and OpenShift SCC emulation into a 7\u20139 month MVP whose LOC estimate is lower than proposals doing less, defers the one trust-building feature (T2) to phase 2, and makes the deployer wait four months for any UI. The design is right for my persona; the plan is a two-year plan sold as one."
+   },
+   {
+    "proposal": "contract-first",
+    "pain_removal": 8,
+    "persona_fit": 8,
+    "gitops_fit": 8,
+    "feasibility": 7,
+    "plugin_depth": 9,
+    "differentiation": 8,
+    "total": 48,
+    "fatal_flaws": [
+     "No distribution profile in the MVP (\u00a710: 'the first two distribution profiles the consultants actually hit' is phase 2). For a consultant deploying into OpenShift, v1 is silent on SCC/UID \u2014 the #1 vendor-chart failure the research names \u2014 and worse, may report 'clean' with a badge. \u00a713 item 4 even cuts profiles further under pressure.",
+     "\u00a710 MVP is 'one environment at a time'; the matrix is phase 2. A consultant with N customers validates the same change N times by hand for the first year.",
+     "\u00a74.6 Go-native form falls back to an embedded YAML editor for deep oneOf and free-form additionalProperties \u2014 exactly the shapes Bitnami-class charts use. The deployer persona loses the form on precisely the charts they most need it for; S-FORM (\u00a711) is the right spike but the fallback design concedes the outcome.",
+     "The contract lives in the app repo or inside the chart (\u00a72, \u00a73). For third-party charts the consultant does not own there is no stated deployer-side override location; zhi contract init is described as a developer-side command."
+    ],
+    "best_ideas_to_graft": [
+     "\u00a72 zhi contract test: a conformance table (values \u2192 expected findings) run in the developer's CI \u2014 the mentoring tool I want, because it makes developers see their contract fail before a consultant does.",
+     "\u00a711 S-SOURCEMAP: recover values-pointer \u2192 rendered-pointer lineage by rendering with sentinel substitutions per candidate leaf and diffing \u2014 the only concrete lineage mechanism proposed; cheap to try.",
+     "\u00a72 platform team as a third role owning snapshot refresh and distribution profiles without owning anybody's values \u2014 the shape most customer platform teams will accept.",
+     "\u00a72 x-zhi-persona as a form-grouping hint that never enforces \u2014 the split shown in the UI without becoming a permission system.",
+     "\u00a73 'refuse Blocking-clear on stale TTL' and the machine-owned values layer (owner \u2208 {human, machine:renovate, machine:image-updater, controller}) rendered read-only.",
+     "\u00a73 contract packaged inside the chart because Helm packages all non-ignored files \u2014 zero new distribution mechanism for developers.",
+     "\u00a74.6 session API returning findings in the RJSF extraErrors shape so a React island can be swapped in without touching the pipeline \u2014 the designed exit for the Go-native form."
+    ],
+    "rationale": "The strongest articulation of the border itself: 'the deployer never reads a Helm template; the developer never reads a cluster policy. The contract is the border crossing' (\u00a72) is the sentence I would put in front of both halves of this company. The pipeline (\u00a74.3) is complete and honest about fidelity (\u00a74.5), the plugin table (\u00a78) is well evidenced and proportionate, and the plan (5\u20136 months for two people, \u00a710) is more credible than engine-first or fleet. But from where I sit the MVP ships without the thing I need first \u2014 an OpenShift profile \u2014 and without a matrix, and the Go-native form's designed fallback to a YAML editor means the deployer surface degrades on exactly the charts consultants deploy. It is the best mentoring proposal and a middling deploying proposal, which is why it lands fourth on my lens despite tying fleet on points."
+   },
+   {
+    "proposal": "minimalist",
+    "pain_removal": 7,
+    "persona_fit": 6,
+    "gitops_fit": 7,
+    "feasibility": 9,
+    "plugin_depth": 9,
+    "differentiation": 7,
+    "total": 45,
+    "fatal_flaws": [
+     "No distribution profiles in MVP at all \u2014 'no profiles beyond the declared overlay' (\u00a710). On OpenShift/AKS/EKS the consultant hand-writes declared.yaml per customer for PSA exemptions and gets nothing for SCC/UID ranges, Autopilot ratios or AKS mutators until phase 2. For this company's estate the MVP is silent on the failures that hurt most.",
+     "\u00a713 cuts snapshot inventory and x-zhi-ref pickers at item 5 and Preflight analyzers at item 8, turning 'reference checks become CEL rules the developer writes'. That moves work from the deployer surface back onto developers and deletes the cluster-aware pickers the persona brief calls out (implication 5) \u2014 the transition story runs backwards under pressure.",
+     "One environment at a time, single-user loopback UI, no post-merge feedback in v1 (\u00a76, \u00a710): a consultant with several customers gets no matrix and no signal that reality matched the prediction.",
+     "Go-native form (\u00a74.6) is unproven at Bitnami scale (S6) with no designed fallback beyond 'the rendered pane'; unlike contract-first there is no RJSF exit."
+    ],
+    "best_ideas_to_graft": [
+     "\u00a78: zero loadable plugins in v1 with two doors left open at zero cost \u2014 Check as an internal interface with the Kyverno adapter as its first implementation, externalised by a checks: list of {name, binary, sha256} in zhi.yaml, no protocol, no marketplace. The most proportionate plugin answer on the panel.",
+     "\u00a78 'Why data + CEL + exec suffice': walking report \u00a73.1 classes 1\u201317 one by one to show each maps to a snapshot layer plus a fixed engine or a CEL rule \u2014 the argument the owner should demand of any plugin proposal.",
+     "\u00a74.2: a single Validate(workspace, env) \u2192 Report entry point so UI and CI cannot disagree; \u00a74.5 T2 doubling as the calibration oracle in the test suite.",
+     "\u00a73: snapshot directory committable under .zhi/snapshots/<env>/ with a digest in zhi.yaml \u2014 the simplest possible air-gap story for small customers; keep it as the fallback next to OCI.",
+     "\u00a75 (3): consume the Troubleshoot Preflight spec verbatim rather than a zhi wrapper \u2014 developers who already know Replicated write nothing new.",
+     "\u00a713: the 15k LOC / 3 months floor \u2014 the honest minimum the owner should measure every other MVP against."
+    ],
+    "rationale": "The most buildable proposal (\u00a710: 24\u201326k LOC, no JS, no proto, no plugins, a 15k/3-month floor in \u00a713) and the cleanest plugin reasoning (\u00a78). If the question were 'what can 1\u20132 people ship by spring', this wins. But my lens is whether it removes my pain and serves the split, and here minimalism cuts the wrong things: no profile means OpenShift/AKS consultants get a clean report that is wrong; \u00a713 cuts pickers and inventory \u2014 the deployer-only features \u2014 before it cuts anything developer-facing; one environment, no matrix, no post-merge. The transition story (\u00a72) is correct but thin, and under schedule pressure the tool becomes a developer linter with a form bolted on. Fifth on this lens, first on feasibility; the right use of this proposal is as the scope ceiling and plugin doctrine for the winner."
+   }
+  ],
+  "ranking": [
+   "pr-native",
+   "engine-first",
+   "fleet-and-evidence",
+   "contract-first",
+   "minimalist"
+  ],
+  "cross_cutting_advice": "1. Ship an OpenShift profile in the MVP or do not ship to this company's consultants. Two of five proposals (contract-first, minimalist) defer all profiles; the research (report \u00a71, \u00a79 #18) and my own week say SCC/UID-range rejection is the failure consultants meet first. A v1 that reports 'clean' on an OpenShift cluster with only a fidelity badge will be distrusted after its first miss and never opened again. Take fleet \u00a710 (SCC matching, UID placeholders, Route host collisions, IDMS/ITMS) or engine-first \u00a74.3 step 7 (project-template injection) and put it in month one of the check backlog, after the S11/SPIKE-SURVEY confirms the estate.\n\n2. Time to first value must be under one hour with zero developer cooperation. The consultant's day-one path is: hand the customer's security team a ClusterRole YAML for the importer, run zhi snapshot import with it, point zhi validate at the values file that already exists in the GitOps repo, get findings. Every proposal synthesizes a schema from values.yaml, but none states where the synthesized or hand-enriched contract lives for a chart the consultant does not own (Bitnami, vendor tarballs). Add a deployer-side contract override location (e.g. .zhi/contracts/<package>/) to the winner; without it the 'developer authors the contract' story blocks the deployer whenever the developer is a third party. Also: none of the five documents the import ClusterRole as a reviewable artifact \u2014 at a bank that YAML is the real first-day gate, so ship it as a generated, minimal, per-layer-annotated manifest.\n\n3. Adopt engine-first's cut order (\u00a713 item 10) regardless of winner: the form is what consultants need and goes last; T2 live check, GitLab, Rego, extra profiles, Compose go first. pr-native and fleet both cut the UI first \u2014 that serves the developer who is already comfortable in YAML and abandons the supporter who is not. If the schedule forces a CLI-only first release, ship fleet's matrix as PR markdown and pr-native's zhi check bot so deployers at least get cluster-aware findings on the PRs they already open by hand.\n\n4. Keep T2 (kubectl --dry-run=server / Argo SSD / flux diff) in v1 as a labelled delta, even at ~300 LOC (minimalist \u00a74.5). Consultants often do have credentials on-site; the live check is how they calibrate whether the offline emulation can be trusted on this customer's cluster, and it doubles as the test-suite oracle. fleet's deferral to phase 2 is the one design choice there I would reverse.\n\n5. Decide the form stack with S-FORM/S6 before architecture freeze, and decide it for the charts consultants actually deploy, not a toy schema. Two proposals bet on a Go-native renderer whose designed fallback (contract-first \u00a74.6) is a YAML editor for deep oneOf/arrays \u2014 precisely the shapes in Bitnami-class charts. If the spike fails on Bitnami redis, take the RJSF/JSON Forms island (engine-first \u00a74.6, pr-native \u00a74.6, fleet \u00a74.6) with server-side CEL visibility and committed dist/, and accept one JS build step. A form that degrades on real charts is worse than no form for the persona who does not know the software.\n\n6. Multi-customer is not phase 2 for a consultancy. Graft fleet's package \u00d7 environment compatibility matrix (\u00a73) into the MVP as a CLI table and PR comment; it only needs the environment contract and each snapshot, costs almost nothing on top of the requirements evaluator, and answers 'which customers can take this release' \u2014 the question that decides whether consultants open the tool weekly or once.\n\n7. Trust is built by the post-merge loop, not by badges. pr-native \u00a76 and fleet \u00a76 record predicted-vs-observed on the merged PR; make the 'would-have-caught' count per PR visible to the customer platform team from the first release (report \u00a79 #31), with zero egress. That number is what gets a consultant permission to bring zhi to the next customer.\n\n8. Use minimalist as the doctrine, not the product: its single Validate() entry point, zero loadable plugins with two zero-cost doors, the checks: list with binary + sha256, and its 15k LOC / 3-month floor should be the yardstick every other MVP is measured against. Any feature in the winner that cannot justify itself against that floor in terms of a report \u00a73.1 failure class a consultant hits should move to phase 2.\n\n9. The transition story is real in all five because the artifacts do not change hands; what actually changes is who reviews the PR and who owns environments/<env>.yaml. Make that explicit in docs as a CODEOWNERS recipe (engine-first \u00a72, pr-native \u00a72) and add contract-first's zhi contract test conformance table so that when developers start deploying themselves, they can see their own contract fail in CI before a supporter does \u2014 that is the mentoring loop."
+ },
+ {
+  "lens": "ENGINEERING FEASIBILITY \u2014 tech lead who must build this in Go with 1\u20132 people, judged against gap-go-embedding-and-license-audit.md, gap-k8s-offline-fidelity-facts.md, zhi-audit-brief.md and report.md \u00a71/\u00a75\u2013\u00a710.",
+  "scores": [
+   {
+    "proposal": "contract-first",
+    "pain_removal": 8,
+    "persona_fit": 9,
+    "gitops_fit": 9,
+    "feasibility": 7,
+    "plugin_depth": 8,
+    "differentiation": 8,
+    "total": 49,
+    "fatal_flaws": [
+     "None fatal. Schedule risk: '5\u20136 months for two people' for ~28k non-test LOC + 1:1 tests + 11 spikes is ~40% optimistic; engine-first's 8 months for a comparable scope is the honest number (\u00a710).",
+     "\u00a74.6 Go-native schema\u2192form renderer is unproven at Bitnami scale (schema-validation brief: no Go-native renderer exists); mitigated by the per-subtree YAML-editor fallback and the RJSF-shaped extraErrors API as an exit, but S-FORM must run before the UI is scheduled.",
+     "\u00a74.1 pkg/profile cites openshift/apiserver-library-go sccmatching \u2014 not in the embedding audit's table, no spike named; OpenShift modules commonly carry k8s.io replaces. Phase 2, so not fatal, but must be spiked before any profile is promised.",
+     "No full-chain T0 latency spike: S-VAPMAP measures per-object VAP latency only; the '<2 s' target (\u00a74.2) is unmeasured against a 40-object app + 300-CRD snapshot with Kyverno subprocess start.",
+     "\u00a78 ships hashicorp/go-plugin in v1 for a resolver/v1 lane that has only first-party compiled-in implementations \u2014 paying for a boundary before a second implementor exists (audit lesson 6). Small, but exactly the pattern the audit flagged.",
+     "\u00a74.1 pkg/require runs Troubleshoot analyzers 'on the snapshot-as-bundle' \u2014 analyzers expect support-bundle layout (cluster-resources/*.json); an unspiked adapter is implied."
+    ],
+    "best_ideas_to_graft": [
+     "S-SOURCEMAP (\u00a711 #7): recover values-pointer \u2192 rendered-pointer lineage by sentinel substitution per candidate leaf + diff, with an explicit fallback to rendered-document anchoring. The most concrete lineage plan in the set.",
+     "Values layer carries `owner \u2208 {human, machine:renovate, machine:image-updater, controller}` (\u00a73) so machine-managed pointers are read-only by construction.",
+     "Stage 1 contract check runs before render (\u00a74.3) so the deployer gets schema/CEL feedback even when the chart cannot render.",
+     "`zhi contract test` conformance table (values \u2192 expected findings) in the developer's CI (\u00a72) \u2014 the policy-conformance suite the audit \u00a76 asked for, owned by the persona who writes rules.",
+     "Go-native form with YAML-editor fallback per subtree and the session API returning RJSF `extraErrors`/ErrorSchema shape (\u00a74.6) \u2014 a designed exit to React without touching the pipeline.",
+     "Refuse to clear Blocking findings on a snapshot past its lockfile TTL (\u00a74.2); 'would-have-caught' post-merge miss counter as the adoption metric (\u00a76).",
+     "x-zhi-persona as a form-grouping hint only, never enforcement (\u00a72) \u2014 keeps role separation in Git/CODEOWNERS where it belongs."
+    ],
+    "rationale": "Libraries match the embedding audit exactly (jsonschema/v6, CEL only via k8s.io/apiserver/pkg/cel/environment, helm/v4, krusty, compose-go, kubectl-validate pseudo-version, ~2k LOC vendor forks, Gatekeeper k8scel + OPA v1/rego, Troubleshoot analyzers only, cosign v3 by exec). Fidelity claims are honest: T0-a/T0-b default, T2 optional, T1 deferred pending S-T1, native types labelled approximate, unobservables badged with --strict promotion. MVP is disciplined (Compose, profiles, Rego/kwctl, LSP/MCP all out), and \u00a713's cut order is right. It drops every audit-listed mistake and carries apply.go, ComponentManager, the htmx middleware chain, OCI client and lockfile. Persona treatment is the strongest: contract-as-border-crossing, three roles, `zhi contract test`. Docked on feasibility for the optimistic calendar, the unproven Go-native form, and go-plugin in v1; docked on plugin depth one point for the same go-plugin-before-implementor choice. Wins the tie with engine-first on the feasibility lens because its MVP never requires a Node toolchain and keeps Compose and profiles out of phase 1."
+   },
+   {
+    "proposal": "engine-first",
+    "pain_removal": 8,
+    "persona_fit": 8,
+    "gitops_fit": 9,
+    "feasibility": 7,
+    "plugin_depth": 9,
+    "differentiation": 8,
+    "total": 49,
+    "fatal_flaws": [
+     "None fatal. \u00a74.6 commits to an RJSF v6 React island \u2014 a JS build step, npm dependency stream and React major upgrades in an otherwise Go-only repo maintained by 1\u20132 Go engineers; the Ajv2020 configuration it relies on is not spiked although fleet-and-evidence notes RJSF's 2020-12 support as limited.",
+     "\u00a710 phase 1 includes one distribution profile (OpenShift) \u2014 SCC/UID emulation is the hardest profile and depends on embedding openshift/apiserver-library-go sccmatching, which is absent from the embedding audit and from the S1\u2013S11 list.",
+     "\u00a711 spikes are 'one to two weeks each' \u00d7 11 = 3\u20135 person-months before architecture freeze; with two people that is up to a quarter of the 8-month phase 1 unless parallelised aggressively.",
+     "\u00a710 phase 1 also carries Compose T0 (compose-go, strict interpolation, write-back) \u2014 scope that \u00a713 admits is cuttable; 35k Go + 3k TS is the largest honest estimate in the set.",
+     "\u00a710 'Rego through gator adapter when on PATH' contradicts the lockfile/digest-pinned exec-adapter principle stated in \u00a78."
+    ],
+    "best_ideas_to_graft": [
+     "`pkg/pipeline.Validate(ctx, Workspace, Env, Options) \u2192 Report` as a pure function of committed inputs + snapshot (\u00a74.1) \u2014 the invariant that makes pre-commit, CI, UI, LSP and MCP emit byte-identical reports; it also makes the audit's mutate-validate-revert trick unnecessary.",
+     "Conditional visibility (`x-zhi-show-if`, component toggles) evaluated server-side in CEL and returned as a visibility map so the browser never runs a second expression language (\u00a74.6) \u2014 closes the Rancher Ember-vs-Jexl class of bug.",
+     "Lockfile pins exec-adapter binaries (Kyverno CLI, gator) alongside snapshots and profiles (\u00a73) \u2014 generalises the current zhi-plugins.lock correctly.",
+     "`sc.rwxCapable` derived from CSIDriver where published, `unknown` \u2192 Warning otherwise (\u00a75) \u2014 the honest shape for every derived capability.",
+     "Exit-code contract: 0 clean, 1 Blocking, configurable warn code, \u22653 tool error, zhi owns every adapter's exit code (\u00a74.7).",
+     "S8 (T0-b latency on a realistic chart with 50 Kyverno policies) and S11 (practitioner survey) \u2014 the two spikes most of the others forgot.",
+     "\u00a713 cut order with the web form last: CLI + pre-commit + CI + `.zhi/schema.json` modeline deliver most of the developer value before any form exists."
+    ],
+    "rationale": "The most precise citation of the embedding audit: exact module versions (k8s.io v0.37.0, helm/v4 v4.3.0, kustomize/api v0.21.1, compose-go v2.15.0, jsonschema/v6 v6.0.3, opa v1.20.2, gatekeeper/v3 v3.23.1 for k8scel), no replace directives, CEL through the apiserver environment, and it correctly notes MVS co-resolves everything except Kyverno. Fidelity is honest ('measured, not promised', T1 out of v1, unknowns never Blocking). The pure-pipeline rule is the single best engineering decision across all five and directly answers audit lessons 5 and 9. Plugin depth is the most proportionate of the JS-island proposals: nothing loadable in phase 1, resolver/v1 phase 2, check/v1 phase 3. It is docked on feasibility for the RJSF/Node cost, the unspiked OpenShift profile in phase 1, and the spike budget; its 8-month estimate is the honest one the winner should adopt. Ties contract-first on total; loses the tiebreak on the feasibility lens because of the JS toolchain and broader phase-1 scope."
+   },
+   {
+    "proposal": "pr-native",
+    "pain_removal": 8,
+    "persona_fit": 8,
+    "gitops_fit": 9,
+    "feasibility": 5,
+    "plugin_depth": 7,
+    "differentiation": 8,
+    "total": 45,
+    "fatal_flaws": [
+     "\u00a710 MVP is the largest of the five \u2014 Argo AND Flux env import, full snapshot with OCI push/pull + cosign offline verify + export adapters, T0 chain, one profile, Troubleshoot analyzers + two custom analyzers, RJSF island, lineage-driven inline errors, effective-values explorer, `zhi propose` + `zhi check` bot, ESO rendering, AND Compose with Docker-API host snapshot, host checks and write-back \u2014 quoted at '5\u20137 months for 1\u20132 people'. For one person this is 12+ months; for two it is engine-first's 8 months at minimum. The estimate is not credible and the proposal's own \u00a713 (drop the UI first, Compose second) concedes it.",
+     "\u00a711 S9 lineage assumes 'template positions from the SDK' for Helm; Helm's renderer emits no source map from rendered fields to template lines (only error positions) \u2014 the claim is unverified and likely false, and \u00a74.6's inline field errors depend on it. Kustomize origin annotations are real; Helm is not.",
+     "\u00a74.3 step 14 promises immutable-field / SSA-conflict checks against the snapshot's live object for native types; immutability for native types lives in hand-written validation that KEP-5073 does not publish (fidelity brief \u00a71), so this needs a hardcoded table and must be labelled approximate \u2014 it is not.",
+     "\u00a74.1 places `pkg/zhi/resolver/v1` (go-plugin gRPC, ~1.5k LOC) in the v1 tree while MVP secrets are ESO `ref://` only \u2014 the boundary-before-implementor pattern audit lesson 6 warns against.",
+     "\u00a74.3 step 12 uses SCC `ConstraintAppliesTo` via a snapshot-backed authorizer with no sccmatching embed spike."
+    ],
+    "best_ideas_to_graft": [
+     "`zhi check` bot mode (\u00a74.2 #5): re-run on the PR head against every environment whose files changed, post Check Run + SARIF, and refuse to clear Blocking if any snapshot is older than the environment's `maxAge` \u2014 the cleanest CI insertion point in the set.",
+     "GitOps discovery precision (\u00a76): Argo `parameters > valuesObject > values > valueFiles > chart` precedence, Flux `valuesFrom` list order then inline, Flux strict `${VAR:=default}` (missing var without default = Blocking, matching kustomize-controller 1.9), branch-per-env flagged as read-only legacy.",
+     "Findings with no values pointer tagged 'developer-side' with template file:line (\u00a74.6) \u2014 an honest answer when lineage cannot resolve, and it routes the finding to the right persona.",
+     "Per-environment `allowDirectPush: true` default-off (\u00a76) as the only way zhi ever writes to a controller-synced branch.",
+     "\u00a713 cut #1: ship `zhi check` + `zhi validate` + `zhi propose` before any UI; consultants edit YAML with the `.zhi/schema.json` modeline \u2014 this is the right first release.",
+     "Post-merge `zhi feedback` correlating hydrated SHA \u2194 dry SHA (`refs/notes/source-hydrator`) \u2194 PR and commenting the controller outcome on the merged PR (\u00a76) \u2014 phase 2 material, well specified."
+    ],
+    "rationale": "Libraries are right (k8s.io v0.37.0, third_party/k8s forks ~2k LOC, kubectl-validate pseudo-version, embedded OPA + frameworks kept out of MVP, cosign v3 offline verify, CEL through the apiserver environment) and the fidelity tags are honest. The GitOps section is the most detailed and would be the reference for whichever proposal wins. But as the person who has to build it, the MVP is overscoped by roughly a factor of two against its own timeline, the Helm lineage claim it hangs inline UI errors on is unverified, and it ships a gRPC proto before anything external implements it. The \u00a713 cut list is excellent \u2014 it describes the MVP the proposal should have written. Ties minimalist on total; ranked below it on the feasibility tiebreak."
+   },
+   {
+    "proposal": "fleet-and-evidence",
+    "pain_removal": 7,
+    "persona_fit": 8,
+    "gitops_fit": 8,
+    "feasibility": 5,
+    "plugin_depth": 7,
+    "differentiation": 8,
+    "total": 43,
+    "fatal_flaws": [
+     "\u00a72 invents a fourth persona (the regulated security officer) not in the brief and \u00a710 puts its features in the MVP: DSSE + SLSA VSA evidence bundles as OCI referrers, GOFIPS140 variant, CycloneDX/SPDX SBOMs, air-gap export/import promoted from 'defer' to core. This is audit lesson 10 ('the worst code solved imagined problems') and lesson 7 (a 1,236-LOC Sigstore stack with zero callers) repeating; the audit explicitly said defer the mirror until a regulated customer appears. cosign v3 protobuf-bundle offline behaviour is itself UNVERIFIED (their SPIKE-EVIDENCE).",
+     "\u00a710 MVP includes the OpenShift profile with SCC matching, UID-range placeholders, Route collisions and IDMS/ITMS via openshift/apiserver-library-go `sccmatching` \u2014 not in the embedding audit, and OpenShift modules commonly pin k8s.io forks/replaces that would break the no-replace, single-minor build. SPIKE-SCC exists but the MVP is conditional on it passing.",
+     "\u00a710 estimate of 22\u201328k non-test LOC is undersized for a scope that includes two profiles, two matrices, evidence, air-gap and a JSON Forms island; engine-first counts 35k Go + 3k TS for less. The 7\u20139 month figure is therefore optimistic despite looking conservative.",
+     "No T0 full-chain latency spike; the '<2 s' claim in \u00a72 is unmeasured.",
+     "\u00a78 declares resolver/v1 'one loadable kind in v1', \u00a713 cuts it, \u00a710 phase 2 lists it \u2014 internally inconsistent; and again a go-plugin boundary before any external implementor.",
+     "\u00a74 UI: JSON Forms bundle brings the same JS toolchain cost as RJSF; the claim that RJSF's Ajv2020 support is 'limited' while JSON Forms' is fine is unverified in either direction."
+    ],
+    "best_ideas_to_graft": [
+     "\u00a711 spike list format: each spike has a pass/fail criterion ('Pass = server-identical error text') and a comparison oracle (kind cluster with the same policies, `oc adm policy scc-subject-review`). Adopt the format for every spike in the winning proposal.",
+     "\u00a710 sequencing: four months of CLI-only vertical slice (import \u2192 render \u2192 validate \u2192 PR) before any UI. This is the right order for a 1\u20132 person team regardless of proposal.",
+     "Package \u00d7 environment compatibility matrix (\u00a73) \u2014 evaluates only the environment contract against each snapshot; cheap, and answers the consultant's 'which customers can take 4.7?' question with no new infrastructure.",
+     "`x-zhi-targets` explicit schema-field \u2192 rendered-pointer hints plus scalar-fingerprint fallback (\u00a74 UI) \u2014 the cheapest lineage that works on day one; keep perturbation rendering as the phase-2 upgrade.",
+     "'Budget a recurring day per profile per quarter' (\u00a710) \u2014 the only proposal that prices profile maintenance.",
+     "SPIKE-IMPORT-DEGRADE across EKS, AKS and OpenShift with minimal RBAC (\u00a711) \u2014 importer graceful degradation is the product and must be tested on real managed clusters.",
+     "Evidence as 'a few hundred lines on top of an already-canonical report' (\u00a713 #5) \u2014 true only once the deterministic report exists; do that first, add DSSE when a customer asks."
+    ],
+    "rationale": "The architecture core is the same converged design and the libraries are correctly cited (staging modules only, ~2k LOC forks under internal/sim/vendor, k8scel + OPA, Troubleshoot analyzers, cosign by exec, CEL via the apiserver environment); fidelity language is honest and T1 is out. The spike discipline is the best in the set and the CLI-first four months is exactly how I would sequence it. It loses on feasibility because the MVP is loaded with features for a persona the brief did not name (evidence, FIPS, SBOM, air-gap) and with the hardest profile (OpenShift SCC) whose key dependency is unaudited \u2014 both are the 'solve imagined problems' and 'half-built security' mistakes the audit documented, and both inflate a LOC estimate that already looks undersized. Pain removal is docked because evidence and matrices do not shorten the edit\u2192PR loop; the matrix is worthwhile but it is a phase-2 derivation once single-environment validation is solid."
+   },
+   {
+    "proposal": "minimalist",
+    "pain_removal": 7,
+    "persona_fit": 7,
+    "gitops_fit": 7,
+    "feasibility": 8,
+    "plugin_depth": 9,
+    "differentiation": 7,
+    "total": 45,
+    "fatal_flaws": [
+     "None fatal. \u00a73/\u00a74.4 default snapshot location is a directory committed into the GitOps repo: OpenAPI v3 for 200+ CRDs is tens of MB per environment, and the inventory layer (Secret/ConfigMap names and keys, RBAC, workloads) lands in Git history. OCI + digest pin is mentioned as an alternative; it should be the default and the committed directory the air-gap exception.",
+     "\u00a74.6 Go-native schema\u2192form renderer is unproven (S6) and, unlike contract-first, no RJSF/JSON Forms exit is designed \u2014 if S6 fails the UI plan has no fallback beyond 'YAML editor with modeline'.",
+     "\u00a710 MVP is one environment at a time with no matrix and no post-merge feedback \u2014 report \u00a79 #15 ([must] environment matrix) is unmet until phase 2; the consultant with eleven customers loops manually.",
+     "\u00a75 expresses the extended requirements (RWX capability, quota headroom, PSA level) only as zhi CEL over `snapshot`, so the emitted Troubleshoot Preflight Secret is weaker than the contract zhi enforces \u2014 the 'contract survives without zhi' claim is partial.",
+     "\u00a710 '5\u20136 months for a 1\u20132 person team' is still tight for one person; only the \u00a713 half-time plan (~15k LOC, three months for two) is unambiguously credible."
+    ],
+    "best_ideas_to_graft": [
+     "\u00a78: no proto, no go-plugin, no generated code in v1; `Check` and `Resolver` are Go interfaces with one implementation each (the Kyverno adapter and the snapshot inventory), leaving the doors open at zero cost \u2014 the direct application of audit lesson 6 and the model the winner should copy.",
+     "\u00a74.5 Tier 2 as ~300 LOC of client-go SSA dry-run that doubles as the calibration oracle for Tier 0 in the test suite \u2014 the cheapest way to keep fidelity claims honest over time.",
+     "\u00a74.7: defer LSP and MCP until the report types stabilise, citing audit lesson 9 (the fourth re-marshalling of an unstable surface is the expensive one); ship `.zhi/schema.json` + modeline in v1 instead.",
+     "\u00a74.1 `internal/git` shells out to the `git` binary via the carried apply.go subprocess handling rather than embedding go-git \u2014 credential helpers, SSH and signing work for free.",
+     "S10: 'are the k8sazure* Gatekeeper templates CEL or Rego on an AKS Azure Policy cluster?' \u2014 the one spike that decides whether Gatekeeper-generated-VAP-only coverage is enough for the AKS estate.",
+     "\u00a713's irreducible core: schema form \u2192 Helm render \u2192 discovery/OpenAPI/CRD CEL/PSA/quota/VAP against a snapshot \u2192 GitHub PR \u2192 CI check at ~15k LOC in three months for two \u2014 the first milestone every other proposal should target.",
+     "\u00a73 Component as `x-zhi-component` schema-path group with dependency violations compiled to CEL rules at load time (~150 LOC carried) \u2014 the smallest faithful port of ComponentManager."
+    ],
+    "rationale": "The most buildable proposal by a clear margin: exact versions, no replace directives, CEL only via the apiserver environment, ~2k LOC forks, Kyverno CLI v1.19.1 with generated side files and zhi-owned exit codes, Gatekeeper via generated VAP only with Rego reported 'not evaluated', no JS toolchain, no proto, twelve packages, one `Validate(workspace, env) \u2192 Report` entry point shared by UI and CI. Fidelity claims are the most conservative in the set and it names its own unmeasured numbers (S9 latency, S6 form, S7 back-map, S8 import size). It repeats none of the audit's mistakes and is the only proposal whose half-time plan I would sign off without caveats. It scores lower on the product criteria because the MVP is single-environment, defers the matrix and post-merge feedback, keeps snapshots in Git by default, and its requirements contract survives without zhi only partially. Ties pr-native on total and ranks above it on the feasibility tiebreak; its MVP scope is the one the winning architecture should adopt."
+   }
+  ],
+  "ranking": [
+   "contract-first",
+   "engine-first",
+   "minimalist",
+   "pr-native",
+   "fleet-and-evidence"
+  ],
+  "cross_cutting_advice": "All five proposals converged on the same architecture (JSON Pointer addressing, yaml.v3 round-trip, k8s.io v0.37.0 embed with three ~2k LOC vendor forks, kubectl-validate by pseudo-version, Kyverno by CLI, CEL only through k8s.io/apiserver/pkg/cel/environment, own snapshot format, Git-only writes, shallow plugins). They differ on MVP scope, UI stack and calendar honesty, so the decision is about scope discipline, not design. Build contract-first's domain model and contract at minimalist's MVP scope on engine-first's timeline (8 months for two, 12+ for one; the ~15k LOC irreducible core is three months for two). Sequence as fleet-and-evidence proposes: four months of CLI-only vertical slice (snapshot import \u2192 Helm render \u2192 ordered T0 chain \u2192 findings with pointer+tier \u2192 `zhi validate --exit-code` \u2192 `zhi propose`/`zhi check`), then the form, then Compose, then profiles as data, and evidence/FIPS/air-gap only when a signed customer asks. Run one shared six-week spike sprint before architecture freeze with fleet's pass/fail format: kubectl-validate CEL on a failing rule with ratcheting; VAP/MAP via validating.NewValidator + cel.NewCompositedCompiler with snapshot params and RBAC authorizer; `kyverno apply --context-file --parameter-resource --userinfo` with a MAP paramRef; vendor-fork compile of LimitRanger/RulesAllow/evaluator-core against staging modules only (the pkg/apis/core question is UNVERIFIED); Helm 4.3 with a 2020-12 values.schema.json + x-zhi vocabulary and snapshot-backed lookup; yaml.v3 round-trip on the company's real values files; full-chain T0 latency on a 40-object app against a 300-CRD snapshot with 50 Kyverno policies (nobody's <2 s is measured); snapshot import size/time/RBAC on a real customer cluster; Go-native schema\u2192form on Bitnami redis with a go/no-go for an RJSF island; lineage via contract-first's sentinel substitution with fleet's x-zhi-targets + scalar-fingerprint fallback. Add one spike no proposal ran: does openshift/apiserver-library-go sccmatching build with no replaces against k8s.io v0.37.0 \u2014 three proposals put SCC emulation in a plan without checking. Enforce engine-first's invariant that `Validate` is a pure function of committed inputs plus a digest-pinned snapshot, with golden tests, so UI, pre-commit, CI, LSP and MCP cannot disagree. Ship no proto and no go-plugin in v1: `Resolver` and `Check` as Go interfaces with one implementation each (minimalist), external loading only when a second implementor exists. Prefer Go-native form first with per-subtree YAML fallback and an RJSF-shaped extraErrors API as the exit (contract-first); do not add Node to the repo until that spike fails. Snapshots go to OCI by default with only the digest in Git; the committed-directory mode is the air-gap exception. If you embed Troubleshoot analyzers, budget the support-bundle-layout adapter; otherwise use minimalist's CEL-over-snapshot for the gaps and keep the emitted Preflight Secret to the analyzers it can express. Put fidelity in the Finding type (tier, engine, list of unobservable inputs), not in UI copy, and never render 'will apply'. Defer LSP/MCP until the report types stabilise; ship `.zhi/schema.json` plus the yaml-language-server modeline in v1. Reject any plan item that serves a persona not in the brief until that persona shows up with a contract \u2014 that is the audit's lesson 10 and the difference between the two proposals that lost and the three that did not."
+ },
+ {
+  "lens": "ECOSYSTEM ARCHITECTURE AND SECURITY \u2014 platform architect running Argo CD/Flux at scale; judging GitOps purity (no new source of truth, no in-cluster controller), plugin-depth proportionality, supply-chain and secrets posture, and two-year survivability against Flux Schema, Kargo, ConfigHub and Replicated.",
+  "scores": [
+   {
+    "proposal": "pr-native",
+    "pain_removal": 9,
+    "persona_fit": 8,
+    "gitops_fit": 10,
+    "feasibility": 6,
+    "plugin_depth": 8,
+    "differentiation": 8,
+    "total": 49,
+    "fatal_flaws": [
+     "MVP scope (\u00a710) is not credible: Kubernetes + Compose with Docker-API host snapshot + RJSF UI + GitHub bot + post-merge feedback in 5\u20137 months for 1\u20132 people. The \u00a713 cut list rescues it only if the owner commits to shipping `zhi check`/`zhi validate`/`zhi propose` first and the UI second.",
+     "`zhi check` in bot mode (\u00a74.2 step 5) evaluates PR-controlled inputs \u2014 Helm templates, `values.cel.yaml`, and repo-selected exec renderers (\u00a78 'exec adapter ... Timoni/KCL/Pkl/ytt'). CEL and Helm are bounded, but an exec renderer chosen by repo content is arbitrary code execution on the CI runner for a PR from a fork; the proposal pins Kyverno/kwctl by digest but never says renderer binaries are lockfile-pinned or denied in bot mode.",
+     "Post-merge feedback (\u00a76) requires zhi to hold an Argo API token / Flux notification credential; scope, storage and separation from cluster credentials are unspecified.",
+     "RJSF island brings an npm dependency tree into a 'security-first' Go binary (\u00a74.6); a committed `dist/` is not an SBOM or a vulnerability scan."
+    ],
+    "best_ideas_to_graft": [
+     "`zhi check` as the MVP wedge and the UI as phase 2 (\u00a713 item 1) \u2014 the only ordering that puts validation in the push path for every PR author (human, Renovate, Kargo) before anyone adopts a new editor; this is the Monokle lesson applied correctly.",
+     "Validate `hydrateTo` branches as a PR check, reading the dry SHA from `refs/notes/source-hydrator` rather than commit messages (\u00a76 'Hydrated branches and promotion').",
+     "gitops-promoter `CommitStatus` provider + Kargo `http` step target + `git-wait-for-pr` compatibility (\u00a76) \u2014 composes with whichever promotion tool wins the next two years.",
+     "`allowDirectPush: true` per environment, default off, for controller-synced branches (\u00a76).",
+     "Immutable-field / SSA-conflict check against the snapshot's last-known live object (\u00a74.3 step 14).",
+     "Profile adapters that *claim* known vendor webhooks (cert-manager, GKE Warden) so match prediction does not double-count (\u00a74.3 step 11).",
+     "Post-merge comment on the merged PR with 'caught pre-push vs would-have-failed-at' computed locally with zero egress (\u00a76 'Post-merge'; report \u00a79 #31).",
+     "Per-layer tar blobs (`application/vnd.zhi.snapshot.<layer>.v1+tar`) with cosign v3 bundle as referrer and offline verification in MVP (\u00a74.4, \u00a710 item 2).",
+     "Explicit `$vocabulary` declaration for `x-zhi-*` in the schema (\u00a75a) so other validators treat hints as annotations by spec, not by luck.",
+     "Validate only the environments whose files changed in the PR (\u00a74.2 step 5) \u2014 keeps the check fast on large fleets."
+    ],
+    "rationale": "Cleanest GitOps story of the five: Git-only writes, DRY primary with hydrated-branch read path, provenance in the exact trailer/notes shapes Argo already uses, CommitStatus/http-step insertion points for gitops-promoter and Kargo, direct push off by default. It is the proposal most likely to still compose with Argo/Flux/Kargo in 2028 because it positions zhi as a *check provider* rather than an editor. Plugin depth matches report \u00a77.3 exactly (one ~1.5k LOC `resolver/v1`, `check/v1` deferred). Supply-chain posture is good (cosign offline verify in MVP, Kyverno subprocess, licence adjacency list, govulncheck) but silent on exec-renderer pinning in bot mode. Feasibility is the weak leg: the stated MVP is a phase-1-and-2 bundle; it ranks first only because its cut order is correct and cheap to enforce."
+   },
+   {
+    "proposal": "contract-first",
+    "pain_removal": 8,
+    "persona_fit": 8,
+    "gitops_fit": 9,
+    "feasibility": 6,
+    "plugin_depth": 8,
+    "differentiation": 7,
+    "total": 46,
+    "fatal_flaws": [
+     "MVP (\u00a710) promises GitHub *and* GitLab, Argo *and* Flux discovery, OCI snapshot push/pull, Kustomize render, T2 live gate, webhook prediction, RBAC and a Go-native generated form in 5\u20136 months for two people; this is ~50% optimistic and the \u00a713 cut list defers the form, which is the deployer persona's surface.",
+     "The Go-native schema\u2192form renderer (\u00a74.6, spike S-FORM) has no precedent at Bitnami scale; the RJSF exit is designed in, but if S-FORM fails the persona story slips a phase.",
+     "Exec adapters for Timoni/KCL/Pkl/ytt (\u00a78 Renderers) are repo-selectable binaries in the CI path with no stated digest pinning or bot-mode denylist (same gap as every other proposal).",
+     "'Stage 1 CEL rules over `{values, env}` run before render' (\u00a74.3) means rules referencing `rendered` are silently a different stage; the contract needs to say which variables are available where or developers will write rules that never fire."
+    ],
+    "best_ideas_to_graft": [
+     "Values-layer `owner \u2208 {human, machine:renovate, machine:image-updater, controller}` as a first-class attribute making machine-owned pointers read-only (\u00a73) \u2014 cleaner than marker-sniffing.",
+     "A third role for platform teams \u2014 owning snapshot refresh (scheduled signed OCI push) and distribution profiles without owning anyone's values (\u00a72) \u2014 this is how it lands in an estate with a platform team between dev and consultant.",
+     "`x-zhi-persona` as a form-grouping hint that never enforces (\u00a72, \u00a75) \u2014 role separation stays in Git permissions.",
+     "Redaction as a *tested layer*, not a flag (\u00a711 'Secrets in snapshots'); inventory stores names and keys only.",
+     "Refuse to clear Blocking on a snapshot past TTL; `zhi open` refuses at load time, not only in CI (\u00a74.2 step 1).",
+     "S-SOURCEMAP: sentinel-substitution lineage from values pointer to rendered pointer with an explicit fallback (\u00a711 spike 7) \u2014 the only proposal with a concrete mechanism for inline back-mapping.",
+     "Reports as OCI referrers of the snapshot, never committed (\u00a73 'What lives in Git vs elsewhere').",
+     "Findings returned in the RJSF `extraErrors`/ErrorSchema shape even from a Go-native form so the front end can be swapped without touching the pipeline (\u00a74.6).",
+     "Contract packaged inside the chart and signed with it; `x-zhi` vocabulary registered in `jsonschema/v6` so hints are type-checked (\u00a73, \u00a75).",
+     "Zero npm: the whole UI is Go + htmx; the only proposal besides minimalist whose supply chain is `go.mod` alone."
+    ],
+    "rationale": "The most complete and evidence-disciplined design: every section cites the report or audit, the snapshot format matches \u00a75.1/\u00a710.1 verdicts, the pipeline order matches \u00a75.3, and plugin depth is the \u00a77.3 answer with `transform`/`store`/`ui` dropped and one optional `resolver/v1` in phase 2. Security posture is strong (no npm, tested redaction, TTL refusal, subprocess Kyverno, cosign exec, govulncheck, no kubeconfig ever persisted). GitOps fit is one notch below pr-native only because hydrated-branch handling and promotion-tool hooks are phase 2/3 and the post-merge loop is a `zhi status --pr` pull rather than a check-provider role. It loses to pr-native on the wedge: a form-first MVP is the harder adoption path in an Argo/Flux estate; the \u00a713 cut list fixes that but is presented as a fallback, not the plan."
+   },
+   {
+    "proposal": "minimalist",
+    "pain_removal": 8,
+    "persona_fit": 6,
+    "gitops_fit": 8,
+    "feasibility": 9,
+    "plugin_depth": 9,
+    "differentiation": 6,
+    "total": 46,
+    "fatal_flaws": [
+     "Snapshot committed into the GitOps repo by default (`.zhi/snapshots/<env>/`, \u00a73, \u00a710 step 1). Two problems: repo bloat (OpenAPI v3 for 200+ CRDs is tens of MB per environment per refresh, in history forever) and border leakage \u2014 RBAC, namespace posture, Secret/ConfigMap names and keys of a *customer* cluster become readable by everyone with repo access, including developers on the other side of the 'invisible border'. OCI is the correct default; in-repo is the air-gap exception.",
+     "Distribution profiles as CEL rule packs only (\u00a78 table) cannot express OpenShift SCC matching (`sccmatching` needs an authorizer and UID-range logic), yet the report names restricted-v2/UID rejection the #1 vendor-chart failure consultants hit. The persona that owns customer clusters is under-served until a phase-2 Go emulator appears.",
+     "One environment at a time, no matrix, no Compose in MVP (\u00a710) \u2014 a supporter with eleven customer clusters runs eleven sessions; the report's \u00a79 #15 'evaluate every change against every environment' is deferred.",
+     "Go-native form renderer unproven at scale (S6) with no RJSF exit designed in; if it fails, the deployer surface has no fallback plan."
+    ],
+    "best_ideas_to_graft": [
+     "Zero loadable plugins in v1 with `Check` and `Resolver` as internal interfaces left as doors (\u00a78 'The two doors') \u2014 the most proportionate answer to the owner's 'how deep' question given the audit's evidence of zero third-party implementors.",
+     "`checks:` list in `zhi.yaml` with `{name, binary, sha256}` and a JSON contract as the entire `check/v1` protocol \u2014 no IDL, no marketplace (\u00a78).",
+     "`zhi validate` as a *required check on every PR touching the environment folder* so Renovate, Kargo and human PRs are validated uniformly regardless of author (\u00a76 'Post-merge').",
+     "Tier 2 live dry-run as the calibration oracle for Tier 0 in the test suite (\u00a74.5) \u2014 cheap, and the only way to keep fidelity claims honest over two years of apiserver drift.",
+     "Shippable policy conformance suite (`rule \u2192 manifest \u2192 expected findings`) users can run (\u00a79).",
+     "`degraded[]` recorded in the snapshot manifest with the reason per layer (\u00a74.4).",
+     "Adapters claiming known webhook services (kyverno-svc, gatekeeper-webhook-service) to avoid double-counting (\u00a74.3 step 10).",
+     "Rego-only Gatekeeper templates reported as 'not evaluated' rather than silently skipped (\u00a74.3 step 8).",
+     "Reports never committed; PR comment + CI artifact carry evidence (\u00a73).",
+     "No go-plugin, no proto, no npm: the smallest supply chain of the five."
+    ],
+    "rationale": "From a security and survivability standpoint the minimal surface is attractive: one `Validate` function, `go.mod` as the entire supply chain, exec cosign, secrets as references validated against inventory with no credentialed resolution in v1. GitOps purity is intact (Git-only, DRY-first, trailers) but the default of committing snapshots into the watched repo is a real operational and data-exposure mistake in a consultancy estate. Plugin depth is the best-justified of the five. It loses on the deployer persona: CEL-only profiles cannot model OpenShift SCC, and one-environment-at-a-time ignores the fleet reality the supporter lives in. Tied on points with contract-first; ranked below it because contract-first serves the border-crossing persona and platform-team role materially better while keeping the same zero-npm posture."
+   },
+   {
+    "proposal": "engine-first",
+    "pain_removal": 8,
+    "persona_fit": 7,
+    "gitops_fit": 8,
+    "feasibility": 7,
+    "plugin_depth": 8,
+    "differentiation": 7,
+    "total": 45,
+    "fatal_flaws": [
+     "Half-time cut #9 (\u00a713) drops snapshot OCI push *and signing* \u2014 the one thing a security-first validator must never drop. The snapshot decides what is Blocking; an unsigned tarball carried across the consultant border is the highest-value tampering target in the design.",
+     "`open-policy-agent/opa v1.20.2` and `gatekeeper/v3 v3.23.1` are listed as phase-1 module dependencies (\u00a74.1) while phase 1 only consumes Gatekeeper's *generated* VAP/VAPB and runs Rego 'through gator adapter when on PATH' (\u00a710 step 4). That is a large dependency tree (and CVE surface) linked for no phase-1 use; the gatekeeper module is also notoriously heavy to keep at `CGO_ENABLED=0` without replaces.",
+     "RJSF island adds an npm tree with Ajv2020 explicitly configured (\u00a74.6); the committed `dist/` + freshness check catches drift, not vulnerabilities.",
+     "'Never Blocking because they are not observable' for unknowns (\u00a74.3) is stated as a rule before the owner answers report Q2; in a regulated customer estate the CI default should be strict."
+    ],
+    "best_ideas_to_graft": [
+     "`pkg/pipeline.Validate(ctx, Workspace, Env, Options) \u2192 (Report, error)` as the single pure entry point with a deterministic digest that must match between the commit trailer and the CI check run (\u00a74.1, \u00a76) \u2014 giterminism as an enforced property, not a slogan.",
+     "Conditional visibility (`x-zhi-show-if`, component toggles) evaluated by the engine in CEL and returned as a visibility map, so the browser never runs a second expression language (\u00a74.6) \u2014 kills the Rancher Ember-vs-Jexl class of bug.",
+     "The border is a CODEOWNERS line: developers own `charts/**` + schema, deployers own `.zhi/environments/**`, `.zhi/snapshots/**`, `envs/<env>/values.yaml` (\u00a72).",
+     "Exit-code scheme: 0 clean, 1 Blocking, configurable `--warn-exit-code`, \u22653 tool error, zhi owning every exec adapter's exit code (\u00a74.7).",
+     "`oldValues` (previous Git revision) as a CEL variable alongside `values`/`env`/`snapshot` (\u00a74.3 step 2).",
+     "`sc.rwxCapable` derived from CSIDriver where published and `unknown \u2192 Warning` otherwise (\u00a75).",
+     "Exporters that write kubeconform, kubectl-validate, Kyverno and gator side files so platform teams keep their existing CI steps while adopting the snapshot (\u00a74.4).",
+     "OpenShift as the single phase-1 profile with a documented `declared.yaml` escape hatch (\u00a710, \u00a713 item 4).",
+     "Honest phase-1 sizing (\u22488 months for two people, 12+ for one) with the form ranked last to cut (\u00a713 item 10)."
+    ],
+    "rationale": "Technically the closest sibling of contract-first and the most honest about time. Its distinguishing property \u2014 byte-identical reports from pre-commit, UI and CI \u2014 is exactly the reproducibility guarantee a security reviewer wants. GitOps fit is solid (DRY primary, hydrated via refs/notes, Kargo/promoter hooks phase 2, PR-only default). It ranks below contract-first and minimalist on my lens because of three supply-chain choices: linking OPA and gatekeeper/v3 before they are used, an npm tree in the binary, and a cut list willing to ship unsigned snapshots under schedule pressure. Persona fit is a notch lower: no fleet/matrix story until phase 2 and no third-role model for platform teams."
+   },
+   {
+    "proposal": "fleet-and-evidence",
+    "pain_removal": 8,
+    "persona_fit": 8,
+    "gitops_fit": 6,
+    "feasibility": 4,
+    "plugin_depth": 6,
+    "differentiation": 8,
+    "total": 40,
+    "fatal_flaws": [
+     "Package identity is 'OCI ref + digest' only, produced by `zhi package publish` (\u00a72, \u00a73). Most of the owner's developers ship charts at a git path in the app repo that Argo/Flux render directly; forcing an OCI package that the controller does not consume creates a second artifact whose contents can diverge from what actually deploys \u2014 a soft new source of truth, precisely the ConfigHub failure mode the proposal says it avoids.",
+     "A 'hash-chained audit log' (\u00a74 data flow step 5, \u00a76, \u00a710 phase 2) is durable state that lives neither in Git nor in OCI; its location, ownership and access control are never specified. That is an in-house control plane in embryo.",
+     "MVP (\u00a710) bundles DSSE/SLSA-VSA evidence, FIPS build, SBOMs, air-gap mirror promoted to core, OpenShift SCC emulation, two matrices and a JSON Forms UI, then estimates 22\u201328k LOC \u2014 inconsistent with its own package list and with report Q14 (regulated features are an owner decision) and the audit's 'defer the mirror'. The regulated 'security officer' persona is invented; it is not one of the owner's two.",
+     "'Trivy/Checkov auto-detected on PATH' (\u00a78 Validators row) is PATH hijacking in CI; it contradicts the digest-pinned OCI rule the same table applies to Kyverno/kwctl.",
+     "JSON Forms is chosen over RJSF on the claim that RJSF's Ajv2020 support is limited (\u00a74 UI approach) \u2014 JSON Forms also validates with Ajv; the argument is one-sided and the npm tree is the same class of supply-chain risk.",
+     "`resolver/v1` appears in the MVP package tree (\u00a74) and is cut only at half time (\u00a713 item 7): a go-plugin gRPC lane in v1 with no third-party implementor is exactly the over-depth the owner asked about."
+    ],
+    "best_ideas_to_graft": [
+     "Package \u00d7 environment *compatibility* matrix \u2014 evaluate only the environment contract against every snapshot to answer 'which customers can take 4.7?' (\u00a73) \u2014 the supporter's quarterly question and the one thing Distr publishes by hand; graft as phase 2.",
+     "Environment \u00d7 change validity matrix derived (never stored) with worst severity, tier and staleness per cell, in promotion order grouped by tenant (\u00a73).",
+     "`x-zhi-targets` developer-declared values\u2192rendered pointer lineage as the cheap first fallback before perturbation rendering (\u00a74 UI approach, \u00a75) \u2014 the Glasskube `targets` idea; costs nothing and makes inline errors honest on day one.",
+     "`profiles: {supported, unsupported}` in the environment contract (\u00a75) so a developer can say 'not on GKE Autopilot' and the matrix goes red before anyone imports a snapshot.",
+     "Predicted-vs-observed post-merge mismatches as the *calibration signal for profiles* (\u00a76 'Post-merge') \u2014 the only proposal that closes the loop back into the data.",
+     "DSSE + SLSA VSA v1 statement bound to rendered digest + snapshot + profile + package digests, pushed as an OCI referrer (\u00a76 'Provenance recorded') \u2014 a few hundred lines on top of a canonical report; graft in phase 2 when a regulated buyer appears.",
+     "Developer-signed contract vs deployer-signed values as role separation an auditor can see (\u00a72, \u00a75).",
+     "SPIKE-SCC calibrated against `oc adm policy scc-subject-review` and SPIKE-IMPORT-DEGRADE across EKS/AKS/OpenShift with minimal RBAC (\u00a711) \u2014 the two spikes the others lack.",
+     "Gitignored snapshot cache under `.zhi/snapshots/<digest>/` with the digest pinned in `zhi.lock` (\u00a73) \u2014 the right default the minimalist gets wrong."
+    ],
+    "rationale": "Strongest differentiation and the deepest understanding of the supporter-with-many-customers reality; the compatibility matrix and evidence bundle are ideas nobody else in the market ships. But on my lens it is the least GitOps-pure: an OCI package the controller does not consume, a hash-chained audit log with no home, and `zhi package publish` make zhi a publisher of new artifacts rather than a check on existing ones. Plugin depth regresses (gRPC lane in MVP, PATH auto-detection of scanners). Feasibility is the lowest: the MVP is a phase-3 feature set with a phase-1 LOC estimate. It builds toward a regulated persona the owner never named, before the two named personas have a working loop \u2014 the over-building the post-mortems warn about, just pointed at compliance instead of a platform."
+   }
+  ],
+  "ranking": [
+   "pr-native",
+   "contract-first",
+   "minimalist",
+   "engine-first",
+   "fleet-and-evidence"
+  ],
+  "cross_cutting_advice": "All five proposals are the report's \u00a79 implications restated; they agree on ~90% (JSON Pointer, own snapshot format, ordered T0 chain, CEL via k8s.io, Kyverno by CLI, Git-only writes, shallow plugins). Judge and merge on the 10% that differs.\n\n1. Adopt pr-native's MVP ordering: `zhi validate`/`zhi check`/`zhi propose` before any form. In an Argo/Flux estate the check-run is what branch protection can require and what Renovate/Kargo/human PRs all pass through; the editor is the on-ramp, not the product (Monokle died outside the push path). Fold in contract-first's contract/persona/redaction posture, engine-first's pure `Validate` + digest-matched report, minimalist's zero-loadable-plugin v1 with interfaces as doors, and fleet's compatibility matrix as phase 2.\n\n2. Close the exec-renderer hole every proposal leaves open. In bot/CI mode the pipeline evaluates PR-controlled inputs. CEL (cost-budgeted) and Helm templating are bounded; a repo-selected exec renderer (Timoni/KCL/Pkl/ytt/`flux build`) is arbitrary code execution on the runner. Rule: every exec binary (renderers included) is digest-pinned in `zhi.lock`, run with no network and a scratch HOME, and exec adapters are denied in `zhi check` unless allowlisted per workspace by the deployer side, not the PR author.\n\n3. Treat the snapshot as a confidential artifact that crosses the border. It carries RBAC, namespace posture, quota usage and Secret/ConfigMap names/keys of a customer cluster. Default to OCI with registry auth and cosign v3 signing (never a half-time cut); in-repo directories only for air-gap; redaction as a tested layer; and consider a 'developer-safe' slice (discovery + OpenAPI + CRDs + admission policies) versus the full slice so developers can validate against dev without reading customer inventory.\n\n4. Set the unknowns policy for CI now: `--strict` (unobservables \u2192 Warning) as the CI default, badges-only locally, Blocking-clear refused on snapshots past TTL. Three proposals hard-code 'permissive + badge' before the owner answers report Q2.\n\n5. Supply chain: no OPA/gatekeeper/v3 in `go.mod` until Rego is actually evaluated (consume generated VAP/VAPB first); no PATH auto-detection of scanners; `govulncheck` and a Go SBOM in CI from commit one. Decide the form stack by running S-FORM first \u2014 contract-first/minimalist keep the supply chain to `go.mod` alone, which is worth a spike before importing an npm tree; if RJSF wins, lock, SBOM and scan the committed `dist/`.\n\n6. Two-year survival: Flux Schema will commoditize the CRD/CEL layer and Kargo may add an OSS validation step. What survives is the signed snapshot as an interop hub (export adapters to kubeconform/kubectl-validate/Kyverno/gator/flux-schema), a versioned public finding/report schema (`pkg/report`), the two-persona contract in standard shapes (`values.schema.json`, Troubleshoot Preflight), Compose parity, and zhi's role as a check/CommitStatus provider that composes with whatever promotion tool wins. Do not compete on form UI; compete on snapshot + contract + PR check.\n\n7. Kyverno 1.20 removes ClusterPolicy (~Nov 2026): record the engine version in every snapshot and pin the matching CLI by digest per snapshot, bundling more than one CLI version if customer clusters lag.\n\n8. Owner decisions that block architecture freeze regardless of winner: Q1 (hydrated vs DRY primacy in the company's own estate), Q2 (unknowns default), Q7 (first profile \u2014 the evidence says OpenShift), Q14 (regulated features are phase 2 unless a named buyer exists)."
+ }
+]

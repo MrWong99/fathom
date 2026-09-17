@@ -1,0 +1,26 @@
+# Build output
+/bin/
+/fathom
+
+# Test artifacts
+coverage.out
+coverage.html
+
+# Local fathom state (snapshot cache, worktrees)
+.fathom/cache/
+.worktrees/
+
+# Go workspace files
+go.work
+go.work.sum
+
+# IDE and editor files
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
