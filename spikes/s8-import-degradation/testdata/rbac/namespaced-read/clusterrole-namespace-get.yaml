@@ -1,0 +1,16 @@
+# namespaces/<ns>/  labels and annotations of the two namespaces the importer
+# deploys into. `get` with resourceNames is the narrowest grant that exposes a
+# Namespace object's metadata; `list namespaces` is NOT granted, so the importer
+# must be told the namespace names (`--namespaces s4,s8`) instead of discovering them.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: fathom-import-namespaced-read-namespaces
+  labels:
+    fathom.dev/spike: s8
+    fathom.dev/import-tier: namespaced-read
+rules:
+  - apiGroups: [""]
+    resources: [namespaces]
+    resourceNames: [s4, s8]
+    verbs: [get]

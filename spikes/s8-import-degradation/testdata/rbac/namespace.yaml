@@ -1,0 +1,11 @@
+# S8 import-degradation spike: the only namespace this spike creates.
+# Every other object on kind-fathom-oracle (s1..s4, kyverno) is state from
+# earlier spikes and is imported as-is; nothing outside s8 is modified.
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: s8
+  labels:
+    fathom.dev/spike: s8
+    environment: staging
+    team: importers

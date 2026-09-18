@@ -1,0 +1,3786 @@
+{
+  "schemaVersion": "s8-probe/1",
+  "capturedAt": "2026-09-17T23:44:01Z",
+  "cluster": {
+    "context": "kind-fathom-oracle",
+    "server": "https://127.0.0.1:36069",
+    "serverVersion": "v1.37.0",
+    "kubectlVersion": "v1.36.4",
+    "kubeletVersion": "v1.37.0",
+    "platform": "kind (local); no EKS/AKS/OpenShift cluster was available for this spike",
+    "admissionregistrationServedVersions": [
+      "v1"
+    ],
+    "featureState": {
+      "mapApiVersion": "v1"
+    },
+    "mapV1beta1Fallback": {
+      "testable": false,
+      "request": "GET /apis/admissionregistration.k8s.io/v1beta1",
+      "exitCode": 1,
+      "output": "Error from server (NotFound): the server could not find the requested resource"
+    },
+    "gitopsCRDsInstalled": []
+  },
+  "tiers": {
+    "discovery-only": {
+      "serviceAccount": "s8/fathom-import-discovery",
+      "bindings": "none beyond the default system:discovery, system:basic-user, system:public-info-viewer ClusterRoleBindings for system:authenticated"
+    },
+    "namespaced-read": {
+      "serviceAccount": "s8/fathom-import-namespaced",
+      "bindings": "Role fathom-import-namespaced-read in s8 and s4 (no secrets, no namespace list); ClusterRole fathom-import-namespaced-read-namespaces (get namespaces resourceNames s4,s8)"
+    },
+    "cluster-read": {
+      "serviceAccount": "s8/fathom-import-cluster",
+      "bindings": "ClusterRole fathom-import-cluster-read (get/list/watch on every layer, no secrets); ClusterRole fathom-import-secrets-optional exists but is NOT bound"
+    }
+  },
+  "results": [
+    {
+      "tier": "discovery-only",
+      "layer": "identity",
+      "sublayer": "whoami",
+      "kind": "real",
+      "command": "kubectl --kubeconfig kubeconfig/discovery-only.yaml auth whoami -o json",
+      "exitCode": 0,
+      "allowed": true,
+      "status": "allowed",
+      "output": "{\n    \"kind\": \"SelfSubjectReview\",\n    \"apiVersion\": \"authentication.k8s.io/v1\",\n    \"metadata\": {\n        \"creationTimestamp\": \"2026-09-17T23:43:43Z\"\n    },\n    \"status\": {\n        \"userInfo\": {"
+    },
+    {
+      "tier": "discovery-only",
+      "layer": "identity",
+      "sublayer": "selfsubjectrulesreview",
+      "kind": "real",
+      "command": "kubectl --kubeconfig kubeconfig/discovery-only.yaml auth can-i --list --namespace s4",
+      "exitCode": 0,
+      "allowed": true,
+      "status": "allowed",
+      "output": "Resources                                       Non-Resource URLs                      Resource Names   Verbs\nselfsubjectreviews.authentication.k8s.io        []                                     []               [create]\nselfsubjectaccessreviews.authorization.k8s.io   []                                     []               [create]\nselfsubjectrulesreviews.authorization.k8s.io    []                                     []               [create]\nclustertrustbundles.certificates.k8s.io         []                                     []               [get list watch]\n                                                [/.well-known/openid-configuration/]   []               [get]\n                                                [/.well-known/openid-configuration]    []               [get]\n                                                [/api/*]                               []               [get]"
+    },
+    {
+      "tier": "discovery-only",
+      "layer": "discovery",
+      "sublayer": "apis",
+      "kind": "can-i",
+      "command": "kubectl --kubeconfig kubeconfig/discovery-only.yaml auth can-i get /apis",
+      "exitCode": 0,
+      "allowed": true,
+      "status": "allowed",
+      "output": "yes"
+    },
+    {
+      "tier": "discovery-only",
+      "layer": "discovery",
+      "sublayer": "apis",
+      "kind": "real",
+      "command": "kubectl --kubeconfig kubeconfig/discovery-only.yaml get --raw /apis",
+      "exitCode": 0,
+      "allowed": true,
+      "status": "allowed",
+      "output": "{\"kind\":\"APIGroupList\",\"apiVersion\":\"v1\",\"groups\":[{\"name\":\"apiregistration.k8s.io\",\"versions\":[{\"groupVersion\":\"apiregistration.k8s.io/v1\",\"version\":\"v1\"}],\"preferredVersion\":{\"groupVersion\":\"apiregistration.k8s.io/v1\",\"version\":\"v1\"}},{\"name\":\"apps\",\"versions\":[{\"groupVersion\":\"apps/v1\",\"version\":\"v1\"}],\"preferredVersion\":{\"groupVersion\":\"apps/v1\",\"version\":\"v1\"}},{\"name\":\"events.k8s.io\",\"versions\":[{\"groupVersion\":\"events.k8s.io/v1\",\"version\":\"v1\"}],\"preferredVersion\":{\"groupVersion\":\"events.k8s.io/v1\",\"version\":\"v1\"}},{\"name\":\"authentication.k8s.io\",\"versions\":[{\"groupVersion\":\"authentication.k8s.io/v1\",\"version\":\"v1\"}],\"preferredVersion\":{\"groupVersion\":\"authentication.k8s.io/v1\",\"version\":\"v1\"}},{\"name\":\"authorization.k8s.io\",\"versions\":[{\"groupVersion\":\"authorization.k8s.io/v1\",\"version\":\"v1\"}],\"preferredVersion\":{\"groupVersion\":\"authorization.k8s.io/v1\",\"version\":\"v1\"}},{\"name\":\"autoscaling\",\"versions\":[{\"groupVersion\":\"autoscaling/v2\",\"version\":\"v2\"},{\"groupVersion\":\"autoscaling/v1\",\"version\":\"v1\"}],\"preferredVersion\":{\"groupVersion\":\"autoscaling/v2\",\"version\":\"v2\"}},{\"name\":\"batch\",\"versions\":[{\"groupVersion\":\"batch/v1\",\"version\":\"v1\"}],\"preferredVersion\":{\"groupVersion\":"
+    },
+    {
+      "tier": "discovery-only",
+      "layer": "discovery",
+      "sublayer": "aggregated",
+      "kind": "can-i",
+      "command": "kubectl --kubeconfig kubeconfig/discovery-only.yaml auth can-i get /api",
+      "exitCode": 0,
+      "allowed": true,
+      "status": "allowed",
+      "output": "yes"
+    },
+    {
+      "tier": "discovery-only",
+      "layer": "discovery",
+      "sublayer": "aggregated",
+      "kind": "real",
+      "command": "kubectl --kubeconfig kubeconfig/discovery-only.yaml get --raw /api",
+      "exitCode": 0,
+      "allowed": true,
+      "status": "allowed",
+      "output": "{\"kind\":\"APIVersions\",\"versions\":[\"v1\"],\"serverAddressByClientCIDRs\":[{\"clientCIDR\":\"0.0.0.0/0\",\"serverAddress\":\"172.19.0.2:6443\"}]}"
+    },
+    {
+      "tier": "discovery-only",
+      "layer": "discovery",
+      "sublayer": "version",
+      "kind": "can-i",
+      "command": "kubectl --kubeconfig kubeconfig/discovery-only.yaml auth can-i get /version",
+      "exitCode": 0,
+      "allowed": true,
+      "status": "allowed",
+      "output": "yes"
+    },
+    {
+      "tier": "discovery-only",
+      "layer": "discovery",
+      "sublayer": "version",
+      "kind": "real",
+      "command": "kubectl --kubeconfig kubeconfig/discovery-only.yaml version -o json",
+      "exitCode": 0,
+      "allowed": true,
+      "status": "allowed",
+      "output": "{\n  \"clientVersion\": {\n    \"major\": \"1\",\n    \"minor\": \"36\",\n    \"gitVersion\": \"v1.36.4\",\n    \"gitCommit\": \"bb826b1d48562f110659e64e8ec444327433db95\",\n    \"gitTreeState\": \"archive\",\n    \"buildDate\": \"2026-08-25T21:11:57Z\","
+    },
+    {
+      "tier": "discovery-only",
+      "layer": "openapi",
+      "sublayer": "v3-index",
+      "kind": "can-i",
+      "command": "kubectl --kubeconfig kubeconfig/discovery-only.yaml auth can-i get /openapi/v3",
+      "exitCode": 0,
+      "allowed": true,
+      "status": "allowed",
+      "output": "yes"
+    },
+    {
+      "tier": "discovery-only",
+      "layer": "openapi",
+      "sublayer": "v3-index",
+      "kind": "real",
+      "command": "kubectl --kubeconfig kubeconfig/discovery-only.yaml get --raw /openapi/v3",
+      "exitCode": 0,
+      "allowed": true,
+      "status": "allowed",
+      "output": "{\"paths\":{\".well-known/openid-configuration\":{\"serverRelativeURL\":\"/openapi/v3/.well-known/openid-configuration?hash=6FC9A3F1AAFB9DB96732185437546356002049DB5D05A741400B0777C3AB15ECF0199AC39BB450AF92B9FD1F95F6C15919A2940D4FF624EE74AAAAAF8769887B\"},\"api\":{\"serverRelativeURL\":\"/openapi/v3/api?hash=5AF8A0B247FB2756BA827FA01CA503A50320CDA5217107642980739CCC7189AE25083B97BC410D42F06B4207F7B6212B9E3BE82264D0F1DDF13B2E7990F007F6\"},\"api/v1\":{\"serverRelativeURL\":\"/openapi/v3/api/v1?hash=8F5F21DFCD465B067ED095B213D5695C2424C01AC732DEC7C1D767B196C545F4AFFE76D518B72E08FD924EE97E72DF1D115C995389B119BBEFCFE9060BF428CF\"},\"apis\":{\"serverRelativeURL\":\"/openapi/v3/apis?hash=F829BA17EB008C8219E29884E177EDA2C9B97D62E276E824178FEFE92866842A303738D9F6C2928899BD0A337DB0BC409A62DD8D73A647B99B67202B6C1BE0A3\"},\"apis/admissionregistration.k8s.io\":{\"serverRelativeURL\":\"/openapi/v3/apis/admissionregistration.k8s.io?hash=59F3B241F1DE4155E06FC95CEC460706671EC85C4472B146B35661396CAE99BD20C1D1DC39104E6F1A64B0939C532E7152E1CD1FE9B033B30A179EF04D74CB6A\"},\"apis/admissionregistration.k8s.io/v1\":{\"serverRelativeURL\":\"/openapi/v3/apis/admissionregistration.k8s.io/v1?hash=C0748328C71E4DDD22D8BF9268B68812F8B62BB45D8F04878"
+    },
+    {
+      "tier": "discovery-only",
+      "layer": "openapi",
+      "sublayer": "v3-group",
+      "kind": "can-i",
+      "command": "kubectl --kubeconfig kubeconfig/discovery-only.yaml auth can-i get /openapi/v3/apis/apps/v1",
+      "exitCode": 0,
+      "allowed": true,
+      "status": "allowed",
+      "output": "yes"
+    },
+    {
+      "tier": "discovery-only",
+      "layer": "openapi",
+      "sublayer": "v3-group",
+      "kind": "real",
+      "command": "kubectl --kubeconfig kubeconfig/discovery-only.yaml get --raw /openapi/v3/apis/apps/v1",
+      "exitCode": 0,
+      "allowed": true,
+      "status": "allowed",
+      "output": "{\"openapi\":\"3.0.0\",\"info\":{\"title\":\"Kubernetes\",\"version\":\"1.37\"},\"paths\":{\"/apis/apps/v1/\":{\"get\":{\"tags\":[\"apps_v1\"],\"description\":\"get available resources\",\"operationId\":\"getAppsV1APIResources\",\"responses\":{\"200\":{\"description\":\"OK\",\"content\":{\"application/json\":{\"schema\":{\"$ref\":\"#/components/schemas/io.k8s.apimachinery.pkg.apis.meta.v1.APIResourceList\"}},\"application/vnd.kubernetes.protobuf\":{\"schema\":{\"$ref\":\"#/components/schemas/io.k8s.apimachinery.pkg.apis.meta.v1.APIResourceList\"}},\"application/yaml\":{\"schema\":{\"$ref\":\"#/components/schemas/io.k8s.apimachinery.pkg.apis.meta.v1.APIResourceList\"}}}},\"401\":{\"description\":\"Unauthorized\"}}}},\"/apis/apps/v1/controllerrevisions\":{\"get\":{\"tags\":[\"apps_v1\"],\"description\":\"list or watch objects of kind ControllerRevision\",\"operationId\":\"listAppsV1ControllerRevisionForAllNamespaces\",\"responses\":{\"200\":{\"description\":\"OK\",\"content\":{\"application/json\":{\"schema\":{\"$ref\":\"#/components/schemas/io.k8s.api.apps.v1.ControllerRevisionList\"}},\"application/json;stream=watch\":{\"schema\":{\"$ref\":\"#/components/schemas/io.k8s.api.apps.v1.ControllerRevisionList\"}},\"application/vnd.kubernetes.protobuf\":{\"schema\":{\"$ref\":\"#/components/schemas/io.k8s.ap"
+    },
+    {
+      "tier": "discovery-only",
+      "layer": "crds",
+      "sublayer": "list",
+      "kind": "can-i",
+      "command": "kubectl --kubeconfig kubeconfig/discovery-only.yaml auth can-i list customresourcedefinitions.apiextensions.k8s.io",
+      "exitCode": 1,
+      "allowed": false,
+      "status": "forbidden",
+      "output": "Warning: resource 'customresourcedefinitions' is not namespace scoped in group 'apiextensions.k8s.io'\n\nno"
+    },
+    {
+      "tier": "discovery-only",
+      "layer": "crds",
+      "sublayer": "list",
+      "kind": "real",
+      "command": "kubectl --kubeconfig kubeconfig/discovery-only.yaml get crd widgets.spike.fathom.dev -o name",
+      "exitCode": 1,
+      "allowed": false,
+      "status": "forbidden",
+      "output": "Error from server (Forbidden): customresourcedefinitions.apiextensions.k8s.io \"widgets.spike.fathom.dev\" is forbidden: User \"system:serviceaccount:s8:fathom-import-discovery\" cannot get resource \"customresourcedefinitions\" in API group \"apiextensions.k8s.io\" at the cluster scope"
+    },
+    {
+      "tier": "discovery-only",
+      "layer": "catalogs/names",
+      "sublayer": "storageclasses",
+      "kind": "can-i",
+      "command": "kubectl --kubeconfig kubeconfig/discovery-only.yaml auth can-i list storageclasses.storage.k8s.io",
+      "exitCode": 1,
+      "allowed": false,
+      "status": "forbidden",
+      "output": "Warning: resource 'storageclasses' is not namespace scoped in group 'storage.k8s.io'\n\nno"
+    },
+    {
+      "tier": "discovery-only",
+      "layer": "catalogs/names",
+      "sublayer": "storageclasses",
+      "kind": "real",
+      "command": "kubectl --kubeconfig kubeconfig/discovery-only.yaml get storageclasses -o name",
+      "exitCode": 1,
+      "allowed": false,
+      "status": "forbidden",
+      "output": "Error from server (Forbidden): storageclasses.storage.k8s.io is forbidden: User \"system:serviceaccount:s8:fathom-import-discovery\" cannot list resource \"storageclasses\" in API group \"storage.k8s.io\" at the cluster scope"
+    },
+    {
+      "tier": "discovery-only",
+      "layer": "catalogs/names",
+      "sublayer": "ingressclasses",
+      "kind": "can-i",
+      "command": "kubectl --kubeconfig kubeconfig/discovery-only.yaml auth can-i list ingressclasses.networking.k8s.io",
+      "exitCode": 1,
+      "allowed": false,
+      "status": "forbidden",
+      "output": "Warning: resource 'ingressclasses' is not namespace scoped in group 'networking.k8s.io'\n\nno"
+    },
+    {
+      "tier": "discovery-only",
+      "layer": "catalogs/names",
+      "sublayer": "ingressclasses",
+      "kind": "real",
+      "command": "kubectl --kubeconfig kubeconfig/discovery-only.yaml get ingressclasses -o name",
+      "exitCode": 1,
+      "allowed": false,
+      "status": "forbidden",
+      "output": "Error from server (Forbidden): ingressclasses.networking.k8s.io is forbidden: User \"system:serviceaccount:s8:fathom-import-discovery\" cannot list resource \"ingressclasses\" in API group \"networking.k8s.io\" at the cluster scope"
+    },
+    {
+      "tier": "discovery-only",
+      "layer": "catalogs/names",
+      "sublayer": "priorityclasses",
+      "kind": "can-i",
+      "command": "kubectl --kubeconfig kubeconfig/discovery-only.yaml auth can-i list priorityclasses.scheduling.k8s.io",
+      "exitCode": 1,
+      "allowed": false,
+      "status": "forbidden",
+      "output": "Warning: resource 'priorityclasses' is not namespace scoped in group 'scheduling.k8s.io'\n\nno"
+    },
+    {
+      "tier": "discovery-only",
+      "layer": "catalogs/names",
+      "sublayer": "priorityclasses",
+      "kind": "real",
+      "command": "kubectl --kubeconfig kubeconfig/discovery-only.yaml get priorityclasses -o name",
+      "exitCode": 1,
+      "allowed": false,
+      "status": "forbidden",
+      "output": "Error from server (Forbidden): priorityclasses.scheduling.k8s.io is forbidden: User \"system:serviceaccount:s8:fathom-import-discovery\" cannot list resource \"priorityclasses\" in API group \"scheduling.k8s.io\" at the cluster scope"
+    },
+    {
+      "tier": "discovery-only",
+      "layer": "catalogs/names",
+      "sublayer": "runtimeclasses",
+      "kind": "can-i",
+      "command": "kubectl --kubeconfig kubeconfig/discovery-only.yaml auth can-i list runtimeclasses.node.k8s.io",
+      "exitCode": 1,
+      "allowed": false,
+      "status": "forbidden",
+      "output": "Warning: resource 'runtimeclasses' is not namespace scoped in group 'node.k8s.io'\n\nno"
+    },
+    {
+      "tier": "discovery-only",
+      "layer": "catalogs/names",
+      "sublayer": "runtimeclasses",
+      "kind": "real",
+      "command": "kubectl --kubeconfig kubeconfig/discovery-only.yaml get runtimeclasses -o name",
+      "exitCode": 1,
+      "allowed": false,
+      "status": "forbidden",
+      "output": "Error from server (Forbidden): runtimeclasses.node.k8s.io is forbidden: User \"system:serviceaccount:s8:fathom-import-discovery\" cannot list resource \"runtimeclasses\" in API group \"node.k8s.io\" at the cluster scope"
+    },
+    {
+      "tier": "discovery-only",
+      "layer": "catalogs/full",
+      "sublayer": "storageclasses",
+      "kind": "can-i",
+      "command": "kubectl --kubeconfig kubeconfig/discovery-only.yaml auth can-i get storageclasses.storage.k8s.io",
+      "exitCode": 1,
+      "allowed": false,
+      "status": "forbidden",
+      "output": "Warning: resource 'storageclasses' is not namespace scoped in group 'storage.k8s.io'\n\nno"
+    },
+    {
+      "tier": "discovery-only",
+      "layer": "catalogs/full",
+      "sublayer": "storageclasses",
+      "kind": "real",
+      "command": "kubectl --kubeconfig kubeconfig/discovery-only.yaml get storageclasses -o json",
+      "exitCode": 1,
+      "allowed": false,
+      "status": "forbidden",
+      "output": "{\n    \"apiVersion\": \"v1\",\n    \"items\": [],\n    \"kind\": \"List\",\n    \"metadata\": {\n        \"resourceVersion\": \"\"\n    }\n}"
+    },
+    {
+      "tier": "discovery-only",
+      "layer": "catalogs/full",
+      "sublayer": "csidrivers",
+      "kind": "can-i",
+      "command": "kubectl --kubeconfig kubeconfig/discovery-only.yaml auth can-i list csidrivers.storage.k8s.io",
+      "exitCode": 1,
+      "allowed": false,
+      "status": "forbidden",
+      "output": "Warning: resource 'csidrivers' is not namespace scoped in group 'storage.k8s.io'\n\nno"
+    },
+    {
+      "tier": "discovery-only",
+      "layer": "catalogs/full",
+      "sublayer": "csidrivers",
+      "kind": "real",
+      "command": "kubectl --kubeconfig kubeconfig/discovery-only.yaml get csidrivers -o json",
+      "exitCode": 1,
+      "allowed": false,
+      "status": "forbidden",
+      "output": "{\n    \"apiVersion\": \"v1\",\n    \"items\": [],\n    \"kind\": \"List\",\n    \"metadata\": {\n        \"resourceVersion\": \"\"\n    }\n}"
+    },
+    {
+      "tier": "discovery-only",
+      "layer": "admission/policies",
+      "sublayer": "vap",
+      "kind": "can-i",
+      "command": "kubectl --kubeconfig kubeconfig/discovery-only.yaml auth can-i list validatingadmissionpolicies.admissionregistration.k8s.io",
+      "exitCode": 1,
+      "allowed": false,
+      "status": "forbidden",
+      "output": "Warning: resource 'validatingadmissionpolicies' is not namespace scoped in group 'admissionregistration.k8s.io'\n\nno"
+    },
+    {
+      "tier": "discovery-only",
+      "layer": "admission/policies",
+      "sublayer": "vap",
+      "kind": "real",
+      "command": "kubectl --kubeconfig kubeconfig/discovery-only.yaml get validatingadmissionpolicies -o name",
+      "exitCode": 1,
+      "allowed": false,
+      "status": "forbidden",
+      "output": "Error from server (Forbidden): validatingadmissionpolicies.admissionregistration.k8s.io is forbidden: User \"system:serviceaccount:s8:fathom-import-discovery\" cannot list resource \"validatingadmissionpolicies\" in API group \"admissionregistration.k8s.io\" at the cluster scope"
+    },
+    {
+      "tier": "discovery-only",
+      "layer": "admission/policies",
+      "sublayer": "vapb",
+      "kind": "can-i",
+      "command": "kubectl --kubeconfig kubeconfig/discovery-only.yaml auth can-i list validatingadmissionpolicybindings.admissionregistration.k8s.io",
+      "exitCode": 1,
+      "allowed": false,
+      "status": "forbidden",
+      "output": "Warning: resource 'validatingadmissionpolicybindings' is not namespace scoped in group 'admissionregistration.k8s.io'\n\nno"
+    },
+    {
+      "tier": "discovery-only",
+      "layer": "admission/policies",
+      "sublayer": "vapb",
+      "kind": "real",
+      "command": "kubectl --kubeconfig kubeconfig/discovery-only.yaml get validatingadmissionpolicybindings -o name",
+      "exitCode": 1,
+      "allowed": false,
+      "status": "forbidden",
+      "output": "Error from server (Forbidden): validatingadmissionpolicybindings.admissionregistration.k8s.io is forbidden: User \"system:serviceaccount:s8:fathom-import-discovery\" cannot list resource \"validatingadmissionpolicybindings\" in API group \"admissionregistration.k8s.io\" at the cluster scope"
+    },
+    {
+      "tier": "discovery-only",
+      "layer": "admission/policies",
+      "sublayer": "map",
+      "kind": "can-i",
+      "command": "kubectl --kubeconfig kubeconfig/discovery-only.yaml auth can-i list mutatingadmissionpolicies.admissionregistration.k8s.io",
+      "exitCode": 1,
+      "allowed": false,
+      "status": "forbidden",
+      "output": "Warning: resource 'mutatingadmissionpolicies' is not namespace scoped in group 'admissionregistration.k8s.io'\n\nno"
+    },
+    {
+      "tier": "discovery-only",
+      "layer": "admission/policies",
+      "sublayer": "map",
+      "kind": "real",
+      "command": "kubectl --kubeconfig kubeconfig/discovery-only.yaml get mutatingadmissionpolicies -o name",
+      "exitCode": 1,
+      "allowed": false,
+      "status": "forbidden",
+      "output": "Error from server (Forbidden): mutatingadmissionpolicies.admissionregistration.k8s.io is forbidden: User \"system:serviceaccount:s8:fathom-import-discovery\" cannot list resource \"mutatingadmissionpolicies\" in API group \"admissionregistration.k8s.io\" at the cluster scope"
+    },
+    {
+      "tier": "discovery-only",
+      "layer": "admission/policies",
+      "sublayer": "mapb",
+      "kind": "can-i",
+      "command": "kubectl --kubeconfig kubeconfig/discovery-only.yaml auth can-i list mutatingadmissionpolicybindings.admissionregistration.k8s.io",
+      "exitCode": 1,
+      "allowed": false,
+      "status": "forbidden",
+      "output": "Warning: resource 'mutatingadmissionpolicybindings' is not namespace scoped in group 'admissionregistration.k8s.io'\n\nno"
+    },
+    {
+      "tier": "discovery-only",
+      "layer": "admission/policies",
+      "sublayer": "mapb",
+      "kind": "real",
+      "command": "kubectl --kubeconfig kubeconfig/discovery-only.yaml get mutatingadmissionpolicybindings -o name",
+      "exitCode": 1,
+      "allowed": false,
+      "status": "forbidden",
+      "output": "Error from server (Forbidden): mutatingadmissionpolicybindings.admissionregistration.k8s.io is forbidden: User \"system:serviceaccount:s8:fathom-import-discovery\" cannot list resource \"mutatingadmissionpolicybindings\" in API group \"admissionregistration.k8s.io\" at the cluster scope"
+    },
+    {
+      "tier": "discovery-only",
+      "layer": "admission/policies",
+      "sublayer": "map-v1beta1-fallback",
+      "kind": "real",
+      "command": "kubectl --kubeconfig kubeconfig/discovery-only.yaml get --raw /apis/admissionregistration.k8s.io/v1beta1/mutatingadmissionpolicies",
+      "exitCode": 1,
+      "allowed": false,
+      "status": "forbidden",
+      "output": "Error from server (Forbidden): mutatingadmissionpolicies.admissionregistration.k8s.io is forbidden: User \"system:serviceaccount:s8:fathom-import-discovery\" cannot list resource \"mutatingadmissionpolicies\" in API group \"admissionregistration.k8s.io\" at the cluster scope"
+    },
+    {
+      "tier": "discovery-only",
+      "layer": "admission/params",
+      "sublayer": "s3-replica-limits",
+      "kind": "can-i",
+      "command": "kubectl --kubeconfig kubeconfig/discovery-only.yaml auth can-i get configmaps -n s3",
+      "exitCode": 1,
+      "allowed": false,
+      "status": "forbidden",
+      "output": "no"
+    },
+    {
+      "tier": "discovery-only",
+      "layer": "admission/params",
+      "sublayer": "s3-replica-limits",
+      "kind": "real",
+      "command": "kubectl --kubeconfig kubeconfig/discovery-only.yaml get configmap replica-limits -n s3 -o name",
+      "exitCode": 1,
+      "allowed": false,
+      "status": "forbidden",
+      "output": "Error from server (Forbidden): configmaps \"replica-limits\" is forbidden: User \"system:serviceaccount:s8:fathom-import-discovery\" cannot get resource \"configmaps\" in API group \"\" in the namespace \"s3\""
+    },
+    {
+      "tier": "discovery-only",
+      "layer": "admission/params",
+      "sublayer": "s2-vap-limits",
+      "kind": "can-i",
+      "command": "kubectl --kubeconfig kubeconfig/discovery-only.yaml auth can-i get configmaps -n s2",
+      "exitCode": 1,
+      "allowed": false,
+      "status": "forbidden",
+      "output": "no"
+    },
+    {
+      "tier": "discovery-only",
+      "layer": "admission/params",
+      "sublayer": "s2-vap-limits",
+      "kind": "real",
+      "command": "kubectl --kubeconfig kubeconfig/discovery-only.yaml get configmap vap-limits -n s2 -o name",
+      "exitCode": 1,
+      "allowed": false,
+      "status": "forbidden",
+      "output": "Error from server (Forbidden): configmaps \"vap-limits\" is forbidden: User \"system:serviceaccount:s8:fathom-import-discovery\" cannot get resource \"configmaps\" in API group \"\" in the namespace \"s2\""
+    },
+    {
+      "tier": "discovery-only",
+      "layer": "admission/webhooks",
+      "sublayer": "validating",
+      "kind": "can-i",
+      "command": "kubectl --kubeconfig kubeconfig/discovery-only.yaml auth can-i list validatingwebhookconfigurations.admissionregistration.k8s.io",
+      "exitCode": 1,
+      "allowed": false,
+      "status": "forbidden",
+      "output": "Warning: resource 'validatingwebhookconfigurations' is not namespace scoped in group 'admissionregistration.k8s.io'\n\nno"
+    },
+    {
+      "tier": "discovery-only",
+      "layer": "admission/webhooks",
+      "sublayer": "validating",
+      "kind": "real",
+      "command": "kubectl --kubeconfig kubeconfig/discovery-only.yaml get validatingwebhookconfigurations -o name",
+      "exitCode": 1,
+      "allowed": false,
+      "status": "forbidden",
+      "output": "Error from server (Forbidden): validatingwebhookconfigurations.admissionregistration.k8s.io is forbidden: User \"system:serviceaccount:s8:fathom-import-discovery\" cannot list resource \"validatingwebhookconfigurations\" in API group \"admissionregistration.k8s.io\" at the cluster scope"
+    },
+    {
+      "tier": "discovery-only",
+      "layer": "admission/webhooks",
+      "sublayer": "mutating",
+      "kind": "can-i",
+      "command": "kubectl --kubeconfig kubeconfig/discovery-only.yaml auth can-i list mutatingwebhookconfigurations.admissionregistration.k8s.io",
+      "exitCode": 1,
+      "allowed": false,
+      "status": "forbidden",
+      "output": "Warning: resource 'mutatingwebhookconfigurations' is not namespace scoped in group 'admissionregistration.k8s.io'\n\nno"
+    },
+    {
+      "tier": "discovery-only",
+      "layer": "admission/webhooks",
+      "sublayer": "mutating",
+      "kind": "real",
+      "command": "kubectl --kubeconfig kubeconfig/discovery-only.yaml get mutatingwebhookconfigurations -o name",
+      "exitCode": 1,
+      "allowed": false,
+      "status": "forbidden",
+      "output": "Error from server (Forbidden): mutatingwebhookconfigurations.admissionregistration.k8s.io is forbidden: User \"system:serviceaccount:s8:fathom-import-discovery\" cannot list resource \"mutatingwebhookconfigurations\" in API group \"admissionregistration.k8s.io\" at the cluster scope"
+    },
+    {
+      "tier": "discovery-only",
+      "layer": "engines",
+      "sublayer": "clusterpolicies",
+      "kind": "can-i",
+      "command": "kubectl --kubeconfig kubeconfig/discovery-only.yaml auth can-i list clusterpolicies.kyverno.io",
+      "exitCode": 1,
+      "allowed": false,
+      "status": "forbidden",
+      "output": "Warning: resource 'clusterpolicies' is not namespace scoped in group 'kyverno.io'\n\nno"
+    },
+    {
+      "tier": "discovery-only",
+      "layer": "engines",
+      "sublayer": "clusterpolicies",
+      "kind": "real",
+      "command": "kubectl --kubeconfig kubeconfig/discovery-only.yaml get clusterpolicies.kyverno.io -o name",
+      "exitCode": 1,
+      "allowed": false,
+      "status": "forbidden",
+      "output": "Error from server (Forbidden): clusterpolicies.kyverno.io is forbidden: User \"system:serviceaccount:s8:fathom-import-discovery\" cannot list resource \"clusterpolicies\" in API group \"kyverno.io\" at the cluster scope"
+    },
+    {
+      "tier": "discovery-only",
+      "layer": "engines",
+      "sublayer": "validatingpolicies",
+      "kind": "can-i",
+      "command": "kubectl --kubeconfig kubeconfig/discovery-only.yaml auth can-i list validatingpolicies.policies.kyverno.io",
+      "exitCode": 1,
+      "allowed": false,
+      "status": "forbidden",
+      "output": "Warning: resource 'validatingpolicies' is not namespace scoped in group 'policies.kyverno.io'\n\nno"
+    },
+    {
+      "tier": "discovery-only",
+      "layer": "engines",
+      "sublayer": "validatingpolicies",
+      "kind": "real",
+      "command": "kubectl --kubeconfig kubeconfig/discovery-only.yaml get validatingpolicies.policies.kyverno.io -o name",
+      "exitCode": 1,
+      "allowed": false,
+      "status": "forbidden",
+      "output": "Error from server (Forbidden): validatingpolicies.policies.kyverno.io is forbidden: User \"system:serviceaccount:s8:fathom-import-discovery\" cannot list resource \"validatingpolicies\" in API group \"policies.kyverno.io\" at the cluster scope"
+    },
+    {
+      "tier": "discovery-only",
+      "layer": "engines",
+      "sublayer": "policyexceptions-v2",
+      "kind": "can-i",
+      "command": "kubectl --kubeconfig kubeconfig/discovery-only.yaml auth can-i list policyexceptions.kyverno.io -A",
+      "exitCode": 1,
+      "allowed": false,
+      "status": "forbidden",
+      "output": "no"
+    },
+    {
+      "tier": "discovery-only",
+      "layer": "engines",
+      "sublayer": "policyexceptions-v2",
+      "kind": "real",
+      "command": "kubectl --kubeconfig kubeconfig/discovery-only.yaml get policyexceptions.kyverno.io -A -o name",
+      "exitCode": 1,
+      "allowed": false,
+      "status": "forbidden",
+      "output": "Error from server (Forbidden): policyexceptions.kyverno.io is forbidden: User \"system:serviceaccount:s8:fathom-import-discovery\" cannot list resource \"policyexceptions\" in API group \"kyverno.io\" at the cluster scope"
+    },
+    {
+      "tier": "discovery-only",
+      "layer": "engines",
+      "sublayer": "policyexceptions-cel",
+      "kind": "can-i",
+      "command": "kubectl --kubeconfig kubeconfig/discovery-only.yaml auth can-i list policyexceptions.policies.kyverno.io -A",
+      "exitCode": 1,
+      "allowed": false,
+      "status": "forbidden",
+      "output": "no"
+    },
+    {
+      "tier": "discovery-only",
+      "layer": "engines",
+      "sublayer": "policyexceptions-cel",
+      "kind": "real",
+      "command": "kubectl --kubeconfig kubeconfig/discovery-only.yaml get policyexceptions.policies.kyverno.io -A -o name",
+      "exitCode": 1,
+      "allowed": false,
+      "status": "forbidden",
+      "output": "Error from server (Forbidden): policyexceptions.policies.kyverno.io is forbidden: User \"system:serviceaccount:s8:fathom-import-discovery\" cannot list resource \"policyexceptions\" in API group \"policies.kyverno.io\" at the cluster scope"
+    },
+    {
+      "tier": "discovery-only",
+      "layer": "engines",
+      "sublayer": "policies-namespaced-s4",
+      "kind": "can-i",
+      "command": "kubectl --kubeconfig kubeconfig/discovery-only.yaml auth can-i list policies.kyverno.io -n s4",
+      "exitCode": 1,
+      "allowed": false,
+      "status": "forbidden",
+      "output": "no"
+    },
+    {
+      "tier": "discovery-only",
+      "layer": "engines",
+      "sublayer": "policies-namespaced-s4",
+      "kind": "real",
+      "command": "kubectl --kubeconfig kubeconfig/discovery-only.yaml get policies.kyverno.io -n s4 -o name",
+      "exitCode": 1,
+      "allowed": false,
+      "status": "forbidden",
+      "output": "Error from server (Forbidden): policies.kyverno.io is forbidden: User \"system:serviceaccount:s8:fathom-import-discovery\" cannot list resource \"policies\" in API group \"kyverno.io\" in the namespace \"s4\""
+    },
+    {
+      "tier": "discovery-only",
+      "layer": "namespaces",
+      "sublayer": "list",
+      "kind": "can-i",
+      "command": "kubectl --kubeconfig kubeconfig/discovery-only.yaml auth can-i list namespaces",
+      "exitCode": 1,
+      "allowed": false,
+      "status": "forbidden",
+      "output": "Warning: resource 'namespaces' is not namespace scoped\n\nno"
+    },
+    {
+      "tier": "discovery-only",
+      "layer": "namespaces",
+      "sublayer": "list",
+      "kind": "real",
+      "command": "kubectl --kubeconfig kubeconfig/discovery-only.yaml get namespaces -o name",
+      "exitCode": 1,
+      "allowed": false,
+      "status": "forbidden",
+      "output": "Error from server (Forbidden): namespaces is forbidden: User \"system:serviceaccount:s8:fathom-import-discovery\" cannot list resource \"namespaces\" in API group \"\" at the cluster scope"
+    },
+    {
+      "tier": "discovery-only",
+      "layer": "namespaces",
+      "sublayer": "get-s4-labels",
+      "kind": "can-i",
+      "command": "kubectl --kubeconfig kubeconfig/discovery-only.yaml auth can-i get namespaces/s4",
+      "exitCode": 1,
+      "allowed": false,
+      "status": "forbidden",
+      "output": "Warning: resource 'namespaces' is not namespace scoped\n\nno"
+    },
+    {
+      "tier": "discovery-only",
+      "layer": "namespaces",
+      "sublayer": "get-s4-labels",
+      "kind": "real",
+      "command": "kubectl --kubeconfig kubeconfig/discovery-only.yaml get namespace s4 -o jsonpath={.metadata.labels}",
+      "exitCode": 1,
+      "allowed": false,
+      "status": "forbidden",
+      "output": "Error from server (Forbidden): namespaces \"s4\" is forbidden: User \"system:serviceaccount:s8:fathom-import-discovery\" cannot get resource \"namespaces\" in API group \"\" in the namespace \"s4\""
+    },
+    {
+      "tier": "discovery-only",
+      "layer": "namespaces",
+      "sublayer": "get-s8-labels",
+      "kind": "can-i",
+      "command": "kubectl --kubeconfig kubeconfig/discovery-only.yaml auth can-i get namespaces/s8",
+      "exitCode": 1,
+      "allowed": false,
+      "status": "forbidden",
+      "output": "Warning: resource 'namespaces' is not namespace scoped\n\nno"
+    },
+    {
+      "tier": "discovery-only",
+      "layer": "namespaces",
+      "sublayer": "get-s8-labels",
+      "kind": "real",
+      "command": "kubectl --kubeconfig kubeconfig/discovery-only.yaml get namespace s8 -o jsonpath={.metadata.labels}",
+      "exitCode": 1,
+      "allowed": false,
+      "status": "forbidden",
+      "output": "Error from server (Forbidden): namespaces \"s8\" is forbidden: User \"system:serviceaccount:s8:fathom-import-discovery\" cannot get resource \"namespaces\" in API group \"\" in the namespace \"s8\""
+    },
+    {
+      "tier": "discovery-only",
+      "layer": "namespaces",
+      "sublayer": "get-s2-labels",
+      "kind": "can-i",
+      "command": "kubectl --kubeconfig kubeconfig/discovery-only.yaml auth can-i get namespaces/s2",
+      "exitCode": 1,
+      "allowed": false,
+      "status": "forbidden",
+      "output": "Warning: resource 'namespaces' is not namespace scoped\n\nno"
+    },
+    {
+      "tier": "discovery-only",
+      "layer": "namespaces",
+      "sublayer": "get-s2-labels",
+      "kind": "real",
+      "command": "kubectl --kubeconfig kubeconfig/discovery-only.yaml get namespace s2 -o jsonpath={.metadata.labels}",
+      "exitCode": 1,
+      "allowed": false,
+      "status": "forbidden",
+      "output": "Error from server (Forbidden): namespaces \"s2\" is forbidden: User \"system:serviceaccount:s8:fathom-import-discovery\" cannot get resource \"namespaces\" in API group \"\" in the namespace \"s2\""
+    },
+    {
+      "tier": "discovery-only",
+      "layer": "namespaces",
+      "sublayer": "quota-s4",
+      "kind": "can-i",
+      "command": "kubectl --kubeconfig kubeconfig/discovery-only.yaml auth can-i list resourcequotas -n s4",
+      "exitCode": 1,
+      "allowed": false,
+      "status": "forbidden",
+      "output": "no"
+    },
+    {
+      "tier": "discovery-only",
+      "layer": "namespaces",
+      "sublayer": "quota-s4",
+      "kind": "real",
+      "command": "kubectl --kubeconfig kubeconfig/discovery-only.yaml get resourcequotas -n s4 -o jsonpath={range .items[*]}{.metadata.name}={.status.used}{\"\\n\"}{end}",
+      "exitCode": 1,
+      "allowed": false,
+      "status": "forbidden",
+      "output": "Error from server (Forbidden): resourcequotas is forbidden: User \"system:serviceaccount:s8:fathom-import-discovery\" cannot list resource \"resourcequotas\" in API group \"\" in the namespace \"s4\""
+    },
+    {
+      "tier": "discovery-only",
+      "layer": "namespaces",
+      "sublayer": "limitrange-s4",
+      "kind": "can-i",
+      "command": "kubectl --kubeconfig kubeconfig/discovery-only.yaml auth can-i list limitranges -n s4",
+      "exitCode": 1,
+      "allowed": false,
+      "status": "forbidden",
+      "output": "no"
+    },
+    {
+      "tier": "discovery-only",
+      "layer": "namespaces",
+      "sublayer": "limitrange-s4",
+      "kind": "real",
+      "command": "kubectl --kubeconfig kubeconfig/discovery-only.yaml get limitranges -n s4 -o name",
+      "exitCode": 1,
+      "allowed": false,
+      "status": "forbidden",
+      "output": "Error from server (Forbidden): limitranges is forbidden: User \"system:serviceaccount:s8:fathom-import-discovery\" cannot list resource \"limitranges\" in API group \"\" in the namespace \"s4\""
+    },
+    {
+      "tier": "discovery-only",
+      "layer": "namespaces",
+      "sublayer": "netpol-s4",
+      "kind": "can-i",
+      "command": "kubectl --kubeconfig kubeconfig/discovery-only.yaml auth can-i list networkpolicies.networking.k8s.io -n s4",
+      "exitCode": 1,
+      "allowed": false,
+      "status": "forbidden",
+      "output": "no"
+    },
+    {
+      "tier": "discovery-only",
+      "layer": "namespaces",
+      "sublayer": "netpol-s4",
+      "kind": "real",
+      "command": "kubectl --kubeconfig kubeconfig/discovery-only.yaml get networkpolicies -n s4 -o name",
+      "exitCode": 1,
+      "allowed": false,
+      "status": "forbidden",
+      "output": "Error from server (Forbidden): networkpolicies.networking.k8s.io is forbidden: User \"system:serviceaccount:s8:fathom-import-discovery\" cannot list resource \"networkpolicies\" in API group \"networking.k8s.io\" in the namespace \"s4\""
+    },
+    {
+      "tier": "discovery-only",
+      "layer": "namespaces",
+      "sublayer": "quota-s2-other",
+      "kind": "can-i",
+      "command": "kubectl --kubeconfig kubeconfig/discovery-only.yaml auth can-i list resourcequotas -n s2",
+      "exitCode": 1,
+      "allowed": false,
+      "status": "forbidden",
+      "output": "no"
+    },
+    {
+      "tier": "discovery-only",
+      "layer": "namespaces",
+      "sublayer": "quota-s2-other",
+      "kind": "real",
+      "command": "kubectl --kubeconfig kubeconfig/discovery-only.yaml get resourcequotas -n s2 -o name",
+      "exitCode": 1,
+      "allowed": false,
+      "status": "forbidden",
+      "output": "Error from server (Forbidden): resourcequotas is forbidden: User \"system:serviceaccount:s8:fathom-import-discovery\" cannot list resource \"resourcequotas\" in API group \"\" in the namespace \"s2\""
+    },
+    {
+      "tier": "discovery-only",
+      "layer": "rbac",
+      "sublayer": "clusterroles",
+      "kind": "can-i",
+      "command": "kubectl --kubeconfig kubeconfig/discovery-only.yaml auth can-i list clusterroles.rbac.authorization.k8s.io",
+      "exitCode": 1,
+      "allowed": false,
+      "status": "forbidden",
+      "output": "Warning: resource 'clusterroles' is not namespace scoped in group 'rbac.authorization.k8s.io'\n\nno"
+    },
+    {
+      "tier": "discovery-only",
+      "layer": "rbac",
+      "sublayer": "clusterroles",
+      "kind": "real",
+      "command": "kubectl --kubeconfig kubeconfig/discovery-only.yaml get clusterroles fathom-import-cluster-read -o name",
+      "exitCode": 1,
+      "allowed": false,
+      "status": "forbidden",
+      "output": "Error from server (Forbidden): clusterroles.rbac.authorization.k8s.io \"fathom-import-cluster-read\" is forbidden: User \"system:serviceaccount:s8:fathom-import-discovery\" cannot get resource \"clusterroles\" in API group \"rbac.authorization.k8s.io\" at the cluster scope"
+    },
+    {
+      "tier": "discovery-only",
+      "layer": "rbac",
+      "sublayer": "clusterrolebindings",
+      "kind": "can-i",
+      "command": "kubectl --kubeconfig kubeconfig/discovery-only.yaml auth can-i list clusterrolebindings.rbac.authorization.k8s.io",
+      "exitCode": 1,
+      "allowed": false,
+      "status": "forbidden",
+      "output": "Warning: resource 'clusterrolebindings' is not namespace scoped in group 'rbac.authorization.k8s.io'\n\nno"
+    },
+    {
+      "tier": "discovery-only",
+      "layer": "rbac",
+      "sublayer": "clusterrolebindings",
+      "kind": "real",
+      "command": "kubectl --kubeconfig kubeconfig/discovery-only.yaml get clusterrolebindings fathom-import-cluster-read -o name",
+      "exitCode": 1,
+      "allowed": false,
+      "status": "forbidden",
+      "output": "Error from server (Forbidden): clusterrolebindings.rbac.authorization.k8s.io \"fathom-import-cluster-read\" is forbidden: User \"system:serviceaccount:s8:fathom-import-discovery\" cannot get resource \"clusterrolebindings\" in API group \"rbac.authorization.k8s.io\" at the cluster scope"
+    },
+    {
+      "tier": "discovery-only",
+      "layer": "rbac",
+      "sublayer": "roles-s4",
+      "kind": "can-i",
+      "command": "kubectl --kubeconfig kubeconfig/discovery-only.yaml auth can-i list roles.rbac.authorization.k8s.io -n s4",
+      "exitCode": 1,
+      "allowed": false,
+      "status": "forbidden",
+      "output": "no"
+    },
+    {
+      "tier": "discovery-only",
+      "layer": "rbac",
+      "sublayer": "roles-s4",
+      "kind": "real",
+      "command": "kubectl --kubeconfig kubeconfig/discovery-only.yaml get roles -n s4 -o name",
+      "exitCode": 1,
+      "allowed": false,
+      "status": "forbidden",
+      "output": "Error from server (Forbidden): roles.rbac.authorization.k8s.io is forbidden: User \"system:serviceaccount:s8:fathom-import-discovery\" cannot list resource \"roles\" in API group \"rbac.authorization.k8s.io\" in the namespace \"s4\""
+    },
+    {
+      "tier": "discovery-only",
+      "layer": "rbac",
+      "sublayer": "rolebindings-s4",
+      "kind": "can-i",
+      "command": "kubectl --kubeconfig kubeconfig/discovery-only.yaml auth can-i list rolebindings.rbac.authorization.k8s.io -n s4",
+      "exitCode": 1,
+      "allowed": false,
+      "status": "forbidden",
+      "output": "no"
+    },
+    {
+      "tier": "discovery-only",
+      "layer": "rbac",
+      "sublayer": "rolebindings-s4",
+      "kind": "real",
+      "command": "kubectl --kubeconfig kubeconfig/discovery-only.yaml get rolebindings -n s4 -o name",
+      "exitCode": 1,
+      "allowed": false,
+      "status": "forbidden",
+      "output": "Error from server (Forbidden): rolebindings.rbac.authorization.k8s.io is forbidden: User \"system:serviceaccount:s8:fathom-import-discovery\" cannot list resource \"rolebindings\" in API group \"rbac.authorization.k8s.io\" in the namespace \"s4\""
+    },
+    {
+      "tier": "discovery-only",
+      "layer": "inventory",
+      "sublayer": "configmaps-s4",
+      "kind": "can-i",
+      "command": "kubectl --kubeconfig kubeconfig/discovery-only.yaml auth can-i list configmaps -n s4",
+      "exitCode": 1,
+      "allowed": false,
+      "status": "forbidden",
+      "output": "no"
+    },
+    {
+      "tier": "discovery-only",
+      "layer": "inventory",
+      "sublayer": "configmaps-s4",
+      "kind": "real",
+      "command": "kubectl --kubeconfig kubeconfig/discovery-only.yaml get configmaps -n s4 -o name",
+      "exitCode": 1,
+      "allowed": false,
+      "status": "forbidden",
+      "output": "Error from server (Forbidden): configmaps is forbidden: User \"system:serviceaccount:s8:fathom-import-discovery\" cannot list resource \"configmaps\" in API group \"\" in the namespace \"s4\""
+    },
+    {
+      "tier": "discovery-only",
+      "layer": "inventory",
+      "sublayer": "secrets-names-s4",
+      "kind": "can-i",
+      "command": "kubectl --kubeconfig kubeconfig/discovery-only.yaml auth can-i list secrets -n s4",
+      "exitCode": 1,
+      "allowed": false,
+      "status": "forbidden",
+      "output": "no"
+    },
+    {
+      "tier": "discovery-only",
+      "layer": "inventory",
+      "sublayer": "secrets-names-s4",
+      "kind": "real",
+      "command": "kubectl --kubeconfig kubeconfig/discovery-only.yaml get secrets -n s4 -o name",
+      "exitCode": 1,
+      "allowed": false,
+      "status": "forbidden",
+      "output": "Error from server (Forbidden): secrets is forbidden: User \"system:serviceaccount:s8:fathom-import-discovery\" cannot list resource \"secrets\" in API group \"\" in the namespace \"s4\""
+    },
+    {
+      "tier": "discovery-only",
+      "layer": "inventory",
+      "sublayer": "secrets-names-s8",
+      "kind": "can-i",
+      "command": "kubectl --kubeconfig kubeconfig/discovery-only.yaml auth can-i list secrets -n s8",
+      "exitCode": 1,
+      "allowed": false,
+      "status": "forbidden",
+      "output": "no"
+    },
+    {
+      "tier": "discovery-only",
+      "layer": "inventory",
+      "sublayer": "secrets-names-s8",
+      "kind": "real",
+      "command": "kubectl --kubeconfig kubeconfig/discovery-only.yaml get secrets -n s8 -o name",
+      "exitCode": 1,
+      "allowed": false,
+      "status": "forbidden",
+      "output": "Error from server (Forbidden): secrets is forbidden: User \"system:serviceaccount:s8:fathom-import-discovery\" cannot list resource \"secrets\" in API group \"\" in the namespace \"s8\""
+    },
+    {
+      "tier": "discovery-only",
+      "layer": "inventory",
+      "sublayer": "serviceaccounts-s4",
+      "kind": "can-i",
+      "command": "kubectl --kubeconfig kubeconfig/discovery-only.yaml auth can-i list serviceaccounts -n s4",
+      "exitCode": 1,
+      "allowed": false,
+      "status": "forbidden",
+      "output": "no"
+    },
+    {
+      "tier": "discovery-only",
+      "layer": "inventory",
+      "sublayer": "serviceaccounts-s4",
+      "kind": "real",
+      "command": "kubectl --kubeconfig kubeconfig/discovery-only.yaml get serviceaccounts -n s4 -o name",
+      "exitCode": 1,
+      "allowed": false,
+      "status": "forbidden",
+      "output": "Error from server (Forbidden): serviceaccounts is forbidden: User \"system:serviceaccount:s8:fathom-import-discovery\" cannot list resource \"serviceaccounts\" in API group \"\" in the namespace \"s4\""
+    },
+    {
+      "tier": "discovery-only",
+      "layer": "inventory",
+      "sublayer": "services-s4",
+      "kind": "can-i",
+      "command": "kubectl --kubeconfig kubeconfig/discovery-only.yaml auth can-i list services -n s4",
+      "exitCode": 1,
+      "allowed": false,
+      "status": "forbidden",
+      "output": "no"
+    },
+    {
+      "tier": "discovery-only",
+      "layer": "inventory",
+      "sublayer": "services-s4",
+      "kind": "real",
+      "command": "kubectl --kubeconfig kubeconfig/discovery-only.yaml get services -n s4 -o name",
+      "exitCode": 1,
+      "allowed": false,
+      "status": "forbidden",
+      "output": "Error from server (Forbidden): services is forbidden: User \"system:serviceaccount:s8:fathom-import-discovery\" cannot list resource \"services\" in API group \"\" in the namespace \"s4\""
+    },
+    {
+      "tier": "discovery-only",
+      "layer": "inventory",
+      "sublayer": "ingresses-s4",
+      "kind": "can-i",
+      "command": "kubectl --kubeconfig kubeconfig/discovery-only.yaml auth can-i list ingresses.networking.k8s.io -n s4",
+      "exitCode": 1,
+      "allowed": false,
+      "status": "forbidden",
+      "output": "no"
+    },
+    {
+      "tier": "discovery-only",
+      "layer": "inventory",
+      "sublayer": "ingresses-s4",
+      "kind": "real",
+      "command": "kubectl --kubeconfig kubeconfig/discovery-only.yaml get ingresses -n s4 -o name",
+      "exitCode": 1,
+      "allowed": false,
+      "status": "forbidden",
+      "output": "Error from server (Forbidden): ingresses.networking.k8s.io is forbidden: User \"system:serviceaccount:s8:fathom-import-discovery\" cannot list resource \"ingresses\" in API group \"networking.k8s.io\" in the namespace \"s4\""
+    },
+    {
+      "tier": "discovery-only",
+      "layer": "inventory",
+      "sublayer": "deployments-s4",
+      "kind": "can-i",
+      "command": "kubectl --kubeconfig kubeconfig/discovery-only.yaml auth can-i list deployments.apps -n s4",
+      "exitCode": 1,
+      "allowed": false,
+      "status": "forbidden",
+      "output": "no"
+    },
+    {
+      "tier": "discovery-only",
+      "layer": "inventory",
+      "sublayer": "deployments-s4",
+      "kind": "real",
+      "command": "kubectl --kubeconfig kubeconfig/discovery-only.yaml get deployments -n s4 -o name",
+      "exitCode": 1,
+      "allowed": false,
+      "status": "forbidden",
+      "output": "Error from server (Forbidden): deployments.apps is forbidden: User \"system:serviceaccount:s8:fathom-import-discovery\" cannot list resource \"deployments\" in API group \"apps\" in the namespace \"s4\""
+    },
+    {
+      "tier": "discovery-only",
+      "layer": "inventory",
+      "sublayer": "pods-s4",
+      "kind": "can-i",
+      "command": "kubectl --kubeconfig kubeconfig/discovery-only.yaml auth can-i list pods -n s4",
+      "exitCode": 1,
+      "allowed": false,
+      "status": "forbidden",
+      "output": "no"
+    },
+    {
+      "tier": "discovery-only",
+      "layer": "inventory",
+      "sublayer": "pods-s4",
+      "kind": "real",
+      "command": "kubectl --kubeconfig kubeconfig/discovery-only.yaml get pods -n s4 -o name",
+      "exitCode": 1,
+      "allowed": false,
+      "status": "forbidden",
+      "output": "Error from server (Forbidden): pods is forbidden: User \"system:serviceaccount:s8:fathom-import-discovery\" cannot list resource \"pods\" in API group \"\" in the namespace \"s4\""
+    },
+    {
+      "tier": "discovery-only",
+      "layer": "inventory",
+      "sublayer": "configmaps-all",
+      "kind": "can-i",
+      "command": "kubectl --kubeconfig kubeconfig/discovery-only.yaml auth can-i list configmaps -A",
+      "exitCode": 1,
+      "allowed": false,
+      "status": "forbidden",
+      "output": "no"
+    },
+    {
+      "tier": "discovery-only",
+      "layer": "inventory",
+      "sublayer": "configmaps-all",
+      "kind": "real",
+      "command": "kubectl --kubeconfig kubeconfig/discovery-only.yaml get configmaps -A -o name",
+      "exitCode": 1,
+      "allowed": false,
+      "status": "forbidden",
+      "output": "Error from server (Forbidden): configmaps is forbidden: User \"system:serviceaccount:s8:fathom-import-discovery\" cannot list resource \"configmaps\" in API group \"\" at the cluster scope"
+    },
+    {
+      "tier": "discovery-only",
+      "layer": "gitops",
+      "sublayer": "argocd-applications",
+      "kind": "can-i",
+      "command": "kubectl --kubeconfig kubeconfig/discovery-only.yaml auth can-i list applications.argoproj.io -A",
+      "exitCode": 1,
+      "allowed": false,
+      "status": "not-served",
+      "output": "Warning: the server doesn't have a resource type 'applications' in group 'argoproj.io'\n\nno"
+    },
+    {
+      "tier": "discovery-only",
+      "layer": "gitops",
+      "sublayer": "argocd-applications",
+      "kind": "real",
+      "command": "kubectl --kubeconfig kubeconfig/discovery-only.yaml get applications.argoproj.io -A -o name",
+      "exitCode": 1,
+      "allowed": false,
+      "status": "not-served",
+      "output": "error: the server doesn't have a resource type \"applications\""
+    },
+    {
+      "tier": "discovery-only",
+      "layer": "gitops",
+      "sublayer": "flux-helmreleases",
+      "kind": "can-i",
+      "command": "kubectl --kubeconfig kubeconfig/discovery-only.yaml auth can-i list helmreleases.helm.toolkit.fluxcd.io -A",
+      "exitCode": 1,
+      "allowed": false,
+      "status": "not-served",
+      "output": "Warning: the server doesn't have a resource type 'helmreleases' in group 'helm.toolkit.fluxcd.io'\n\nno"
+    },
+    {
+      "tier": "discovery-only",
+      "layer": "gitops",
+      "sublayer": "flux-helmreleases",
+      "kind": "real",
+      "command": "kubectl --kubeconfig kubeconfig/discovery-only.yaml get helmreleases.helm.toolkit.fluxcd.io -A -o name",
+      "exitCode": 1,
+      "allowed": false,
+      "status": "not-served",
+      "output": "error: the server doesn't have a resource type \"helmreleases\""
+    },
+    {
+      "tier": "discovery-only",
+      "layer": "gitops",
+      "sublayer": "argocd-applications-ssar",
+      "kind": "ssar",
+      "command": "kubectl --kubeconfig kubeconfig/discovery-only.yaml create --raw /apis/authorization.k8s.io/v1/selfsubjectaccessreviews -f - <<< '{\"apiVersion\":\"authorization.k8s.io/v1\",\"kind\":\"SelfSubjectAccessReview\",\"spec\":{\"resourceAttributes\":{\"group\":\"argoproj.io\",\"resource\":\"applications\",\"verb\":\"list\"}}}'",
+      "exitCode": 0,
+      "allowed": false,
+      "status": "forbidden",
+      "output": "{\"allowed\":false}"
+    },
+    {
+      "tier": "discovery-only",
+      "layer": "gitops",
+      "sublayer": "flux-helmreleases-ssar",
+      "kind": "ssar",
+      "command": "kubectl --kubeconfig kubeconfig/discovery-only.yaml create --raw /apis/authorization.k8s.io/v1/selfsubjectaccessreviews -f - <<< '{\"apiVersion\":\"authorization.k8s.io/v1\",\"kind\":\"SelfSubjectAccessReview\",\"spec\":{\"resourceAttributes\":{\"group\":\"helm.toolkit.fluxcd.io\",\"resource\":\"helmreleases\",\"verb\":\"list\"}}}'",
+      "exitCode": 0,
+      "allowed": false,
+      "status": "forbidden",
+      "output": "{\"allowed\":false}"
+    },
+    {
+      "tier": "discovery-only",
+      "layer": "nodes",
+      "sublayer": "list",
+      "kind": "can-i",
+      "command": "kubectl --kubeconfig kubeconfig/discovery-only.yaml auth can-i list nodes",
+      "exitCode": 1,
+      "allowed": false,
+      "status": "forbidden",
+      "output": "Warning: resource 'nodes' is not namespace scoped\n\nno"
+    },
+    {
+      "tier": "discovery-only",
+      "layer": "nodes",
+      "sublayer": "list",
+      "kind": "real",
+      "command": "kubectl --kubeconfig kubeconfig/discovery-only.yaml get nodes -o jsonpath={range .items[*]}{.metadata.name} cpu={.status.allocatable.cpu}{\"\\n\"}{end}",
+      "exitCode": 1,
+      "allowed": false,
+      "status": "forbidden",
+      "output": "Error from server (Forbidden): nodes is forbidden: User \"system:serviceaccount:s8:fathom-import-discovery\" cannot list resource \"nodes\" in API group \"\" at the cluster scope"
+    },
+    {
+      "tier": "namespaced-read",
+      "layer": "identity",
+      "sublayer": "whoami",
+      "kind": "real",
+      "command": "kubectl --kubeconfig kubeconfig/namespaced-read.yaml auth whoami -o json",
+      "exitCode": 0,
+      "allowed": true,
+      "status": "allowed",
+      "output": "{\n    \"kind\": \"SelfSubjectReview\",\n    \"apiVersion\": \"authentication.k8s.io/v1\",\n    \"metadata\": {\n        \"creationTimestamp\": \"2026-09-17T23:43:49Z\"\n    },\n    \"status\": {\n        \"userInfo\": {"
+    },
+    {
+      "tier": "namespaced-read",
+      "layer": "identity",
+      "sublayer": "selfsubjectrulesreview",
+      "kind": "real",
+      "command": "kubectl --kubeconfig kubeconfig/namespaced-read.yaml auth can-i --list --namespace s4",
+      "exitCode": 0,
+      "allowed": true,
+      "status": "allowed",
+      "output": "Resources                                       Non-Resource URLs                      Resource Names   Verbs\nselfsubjectreviews.authentication.k8s.io        []                                     []               [create]\nselfsubjectaccessreviews.authorization.k8s.io   []                                     []               [create]\nselfsubjectrulesreviews.authorization.k8s.io    []                                     []               [create]\nclustertrustbundles.certificates.k8s.io         []                                     []               [get list watch]\nconfigmaps                                      []                                     []               [get list]\nlimitranges                                     []                                     []               [get list]\npods                                            []                                     []               [get list]"
+    },
+    {
+      "tier": "namespaced-read",
+      "layer": "discovery",
+      "sublayer": "apis",
+      "kind": "can-i",
+      "command": "kubectl --kubeconfig kubeconfig/namespaced-read.yaml auth can-i get /apis",
+      "exitCode": 0,
+      "allowed": true,
+      "status": "allowed",
+      "output": "yes"
+    },
+    {
+      "tier": "namespaced-read",
+      "layer": "discovery",
+      "sublayer": "apis",
+      "kind": "real",
+      "command": "kubectl --kubeconfig kubeconfig/namespaced-read.yaml get --raw /apis",
+      "exitCode": 0,
+      "allowed": true,
+      "status": "allowed",
+      "output": "{\"kind\":\"APIGroupList\",\"apiVersion\":\"v1\",\"groups\":[{\"name\":\"apiregistration.k8s.io\",\"versions\":[{\"groupVersion\":\"apiregistration.k8s.io/v1\",\"version\":\"v1\"}],\"preferredVersion\":{\"groupVersion\":\"apiregistration.k8s.io/v1\",\"version\":\"v1\"}},{\"name\":\"apps\",\"versions\":[{\"groupVersion\":\"apps/v1\",\"version\":\"v1\"}],\"preferredVersion\":{\"groupVersion\":\"apps/v1\",\"version\":\"v1\"}},{\"name\":\"events.k8s.io\",\"versions\":[{\"groupVersion\":\"events.k8s.io/v1\",\"version\":\"v1\"}],\"preferredVersion\":{\"groupVersion\":\"events.k8s.io/v1\",\"version\":\"v1\"}},{\"name\":\"authentication.k8s.io\",\"versions\":[{\"groupVersion\":\"authentication.k8s.io/v1\",\"version\":\"v1\"}],\"preferredVersion\":{\"groupVersion\":\"authentication.k8s.io/v1\",\"version\":\"v1\"}},{\"name\":\"authorization.k8s.io\",\"versions\":[{\"groupVersion\":\"authorization.k8s.io/v1\",\"version\":\"v1\"}],\"preferredVersion\":{\"groupVersion\":\"authorization.k8s.io/v1\",\"version\":\"v1\"}},{\"name\":\"autoscaling\",\"versions\":[{\"groupVersion\":\"autoscaling/v2\",\"version\":\"v2\"},{\"groupVersion\":\"autoscaling/v1\",\"version\":\"v1\"}],\"preferredVersion\":{\"groupVersion\":\"autoscaling/v2\",\"version\":\"v2\"}},{\"name\":\"batch\",\"versions\":[{\"groupVersion\":\"batch/v1\",\"version\":\"v1\"}],\"preferredVersion\":{\"groupVersion\":"
+    },
+    {
+      "tier": "namespaced-read",
+      "layer": "discovery",
+      "sublayer": "aggregated",
+      "kind": "can-i",
+      "command": "kubectl --kubeconfig kubeconfig/namespaced-read.yaml auth can-i get /api",
+      "exitCode": 0,
+      "allowed": true,
+      "status": "allowed",
+      "output": "yes"
+    },
+    {
+      "tier": "namespaced-read",
+      "layer": "discovery",
+      "sublayer": "aggregated",
+      "kind": "real",
+      "command": "kubectl --kubeconfig kubeconfig/namespaced-read.yaml get --raw /api",
+      "exitCode": 0,
+      "allowed": true,
+      "status": "allowed",
+      "output": "{\"kind\":\"APIVersions\",\"versions\":[\"v1\"],\"serverAddressByClientCIDRs\":[{\"clientCIDR\":\"0.0.0.0/0\",\"serverAddress\":\"172.19.0.2:6443\"}]}"
+    },
+    {
+      "tier": "namespaced-read",
+      "layer": "discovery",
+      "sublayer": "version",
+      "kind": "can-i",
+      "command": "kubectl --kubeconfig kubeconfig/namespaced-read.yaml auth can-i get /version",
+      "exitCode": 0,
+      "allowed": true,
+      "status": "allowed",
+      "output": "yes"
+    },
+    {
+      "tier": "namespaced-read",
+      "layer": "discovery",
+      "sublayer": "version",
+      "kind": "real",
+      "command": "kubectl --kubeconfig kubeconfig/namespaced-read.yaml version -o json",
+      "exitCode": 0,
+      "allowed": true,
+      "status": "allowed",
+      "output": "{\n  \"clientVersion\": {\n    \"major\": \"1\",\n    \"minor\": \"36\",\n    \"gitVersion\": \"v1.36.4\",\n    \"gitCommit\": \"bb826b1d48562f110659e64e8ec444327433db95\",\n    \"gitTreeState\": \"archive\",\n    \"buildDate\": \"2026-08-25T21:11:57Z\","
+    },
+    {
+      "tier": "namespaced-read",
+      "layer": "openapi",
+      "sublayer": "v3-index",
+      "kind": "can-i",
+      "command": "kubectl --kubeconfig kubeconfig/namespaced-read.yaml auth can-i get /openapi/v3",
+      "exitCode": 0,
+      "allowed": true,
+      "status": "allowed",
+      "output": "yes"
+    },
+    {
+      "tier": "namespaced-read",
+      "layer": "openapi",
+      "sublayer": "v3-index",
+      "kind": "real",
+      "command": "kubectl --kubeconfig kubeconfig/namespaced-read.yaml get --raw /openapi/v3",
+      "exitCode": 0,
+      "allowed": true,
+      "status": "allowed",
+      "output": "{\"paths\":{\".well-known/openid-configuration\":{\"serverRelativeURL\":\"/openapi/v3/.well-known/openid-configuration?hash=6FC9A3F1AAFB9DB96732185437546356002049DB5D05A741400B0777C3AB15ECF0199AC39BB450AF92B9FD1F95F6C15919A2940D4FF624EE74AAAAAF8769887B\"},\"api\":{\"serverRelativeURL\":\"/openapi/v3/api?hash=5AF8A0B247FB2756BA827FA01CA503A50320CDA5217107642980739CCC7189AE25083B97BC410D42F06B4207F7B6212B9E3BE82264D0F1DDF13B2E7990F007F6\"},\"api/v1\":{\"serverRelativeURL\":\"/openapi/v3/api/v1?hash=8F5F21DFCD465B067ED095B213D5695C2424C01AC732DEC7C1D767B196C545F4AFFE76D518B72E08FD924EE97E72DF1D115C995389B119BBEFCFE9060BF428CF\"},\"apis\":{\"serverRelativeURL\":\"/openapi/v3/apis?hash=F829BA17EB008C8219E29884E177EDA2C9B97D62E276E824178FEFE92866842A303738D9F6C2928899BD0A337DB0BC409A62DD8D73A647B99B67202B6C1BE0A3\"},\"apis/admissionregistration.k8s.io\":{\"serverRelativeURL\":\"/openapi/v3/apis/admissionregistration.k8s.io?hash=59F3B241F1DE4155E06FC95CEC460706671EC85C4472B146B35661396CAE99BD20C1D1DC39104E6F1A64B0939C532E7152E1CD1FE9B033B30A179EF04D74CB6A\"},\"apis/admissionregistration.k8s.io/v1\":{\"serverRelativeURL\":\"/openapi/v3/apis/admissionregistration.k8s.io/v1?hash=C0748328C71E4DDD22D8BF9268B68812F8B62BB45D8F04878"
+    },
+    {
+      "tier": "namespaced-read",
+      "layer": "openapi",
+      "sublayer": "v3-group",
+      "kind": "can-i",
+      "command": "kubectl --kubeconfig kubeconfig/namespaced-read.yaml auth can-i get /openapi/v3/apis/apps/v1",
+      "exitCode": 0,
+      "allowed": true,
+      "status": "allowed",
+      "output": "yes"
+    },
+    {
+      "tier": "namespaced-read",
+      "layer": "openapi",
+      "sublayer": "v3-group",
+      "kind": "real",
+      "command": "kubectl --kubeconfig kubeconfig/namespaced-read.yaml get --raw /openapi/v3/apis/apps/v1",
+      "exitCode": 0,
+      "allowed": true,
+      "status": "allowed",
+      "output": "{\"openapi\":\"3.0.0\",\"info\":{\"title\":\"Kubernetes\",\"version\":\"1.37\"},\"paths\":{\"/apis/apps/v1/\":{\"get\":{\"tags\":[\"apps_v1\"],\"description\":\"get available resources\",\"operationId\":\"getAppsV1APIResources\",\"responses\":{\"200\":{\"description\":\"OK\",\"content\":{\"application/json\":{\"schema\":{\"$ref\":\"#/components/schemas/io.k8s.apimachinery.pkg.apis.meta.v1.APIResourceList\"}},\"application/vnd.kubernetes.protobuf\":{\"schema\":{\"$ref\":\"#/components/schemas/io.k8s.apimachinery.pkg.apis.meta.v1.APIResourceList\"}},\"application/yaml\":{\"schema\":{\"$ref\":\"#/components/schemas/io.k8s.apimachinery.pkg.apis.meta.v1.APIResourceList\"}}}},\"401\":{\"description\":\"Unauthorized\"}}}},\"/apis/apps/v1/controllerrevisions\":{\"get\":{\"tags\":[\"apps_v1\"],\"description\":\"list or watch objects of kind ControllerRevision\",\"operationId\":\"listAppsV1ControllerRevisionForAllNamespaces\",\"responses\":{\"200\":{\"description\":\"OK\",\"content\":{\"application/json\":{\"schema\":{\"$ref\":\"#/components/schemas/io.k8s.api.apps.v1.ControllerRevisionList\"}},\"application/json;stream=watch\":{\"schema\":{\"$ref\":\"#/components/schemas/io.k8s.api.apps.v1.ControllerRevisionList\"}},\"application/vnd.kubernetes.protobuf\":{\"schema\":{\"$ref\":\"#/components/schemas/io.k8s.ap"
+    },
+    {
+      "tier": "namespaced-read",
+      "layer": "crds",
+      "sublayer": "list",
+      "kind": "can-i",
+      "command": "kubectl --kubeconfig kubeconfig/namespaced-read.yaml auth can-i list customresourcedefinitions.apiextensions.k8s.io",
+      "exitCode": 1,
+      "allowed": false,
+      "status": "forbidden",
+      "output": "Warning: resource 'customresourcedefinitions' is not namespace scoped in group 'apiextensions.k8s.io'\n\nno"
+    },
+    {
+      "tier": "namespaced-read",
+      "layer": "crds",
+      "sublayer": "list",
+      "kind": "real",
+      "command": "kubectl --kubeconfig kubeconfig/namespaced-read.yaml get crd widgets.spike.fathom.dev -o name",
+      "exitCode": 1,
+      "allowed": false,
+      "status": "forbidden",
+      "output": "Error from server (Forbidden): customresourcedefinitions.apiextensions.k8s.io \"widgets.spike.fathom.dev\" is forbidden: User \"system:serviceaccount:s8:fathom-import-namespaced\" cannot get resource \"customresourcedefinitions\" in API group \"apiextensions.k8s.io\" at the cluster scope"
+    },
+    {
+      "tier": "namespaced-read",
+      "layer": "catalogs/names",
+      "sublayer": "storageclasses",
+      "kind": "can-i",
+      "command": "kubectl --kubeconfig kubeconfig/namespaced-read.yaml auth can-i list storageclasses.storage.k8s.io",
+      "exitCode": 1,
+      "allowed": false,
+      "status": "forbidden",
+      "output": "Warning: resource 'storageclasses' is not namespace scoped in group 'storage.k8s.io'\n\nno"
+    },
+    {
+      "tier": "namespaced-read",
+      "layer": "catalogs/names",
+      "sublayer": "storageclasses",
+      "kind": "real",
+      "command": "kubectl --kubeconfig kubeconfig/namespaced-read.yaml get storageclasses -o name",
+      "exitCode": 1,
+      "allowed": false,
+      "status": "forbidden",
+      "output": "Error from server (Forbidden): storageclasses.storage.k8s.io is forbidden: User \"system:serviceaccount:s8:fathom-import-namespaced\" cannot list resource \"storageclasses\" in API group \"storage.k8s.io\" at the cluster scope"
+    },
+    {
+      "tier": "namespaced-read",
+      "layer": "catalogs/names",
+      "sublayer": "ingressclasses",
+      "kind": "can-i",
+      "command": "kubectl --kubeconfig kubeconfig/namespaced-read.yaml auth can-i list ingressclasses.networking.k8s.io",
+      "exitCode": 1,
+      "allowed": false,
+      "status": "forbidden",
+      "output": "Warning: resource 'ingressclasses' is not namespace scoped in group 'networking.k8s.io'\n\nno"
+    },
+    {
+      "tier": "namespaced-read",
+      "layer": "catalogs/names",
+      "sublayer": "ingressclasses",
+      "kind": "real",
+      "command": "kubectl --kubeconfig kubeconfig/namespaced-read.yaml get ingressclasses -o name",
+      "exitCode": 1,
+      "allowed": false,
+      "status": "forbidden",
+      "output": "Error from server (Forbidden): ingressclasses.networking.k8s.io is forbidden: User \"system:serviceaccount:s8:fathom-import-namespaced\" cannot list resource \"ingressclasses\" in API group \"networking.k8s.io\" at the cluster scope"
+    },
+    {
+      "tier": "namespaced-read",
+      "layer": "catalogs/names",
+      "sublayer": "priorityclasses",
+      "kind": "can-i",
+      "command": "kubectl --kubeconfig kubeconfig/namespaced-read.yaml auth can-i list priorityclasses.scheduling.k8s.io",
+      "exitCode": 1,
+      "allowed": false,
+      "status": "forbidden",
+      "output": "Warning: resource 'priorityclasses' is not namespace scoped in group 'scheduling.k8s.io'\n\nno"
+    },
+    {
+      "tier": "namespaced-read",
+      "layer": "catalogs/names",
+      "sublayer": "priorityclasses",
+      "kind": "real",
+      "command": "kubectl --kubeconfig kubeconfig/namespaced-read.yaml get priorityclasses -o name",
+      "exitCode": 1,
+      "allowed": false,
+      "status": "forbidden",
+      "output": "Error from server (Forbidden): priorityclasses.scheduling.k8s.io is forbidden: User \"system:serviceaccount:s8:fathom-import-namespaced\" cannot list resource \"priorityclasses\" in API group \"scheduling.k8s.io\" at the cluster scope"
+    },
+    {
+      "tier": "namespaced-read",
+      "layer": "catalogs/names",
+      "sublayer": "runtimeclasses",
+      "kind": "can-i",
+      "command": "kubectl --kubeconfig kubeconfig/namespaced-read.yaml auth can-i list runtimeclasses.node.k8s.io",
+      "exitCode": 1,
+      "allowed": false,
+      "status": "forbidden",
+      "output": "Warning: resource 'runtimeclasses' is not namespace scoped in group 'node.k8s.io'\n\nno"
+    },
+    {
+      "tier": "namespaced-read",
+      "layer": "catalogs/names",
+      "sublayer": "runtimeclasses",
+      "kind": "real",
+      "command": "kubectl --kubeconfig kubeconfig/namespaced-read.yaml get runtimeclasses -o name",
+      "exitCode": 1,
+      "allowed": false,
+      "status": "forbidden",
+      "output": "Error from server (Forbidden): runtimeclasses.node.k8s.io is forbidden: User \"system:serviceaccount:s8:fathom-import-namespaced\" cannot list resource \"runtimeclasses\" in API group \"node.k8s.io\" at the cluster scope"
+    },
+    {
+      "tier": "namespaced-read",
+      "layer": "catalogs/full",
+      "sublayer": "storageclasses",
+      "kind": "can-i",
+      "command": "kubectl --kubeconfig kubeconfig/namespaced-read.yaml auth can-i get storageclasses.storage.k8s.io",
+      "exitCode": 1,
+      "allowed": false,
+      "status": "forbidden",
+      "output": "Warning: resource 'storageclasses' is not namespace scoped in group 'storage.k8s.io'\n\nno"
+    },
+    {
+      "tier": "namespaced-read",
+      "layer": "catalogs/full",
+      "sublayer": "storageclasses",
+      "kind": "real",
+      "command": "kubectl --kubeconfig kubeconfig/namespaced-read.yaml get storageclasses -o json",
+      "exitCode": 1,
+      "allowed": false,
+      "status": "forbidden",
+      "output": "{\n    \"apiVersion\": \"v1\",\n    \"items\": [],\n    \"kind\": \"List\",\n    \"metadata\": {\n        \"resourceVersion\": \"\"\n    }\n}"
+    },
+    {
+      "tier": "namespaced-read",
+      "layer": "catalogs/full",
+      "sublayer": "csidrivers",
+      "kind": "can-i",
+      "command": "kubectl --kubeconfig kubeconfig/namespaced-read.yaml auth can-i list csidrivers.storage.k8s.io",
+      "exitCode": 1,
+      "allowed": false,
+      "status": "forbidden",
+      "output": "Warning: resource 'csidrivers' is not namespace scoped in group 'storage.k8s.io'\n\nno"
+    },
+    {
+      "tier": "namespaced-read",
+      "layer": "catalogs/full",
+      "sublayer": "csidrivers",
+      "kind": "real",
+      "command": "kubectl --kubeconfig kubeconfig/namespaced-read.yaml get csidrivers -o json",
+      "exitCode": 1,
+      "allowed": false,
+      "status": "forbidden",
+      "output": "{\n    \"apiVersion\": \"v1\",\n    \"items\": [],\n    \"kind\": \"List\",\n    \"metadata\": {\n        \"resourceVersion\": \"\"\n    }\n}"
+    },
+    {
+      "tier": "namespaced-read",
+      "layer": "admission/policies",
+      "sublayer": "vap",
+      "kind": "can-i",
+      "command": "kubectl --kubeconfig kubeconfig/namespaced-read.yaml auth can-i list validatingadmissionpolicies.admissionregistration.k8s.io",
+      "exitCode": 1,
+      "allowed": false,
+      "status": "forbidden",
+      "output": "Warning: resource 'validatingadmissionpolicies' is not namespace scoped in group 'admissionregistration.k8s.io'\n\nno"
+    },
+    {
+      "tier": "namespaced-read",
+      "layer": "admission/policies",
+      "sublayer": "vap",
+      "kind": "real",
+      "command": "kubectl --kubeconfig kubeconfig/namespaced-read.yaml get validatingadmissionpolicies -o name",
+      "exitCode": 1,
+      "allowed": false,
+      "status": "forbidden",
+      "output": "Error from server (Forbidden): validatingadmissionpolicies.admissionregistration.k8s.io is forbidden: User \"system:serviceaccount:s8:fathom-import-namespaced\" cannot list resource \"validatingadmissionpolicies\" in API group \"admissionregistration.k8s.io\" at the cluster scope"
+    },
+    {
+      "tier": "namespaced-read",
+      "layer": "admission/policies",
+      "sublayer": "vapb",
+      "kind": "can-i",
+      "command": "kubectl --kubeconfig kubeconfig/namespaced-read.yaml auth can-i list validatingadmissionpolicybindings.admissionregistration.k8s.io",
+      "exitCode": 1,
+      "allowed": false,
+      "status": "forbidden",
+      "output": "Warning: resource 'validatingadmissionpolicybindings' is not namespace scoped in group 'admissionregistration.k8s.io'\n\nno"
+    },
+    {
+      "tier": "namespaced-read",
+      "layer": "admission/policies",
+      "sublayer": "vapb",
+      "kind": "real",
+      "command": "kubectl --kubeconfig kubeconfig/namespaced-read.yaml get validatingadmissionpolicybindings -o name",
+      "exitCode": 1,
+      "allowed": false,
+      "status": "forbidden",
+      "output": "Error from server (Forbidden): validatingadmissionpolicybindings.admissionregistration.k8s.io is forbidden: User \"system:serviceaccount:s8:fathom-import-namespaced\" cannot list resource \"validatingadmissionpolicybindings\" in API group \"admissionregistration.k8s.io\" at the cluster scope"
+    },
+    {
+      "tier": "namespaced-read",
+      "layer": "admission/policies",
+      "sublayer": "map",
+      "kind": "can-i",
+      "command": "kubectl --kubeconfig kubeconfig/namespaced-read.yaml auth can-i list mutatingadmissionpolicies.admissionregistration.k8s.io",
+      "exitCode": 1,
+      "allowed": false,
+      "status": "forbidden",
+      "output": "Warning: resource 'mutatingadmissionpolicies' is not namespace scoped in group 'admissionregistration.k8s.io'\n\nno"
+    },
+    {
+      "tier": "namespaced-read",
+      "layer": "admission/policies",
+      "sublayer": "map",
+      "kind": "real",
+      "command": "kubectl --kubeconfig kubeconfig/namespaced-read.yaml get mutatingadmissionpolicies -o name",
+      "exitCode": 1,
+      "allowed": false,
+      "status": "forbidden",
+      "output": "Error from server (Forbidden): mutatingadmissionpolicies.admissionregistration.k8s.io is forbidden: User \"system:serviceaccount:s8:fathom-import-namespaced\" cannot list resource \"mutatingadmissionpolicies\" in API group \"admissionregistration.k8s.io\" at the cluster scope"
+    },
+    {
+      "tier": "namespaced-read",
+      "layer": "admission/policies",
+      "sublayer": "mapb",
+      "kind": "can-i",
+      "command": "kubectl --kubeconfig kubeconfig/namespaced-read.yaml auth can-i list mutatingadmissionpolicybindings.admissionregistration.k8s.io",
+      "exitCode": 1,
+      "allowed": false,
+      "status": "forbidden",
+      "output": "Warning: resource 'mutatingadmissionpolicybindings' is not namespace scoped in group 'admissionregistration.k8s.io'\n\nno"
+    },
+    {
+      "tier": "namespaced-read",
+      "layer": "admission/policies",
+      "sublayer": "mapb",
+      "kind": "real",
+      "command": "kubectl --kubeconfig kubeconfig/namespaced-read.yaml get mutatingadmissionpolicybindings -o name",
+      "exitCode": 1,
+      "allowed": false,
+      "status": "forbidden",
+      "output": "Error from server (Forbidden): mutatingadmissionpolicybindings.admissionregistration.k8s.io is forbidden: User \"system:serviceaccount:s8:fathom-import-namespaced\" cannot list resource \"mutatingadmissionpolicybindings\" in API group \"admissionregistration.k8s.io\" at the cluster scope"
+    },
+    {
+      "tier": "namespaced-read",
+      "layer": "admission/policies",
+      "sublayer": "map-v1beta1-fallback",
+      "kind": "real",
+      "command": "kubectl --kubeconfig kubeconfig/namespaced-read.yaml get --raw /apis/admissionregistration.k8s.io/v1beta1/mutatingadmissionpolicies",
+      "exitCode": 1,
+      "allowed": false,
+      "status": "forbidden",
+      "output": "Error from server (Forbidden): mutatingadmissionpolicies.admissionregistration.k8s.io is forbidden: User \"system:serviceaccount:s8:fathom-import-namespaced\" cannot list resource \"mutatingadmissionpolicies\" in API group \"admissionregistration.k8s.io\" at the cluster scope"
+    },
+    {
+      "tier": "namespaced-read",
+      "layer": "admission/params",
+      "sublayer": "s3-replica-limits",
+      "kind": "can-i",
+      "command": "kubectl --kubeconfig kubeconfig/namespaced-read.yaml auth can-i get configmaps -n s3",
+      "exitCode": 1,
+      "allowed": false,
+      "status": "forbidden",
+      "output": "no"
+    },
+    {
+      "tier": "namespaced-read",
+      "layer": "admission/params",
+      "sublayer": "s3-replica-limits",
+      "kind": "real",
+      "command": "kubectl --kubeconfig kubeconfig/namespaced-read.yaml get configmap replica-limits -n s3 -o name",
+      "exitCode": 1,
+      "allowed": false,
+      "status": "forbidden",
+      "output": "Error from server (Forbidden): configmaps \"replica-limits\" is forbidden: User \"system:serviceaccount:s8:fathom-import-namespaced\" cannot get resource \"configmaps\" in API group \"\" in the namespace \"s3\""
+    },
+    {
+      "tier": "namespaced-read",
+      "layer": "admission/params",
+      "sublayer": "s2-vap-limits",
+      "kind": "can-i",
+      "command": "kubectl --kubeconfig kubeconfig/namespaced-read.yaml auth can-i get configmaps -n s2",
+      "exitCode": 1,
+      "allowed": false,
+      "status": "forbidden",
+      "output": "no"
+    },
+    {
+      "tier": "namespaced-read",
+      "layer": "admission/params",
+      "sublayer": "s2-vap-limits",
+      "kind": "real",
+      "command": "kubectl --kubeconfig kubeconfig/namespaced-read.yaml get configmap vap-limits -n s2 -o name",
+      "exitCode": 1,
+      "allowed": false,
+      "status": "forbidden",
+      "output": "Error from server (Forbidden): configmaps \"vap-limits\" is forbidden: User \"system:serviceaccount:s8:fathom-import-namespaced\" cannot get resource \"configmaps\" in API group \"\" in the namespace \"s2\""
+    },
+    {
+      "tier": "namespaced-read",
+      "layer": "admission/webhooks",
+      "sublayer": "validating",
+      "kind": "can-i",
+      "command": "kubectl --kubeconfig kubeconfig/namespaced-read.yaml auth can-i list validatingwebhookconfigurations.admissionregistration.k8s.io",
+      "exitCode": 1,
+      "allowed": false,
+      "status": "forbidden",
+      "output": "Warning: resource 'validatingwebhookconfigurations' is not namespace scoped in group 'admissionregistration.k8s.io'\n\nno"
+    },
+    {
+      "tier": "namespaced-read",
+      "layer": "admission/webhooks",
+      "sublayer": "validating",
+      "kind": "real",
+      "command": "kubectl --kubeconfig kubeconfig/namespaced-read.yaml get validatingwebhookconfigurations -o name",
+      "exitCode": 1,
+      "allowed": false,
+      "status": "forbidden",
+      "output": "Error from server (Forbidden): validatingwebhookconfigurations.admissionregistration.k8s.io is forbidden: User \"system:serviceaccount:s8:fathom-import-namespaced\" cannot list resource \"validatingwebhookconfigurations\" in API group \"admissionregistration.k8s.io\" at the cluster scope"
+    },
+    {
+      "tier": "namespaced-read",
+      "layer": "admission/webhooks",
+      "sublayer": "mutating",
+      "kind": "can-i",
+      "command": "kubectl --kubeconfig kubeconfig/namespaced-read.yaml auth can-i list mutatingwebhookconfigurations.admissionregistration.k8s.io",
+      "exitCode": 1,
+      "allowed": false,
+      "status": "forbidden",
+      "output": "Warning: resource 'mutatingwebhookconfigurations' is not namespace scoped in group 'admissionregistration.k8s.io'\n\nno"
+    },
+    {
+      "tier": "namespaced-read",
+      "layer": "admission/webhooks",
+      "sublayer": "mutating",
+      "kind": "real",
+      "command": "kubectl --kubeconfig kubeconfig/namespaced-read.yaml get mutatingwebhookconfigurations -o name",
+      "exitCode": 1,
+      "allowed": false,
+      "status": "forbidden",
+      "output": "Error from server (Forbidden): mutatingwebhookconfigurations.admissionregistration.k8s.io is forbidden: User \"system:serviceaccount:s8:fathom-import-namespaced\" cannot list resource \"mutatingwebhookconfigurations\" in API group \"admissionregistration.k8s.io\" at the cluster scope"
+    },
+    {
+      "tier": "namespaced-read",
+      "layer": "engines",
+      "sublayer": "clusterpolicies",
+      "kind": "can-i",
+      "command": "kubectl --kubeconfig kubeconfig/namespaced-read.yaml auth can-i list clusterpolicies.kyverno.io",
+      "exitCode": 1,
+      "allowed": false,
+      "status": "forbidden",
+      "output": "Warning: resource 'clusterpolicies' is not namespace scoped in group 'kyverno.io'\n\nno"
+    },
+    {
+      "tier": "namespaced-read",
+      "layer": "engines",
+      "sublayer": "clusterpolicies",
+      "kind": "real",
+      "command": "kubectl --kubeconfig kubeconfig/namespaced-read.yaml get clusterpolicies.kyverno.io -o name",
+      "exitCode": 1,
+      "allowed": false,
+      "status": "forbidden",
+      "output": "Error from server (Forbidden): clusterpolicies.kyverno.io is forbidden: User \"system:serviceaccount:s8:fathom-import-namespaced\" cannot list resource \"clusterpolicies\" in API group \"kyverno.io\" at the cluster scope"
+    },
+    {
+      "tier": "namespaced-read",
+      "layer": "engines",
+      "sublayer": "validatingpolicies",
+      "kind": "can-i",
+      "command": "kubectl --kubeconfig kubeconfig/namespaced-read.yaml auth can-i list validatingpolicies.policies.kyverno.io",
+      "exitCode": 1,
+      "allowed": false,
+      "status": "forbidden",
+      "output": "Warning: resource 'validatingpolicies' is not namespace scoped in group 'policies.kyverno.io'\n\nno"
+    },
+    {
+      "tier": "namespaced-read",
+      "layer": "engines",
+      "sublayer": "validatingpolicies",
+      "kind": "real",
+      "command": "kubectl --kubeconfig kubeconfig/namespaced-read.yaml get validatingpolicies.policies.kyverno.io -o name",
+      "exitCode": 1,
+      "allowed": false,
+      "status": "forbidden",
+      "output": "Error from server (Forbidden): validatingpolicies.policies.kyverno.io is forbidden: User \"system:serviceaccount:s8:fathom-import-namespaced\" cannot list resource \"validatingpolicies\" in API group \"policies.kyverno.io\" at the cluster scope"
+    },
+    {
+      "tier": "namespaced-read",
+      "layer": "engines",
+      "sublayer": "policyexceptions-v2",
+      "kind": "can-i",
+      "command": "kubectl --kubeconfig kubeconfig/namespaced-read.yaml auth can-i list policyexceptions.kyverno.io -A",
+      "exitCode": 1,
+      "allowed": false,
+      "status": "forbidden",
+      "output": "no"
+    },
+    {
+      "tier": "namespaced-read",
+      "layer": "engines",
+      "sublayer": "policyexceptions-v2",
+      "kind": "real",
+      "command": "kubectl --kubeconfig kubeconfig/namespaced-read.yaml get policyexceptions.kyverno.io -A -o name",
+      "exitCode": 1,
+      "allowed": false,
+      "status": "forbidden",
+      "output": "Error from server (Forbidden): policyexceptions.kyverno.io is forbidden: User \"system:serviceaccount:s8:fathom-import-namespaced\" cannot list resource \"policyexceptions\" in API group \"kyverno.io\" at the cluster scope"
+    },
+    {
+      "tier": "namespaced-read",
+      "layer": "engines",
+      "sublayer": "policyexceptions-cel",
+      "kind": "can-i",
+      "command": "kubectl --kubeconfig kubeconfig/namespaced-read.yaml auth can-i list policyexceptions.policies.kyverno.io -A",
+      "exitCode": 1,
+      "allowed": false,
+      "status": "forbidden",
+      "output": "no"
+    },
+    {
+      "tier": "namespaced-read",
+      "layer": "engines",
+      "sublayer": "policyexceptions-cel",
+      "kind": "real",
+      "command": "kubectl --kubeconfig kubeconfig/namespaced-read.yaml get policyexceptions.policies.kyverno.io -A -o name",
+      "exitCode": 1,
+      "allowed": false,
+      "status": "forbidden",
+      "output": "Error from server (Forbidden): policyexceptions.policies.kyverno.io is forbidden: User \"system:serviceaccount:s8:fathom-import-namespaced\" cannot list resource \"policyexceptions\" in API group \"policies.kyverno.io\" at the cluster scope"
+    },
+    {
+      "tier": "namespaced-read",
+      "layer": "engines",
+      "sublayer": "policies-namespaced-s4",
+      "kind": "can-i",
+      "command": "kubectl --kubeconfig kubeconfig/namespaced-read.yaml auth can-i list policies.kyverno.io -n s4",
+      "exitCode": 1,
+      "allowed": false,
+      "status": "forbidden",
+      "output": "no"
+    },
+    {
+      "tier": "namespaced-read",
+      "layer": "engines",
+      "sublayer": "policies-namespaced-s4",
+      "kind": "real",
+      "command": "kubectl --kubeconfig kubeconfig/namespaced-read.yaml get policies.kyverno.io -n s4 -o name",
+      "exitCode": 1,
+      "allowed": false,
+      "status": "forbidden",
+      "output": "Error from server (Forbidden): policies.kyverno.io is forbidden: User \"system:serviceaccount:s8:fathom-import-namespaced\" cannot list resource \"policies\" in API group \"kyverno.io\" in the namespace \"s4\""
+    },
+    {
+      "tier": "namespaced-read",
+      "layer": "namespaces",
+      "sublayer": "list",
+      "kind": "can-i",
+      "command": "kubectl --kubeconfig kubeconfig/namespaced-read.yaml auth can-i list namespaces",
+      "exitCode": 1,
+      "allowed": false,
+      "status": "forbidden",
+      "output": "Warning: resource 'namespaces' is not namespace scoped\n\nno"
+    },
+    {
+      "tier": "namespaced-read",
+      "layer": "namespaces",
+      "sublayer": "list",
+      "kind": "real",
+      "command": "kubectl --kubeconfig kubeconfig/namespaced-read.yaml get namespaces -o name",
+      "exitCode": 1,
+      "allowed": false,
+      "status": "forbidden",
+      "output": "Error from server (Forbidden): namespaces is forbidden: User \"system:serviceaccount:s8:fathom-import-namespaced\" cannot list resource \"namespaces\" in API group \"\" at the cluster scope"
+    },
+    {
+      "tier": "namespaced-read",
+      "layer": "namespaces",
+      "sublayer": "get-s4-labels",
+      "kind": "can-i",
+      "command": "kubectl --kubeconfig kubeconfig/namespaced-read.yaml auth can-i get namespaces/s4",
+      "exitCode": 0,
+      "allowed": true,
+      "status": "allowed",
+      "output": "Warning: resource 'namespaces' is not namespace scoped\n\nyes"
+    },
+    {
+      "tier": "namespaced-read",
+      "layer": "namespaces",
+      "sublayer": "get-s4-labels",
+      "kind": "real",
+      "command": "kubectl --kubeconfig kubeconfig/namespaced-read.yaml get namespace s4 -o jsonpath={.metadata.labels}",
+      "exitCode": 0,
+      "allowed": true,
+      "status": "allowed",
+      "output": "{\"fathom.dev/spike\":\"s4\",\"kubernetes.io/metadata.name\":\"s4\"}"
+    },
+    {
+      "tier": "namespaced-read",
+      "layer": "namespaces",
+      "sublayer": "get-s8-labels",
+      "kind": "can-i",
+      "command": "kubectl --kubeconfig kubeconfig/namespaced-read.yaml auth can-i get namespaces/s8",
+      "exitCode": 0,
+      "allowed": true,
+      "status": "allowed",
+      "output": "Warning: resource 'namespaces' is not namespace scoped\n\nyes"
+    },
+    {
+      "tier": "namespaced-read",
+      "layer": "namespaces",
+      "sublayer": "get-s8-labels",
+      "kind": "real",
+      "command": "kubectl --kubeconfig kubeconfig/namespaced-read.yaml get namespace s8 -o jsonpath={.metadata.labels}",
+      "exitCode": 0,
+      "allowed": true,
+      "status": "allowed",
+      "output": "{\"environment\":\"staging\",\"fathom.dev/spike\":\"s8\",\"kubernetes.io/metadata.name\":\"s8\",\"team\":\"importers\"}"
+    },
+    {
+      "tier": "namespaced-read",
+      "layer": "namespaces",
+      "sublayer": "get-s2-labels",
+      "kind": "can-i",
+      "command": "kubectl --kubeconfig kubeconfig/namespaced-read.yaml auth can-i get namespaces/s2",
+      "exitCode": 1,
+      "allowed": false,
+      "status": "forbidden",
+      "output": "Warning: resource 'namespaces' is not namespace scoped\n\nno"
+    },
+    {
+      "tier": "namespaced-read",
+      "layer": "namespaces",
+      "sublayer": "get-s2-labels",
+      "kind": "real",
+      "command": "kubectl --kubeconfig kubeconfig/namespaced-read.yaml get namespace s2 -o jsonpath={.metadata.labels}",
+      "exitCode": 1,
+      "allowed": false,
+      "status": "forbidden",
+      "output": "Error from server (Forbidden): namespaces \"s2\" is forbidden: User \"system:serviceaccount:s8:fathom-import-namespaced\" cannot get resource \"namespaces\" in API group \"\" in the namespace \"s2\""
+    },
+    {
+      "tier": "namespaced-read",
+      "layer": "namespaces",
+      "sublayer": "quota-s4",
+      "kind": "can-i",
+      "command": "kubectl --kubeconfig kubeconfig/namespaced-read.yaml auth can-i list resourcequotas -n s4",
+      "exitCode": 0,
+      "allowed": true,
+      "status": "allowed",
+      "output": "yes"
+    },
+    {
+      "tier": "namespaced-read",
+      "layer": "namespaces",
+      "sublayer": "quota-s4",
+      "kind": "real",
+      "command": "kubectl --kubeconfig kubeconfig/namespaced-read.yaml get resourcequotas -n s4 -o jsonpath={range .items[*]}{.metadata.name}={.status.used}{\"\\n\"}{end}",
+      "exitCode": 0,
+      "allowed": true,
+      "status": "allowed",
+      "output": "s4-quota={\"count/configmaps\":\"1\",\"limits.cpu\":\"900m\",\"limits.memory\":\"1Gi\",\"persistentvolumeclaims\":\"1\",\"pods\":\"3\",\"requests.cpu\":\"700m\",\"requests.memory\":\"768Mi\",\"requests.storage\":\"5Gi\",\"services.loadbalancers\":\"1\"}\ns4-quota-high={\"pods\":\"1\"}"
+    },
+    {
+      "tier": "namespaced-read",
+      "layer": "namespaces",
+      "sublayer": "limitrange-s4",
+      "kind": "can-i",
+      "command": "kubectl --kubeconfig kubeconfig/namespaced-read.yaml auth can-i list limitranges -n s4",
+      "exitCode": 0,
+      "allowed": true,
+      "status": "allowed",
+      "output": "yes"
+    },
+    {
+      "tier": "namespaced-read",
+      "layer": "namespaces",
+      "sublayer": "limitrange-s4",
+      "kind": "real",
+      "command": "kubectl --kubeconfig kubeconfig/namespaced-read.yaml get limitranges -n s4 -o name",
+      "exitCode": 0,
+      "allowed": true,
+      "status": "allowed",
+      "output": "limitrange/s4-limits"
+    },
+    {
+      "tier": "namespaced-read",
+      "layer": "namespaces",
+      "sublayer": "netpol-s4",
+      "kind": "can-i",
+      "command": "kubectl --kubeconfig kubeconfig/namespaced-read.yaml auth can-i list networkpolicies.networking.k8s.io -n s4",
+      "exitCode": 0,
+      "allowed": true,
+      "status": "allowed",
+      "output": "yes"
+    },
+    {
+      "tier": "namespaced-read",
+      "layer": "namespaces",
+      "sublayer": "netpol-s4",
+      "kind": "real",
+      "command": "kubectl --kubeconfig kubeconfig/namespaced-read.yaml get networkpolicies -n s4 -o name",
+      "exitCode": 0,
+      "allowed": true,
+      "status": "allowed",
+      "output": ""
+    },
+    {
+      "tier": "namespaced-read",
+      "layer": "namespaces",
+      "sublayer": "quota-s2-other",
+      "kind": "can-i",
+      "command": "kubectl --kubeconfig kubeconfig/namespaced-read.yaml auth can-i list resourcequotas -n s2",
+      "exitCode": 1,
+      "allowed": false,
+      "status": "forbidden",
+      "output": "no"
+    },
+    {
+      "tier": "namespaced-read",
+      "layer": "namespaces",
+      "sublayer": "quota-s2-other",
+      "kind": "real",
+      "command": "kubectl --kubeconfig kubeconfig/namespaced-read.yaml get resourcequotas -n s2 -o name",
+      "exitCode": 1,
+      "allowed": false,
+      "status": "forbidden",
+      "output": "Error from server (Forbidden): resourcequotas is forbidden: User \"system:serviceaccount:s8:fathom-import-namespaced\" cannot list resource \"resourcequotas\" in API group \"\" in the namespace \"s2\""
+    },
+    {
+      "tier": "namespaced-read",
+      "layer": "rbac",
+      "sublayer": "clusterroles",
+      "kind": "can-i",
+      "command": "kubectl --kubeconfig kubeconfig/namespaced-read.yaml auth can-i list clusterroles.rbac.authorization.k8s.io",
+      "exitCode": 1,
+      "allowed": false,
+      "status": "forbidden",
+      "output": "Warning: resource 'clusterroles' is not namespace scoped in group 'rbac.authorization.k8s.io'\n\nno"
+    },
+    {
+      "tier": "namespaced-read",
+      "layer": "rbac",
+      "sublayer": "clusterroles",
+      "kind": "real",
+      "command": "kubectl --kubeconfig kubeconfig/namespaced-read.yaml get clusterroles fathom-import-cluster-read -o name",
+      "exitCode": 1,
+      "allowed": false,
+      "status": "forbidden",
+      "output": "Error from server (Forbidden): clusterroles.rbac.authorization.k8s.io \"fathom-import-cluster-read\" is forbidden: User \"system:serviceaccount:s8:fathom-import-namespaced\" cannot get resource \"clusterroles\" in API group \"rbac.authorization.k8s.io\" at the cluster scope"
+    },
+    {
+      "tier": "namespaced-read",
+      "layer": "rbac",
+      "sublayer": "clusterrolebindings",
+      "kind": "can-i",
+      "command": "kubectl --kubeconfig kubeconfig/namespaced-read.yaml auth can-i list clusterrolebindings.rbac.authorization.k8s.io",
+      "exitCode": 1,
+      "allowed": false,
+      "status": "forbidden",
+      "output": "Warning: resource 'clusterrolebindings' is not namespace scoped in group 'rbac.authorization.k8s.io'\n\nno"
+    },
+    {
+      "tier": "namespaced-read",
+      "layer": "rbac",
+      "sublayer": "clusterrolebindings",
+      "kind": "real",
+      "command": "kubectl --kubeconfig kubeconfig/namespaced-read.yaml get clusterrolebindings fathom-import-cluster-read -o name",
+      "exitCode": 1,
+      "allowed": false,
+      "status": "forbidden",
+      "output": "Error from server (Forbidden): clusterrolebindings.rbac.authorization.k8s.io \"fathom-import-cluster-read\" is forbidden: User \"system:serviceaccount:s8:fathom-import-namespaced\" cannot get resource \"clusterrolebindings\" in API group \"rbac.authorization.k8s.io\" at the cluster scope"
+    },
+    {
+      "tier": "namespaced-read",
+      "layer": "rbac",
+      "sublayer": "roles-s4",
+      "kind": "can-i",
+      "command": "kubectl --kubeconfig kubeconfig/namespaced-read.yaml auth can-i list roles.rbac.authorization.k8s.io -n s4",
+      "exitCode": 0,
+      "allowed": true,
+      "status": "allowed",
+      "output": "yes"
+    },
+    {
+      "tier": "namespaced-read",
+      "layer": "rbac",
+      "sublayer": "roles-s4",
+      "kind": "real",
+      "command": "kubectl --kubeconfig kubeconfig/namespaced-read.yaml get roles -n s4 -o name",
+      "exitCode": 0,
+      "allowed": true,
+      "status": "allowed",
+      "output": "role.rbac.authorization.k8s.io/deployer-role\nrole.rbac.authorization.k8s.io/fathom-import-namespaced-read"
+    },
+    {
+      "tier": "namespaced-read",
+      "layer": "rbac",
+      "sublayer": "rolebindings-s4",
+      "kind": "can-i",
+      "command": "kubectl --kubeconfig kubeconfig/namespaced-read.yaml auth can-i list rolebindings.rbac.authorization.k8s.io -n s4",
+      "exitCode": 0,
+      "allowed": true,
+      "status": "allowed",
+      "output": "yes"
+    },
+    {
+      "tier": "namespaced-read",
+      "layer": "rbac",
+      "sublayer": "rolebindings-s4",
+      "kind": "real",
+      "command": "kubectl --kubeconfig kubeconfig/namespaced-read.yaml get rolebindings -n s4 -o name",
+      "exitCode": 0,
+      "allowed": true,
+      "status": "allowed",
+      "output": "rolebinding.rbac.authorization.k8s.io/deployer-binding\nrolebinding.rbac.authorization.k8s.io/fathom-import-namespaced-read"
+    },
+    {
+      "tier": "namespaced-read",
+      "layer": "inventory",
+      "sublayer": "configmaps-s4",
+      "kind": "can-i",
+      "command": "kubectl --kubeconfig kubeconfig/namespaced-read.yaml auth can-i list configmaps -n s4",
+      "exitCode": 0,
+      "allowed": true,
+      "status": "allowed",
+      "output": "yes"
+    },
+    {
+      "tier": "namespaced-read",
+      "layer": "inventory",
+      "sublayer": "configmaps-s4",
+      "kind": "real",
+      "command": "kubectl --kubeconfig kubeconfig/namespaced-read.yaml get configmaps -n s4 -o name",
+      "exitCode": 0,
+      "allowed": true,
+      "status": "allowed",
+      "output": "configmap/kube-root-ca.crt"
+    },
+    {
+      "tier": "namespaced-read",
+      "layer": "inventory",
+      "sublayer": "secrets-names-s4",
+      "kind": "can-i",
+      "command": "kubectl --kubeconfig kubeconfig/namespaced-read.yaml auth can-i list secrets -n s4",
+      "exitCode": 1,
+      "allowed": false,
+      "status": "forbidden",
+      "output": "no"
+    },
+    {
+      "tier": "namespaced-read",
+      "layer": "inventory",
+      "sublayer": "secrets-names-s4",
+      "kind": "real",
+      "command": "kubectl --kubeconfig kubeconfig/namespaced-read.yaml get secrets -n s4 -o name",
+      "exitCode": 1,
+      "allowed": false,
+      "status": "forbidden",
+      "output": "Error from server (Forbidden): secrets is forbidden: User \"system:serviceaccount:s8:fathom-import-namespaced\" cannot list resource \"secrets\" in API group \"\" in the namespace \"s4\""
+    },
+    {
+      "tier": "namespaced-read",
+      "layer": "inventory",
+      "sublayer": "secrets-names-s8",
+      "kind": "can-i",
+      "command": "kubectl --kubeconfig kubeconfig/namespaced-read.yaml auth can-i list secrets -n s8",
+      "exitCode": 1,
+      "allowed": false,
+      "status": "forbidden",
+      "output": "no"
+    },
+    {
+      "tier": "namespaced-read",
+      "layer": "inventory",
+      "sublayer": "secrets-names-s8",
+      "kind": "real",
+      "command": "kubectl --kubeconfig kubeconfig/namespaced-read.yaml get secrets -n s8 -o name",
+      "exitCode": 1,
+      "allowed": false,
+      "status": "forbidden",
+      "output": "Error from server (Forbidden): secrets is forbidden: User \"system:serviceaccount:s8:fathom-import-namespaced\" cannot list resource \"secrets\" in API group \"\" in the namespace \"s8\""
+    },
+    {
+      "tier": "namespaced-read",
+      "layer": "inventory",
+      "sublayer": "serviceaccounts-s4",
+      "kind": "can-i",
+      "command": "kubectl --kubeconfig kubeconfig/namespaced-read.yaml auth can-i list serviceaccounts -n s4",
+      "exitCode": 0,
+      "allowed": true,
+      "status": "allowed",
+      "output": "yes"
+    },
+    {
+      "tier": "namespaced-read",
+      "layer": "inventory",
+      "sublayer": "serviceaccounts-s4",
+      "kind": "real",
+      "command": "kubectl --kubeconfig kubeconfig/namespaced-read.yaml get serviceaccounts -n s4 -o name",
+      "exitCode": 0,
+      "allowed": true,
+      "status": "allowed",
+      "output": "serviceaccount/default\nserviceaccount/deployer"
+    },
+    {
+      "tier": "namespaced-read",
+      "layer": "inventory",
+      "sublayer": "services-s4",
+      "kind": "can-i",
+      "command": "kubectl --kubeconfig kubeconfig/namespaced-read.yaml auth can-i list services -n s4",
+      "exitCode": 0,
+      "allowed": true,
+      "status": "allowed",
+      "output": "yes"
+    },
+    {
+      "tier": "namespaced-read",
+      "layer": "inventory",
+      "sublayer": "services-s4",
+      "kind": "real",
+      "command": "kubectl --kubeconfig kubeconfig/namespaced-read.yaml get services -n s4 -o name",
+      "exitCode": 0,
+      "allowed": true,
+      "status": "allowed",
+      "output": "service/real-svc-lb"
+    },
+    {
+      "tier": "namespaced-read",
+      "layer": "inventory",
+      "sublayer": "ingresses-s4",
+      "kind": "can-i",
+      "command": "kubectl --kubeconfig kubeconfig/namespaced-read.yaml auth can-i list ingresses.networking.k8s.io -n s4",
+      "exitCode": 0,
+      "allowed": true,
+      "status": "allowed",
+      "output": "yes"
+    },
+    {
+      "tier": "namespaced-read",
+      "layer": "inventory",
+      "sublayer": "ingresses-s4",
+      "kind": "real",
+      "command": "kubectl --kubeconfig kubeconfig/namespaced-read.yaml get ingresses -n s4 -o name",
+      "exitCode": 0,
+      "allowed": true,
+      "status": "allowed",
+      "output": ""
+    },
+    {
+      "tier": "namespaced-read",
+      "layer": "inventory",
+      "sublayer": "deployments-s4",
+      "kind": "can-i",
+      "command": "kubectl --kubeconfig kubeconfig/namespaced-read.yaml auth can-i list deployments.apps -n s4",
+      "exitCode": 0,
+      "allowed": true,
+      "status": "allowed",
+      "output": "yes"
+    },
+    {
+      "tier": "namespaced-read",
+      "layer": "inventory",
+      "sublayer": "deployments-s4",
+      "kind": "real",
+      "command": "kubectl --kubeconfig kubeconfig/namespaced-read.yaml get deployments -n s4 -o name",
+      "exitCode": 0,
+      "allowed": true,
+      "status": "allowed",
+      "output": ""
+    },
+    {
+      "tier": "namespaced-read",
+      "layer": "inventory",
+      "sublayer": "pods-s4",
+      "kind": "can-i",
+      "command": "kubectl --kubeconfig kubeconfig/namespaced-read.yaml auth can-i list pods -n s4",
+      "exitCode": 0,
+      "allowed": true,
+      "status": "allowed",
+      "output": "yes"
+    },
+    {
+      "tier": "namespaced-read",
+      "layer": "inventory",
+      "sublayer": "pods-s4",
+      "kind": "real",
+      "command": "kubectl --kubeconfig kubeconfig/namespaced-read.yaml get pods -n s4 -o name",
+      "exitCode": 0,
+      "allowed": true,
+      "status": "allowed",
+      "output": "pod/real-pod-a\npod/real-pod-b\npod/real-pod-high"
+    },
+    {
+      "tier": "namespaced-read",
+      "layer": "inventory",
+      "sublayer": "configmaps-all",
+      "kind": "can-i",
+      "command": "kubectl --kubeconfig kubeconfig/namespaced-read.yaml auth can-i list configmaps -A",
+      "exitCode": 1,
+      "allowed": false,
+      "status": "forbidden",
+      "output": "no"
+    },
+    {
+      "tier": "namespaced-read",
+      "layer": "inventory",
+      "sublayer": "configmaps-all",
+      "kind": "real",
+      "command": "kubectl --kubeconfig kubeconfig/namespaced-read.yaml get configmaps -A -o name",
+      "exitCode": 1,
+      "allowed": false,
+      "status": "forbidden",
+      "output": "Error from server (Forbidden): configmaps is forbidden: User \"system:serviceaccount:s8:fathom-import-namespaced\" cannot list resource \"configmaps\" in API group \"\" at the cluster scope"
+    },
+    {
+      "tier": "namespaced-read",
+      "layer": "gitops",
+      "sublayer": "argocd-applications",
+      "kind": "can-i",
+      "command": "kubectl --kubeconfig kubeconfig/namespaced-read.yaml auth can-i list applications.argoproj.io -A",
+      "exitCode": 1,
+      "allowed": false,
+      "status": "not-served",
+      "output": "Warning: the server doesn't have a resource type 'applications' in group 'argoproj.io'\n\nno"
+    },
+    {
+      "tier": "namespaced-read",
+      "layer": "gitops",
+      "sublayer": "argocd-applications",
+      "kind": "real",
+      "command": "kubectl --kubeconfig kubeconfig/namespaced-read.yaml get applications.argoproj.io -A -o name",
+      "exitCode": 1,
+      "allowed": false,
+      "status": "not-served",
+      "output": "error: the server doesn't have a resource type \"applications\""
+    },
+    {
+      "tier": "namespaced-read",
+      "layer": "gitops",
+      "sublayer": "flux-helmreleases",
+      "kind": "can-i",
+      "command": "kubectl --kubeconfig kubeconfig/namespaced-read.yaml auth can-i list helmreleases.helm.toolkit.fluxcd.io -A",
+      "exitCode": 1,
+      "allowed": false,
+      "status": "not-served",
+      "output": "Warning: the server doesn't have a resource type 'helmreleases' in group 'helm.toolkit.fluxcd.io'\n\nno"
+    },
+    {
+      "tier": "namespaced-read",
+      "layer": "gitops",
+      "sublayer": "flux-helmreleases",
+      "kind": "real",
+      "command": "kubectl --kubeconfig kubeconfig/namespaced-read.yaml get helmreleases.helm.toolkit.fluxcd.io -A -o name",
+      "exitCode": 1,
+      "allowed": false,
+      "status": "not-served",
+      "output": "error: the server doesn't have a resource type \"helmreleases\""
+    },
+    {
+      "tier": "namespaced-read",
+      "layer": "gitops",
+      "sublayer": "argocd-applications-ssar",
+      "kind": "ssar",
+      "command": "kubectl --kubeconfig kubeconfig/namespaced-read.yaml create --raw /apis/authorization.k8s.io/v1/selfsubjectaccessreviews -f - <<< '{\"apiVersion\":\"authorization.k8s.io/v1\",\"kind\":\"SelfSubjectAccessReview\",\"spec\":{\"resourceAttributes\":{\"group\":\"argoproj.io\",\"resource\":\"applications\",\"verb\":\"list\"}}}'",
+      "exitCode": 0,
+      "allowed": false,
+      "status": "forbidden",
+      "output": "{\"allowed\":false}"
+    },
+    {
+      "tier": "namespaced-read",
+      "layer": "gitops",
+      "sublayer": "flux-helmreleases-ssar",
+      "kind": "ssar",
+      "command": "kubectl --kubeconfig kubeconfig/namespaced-read.yaml create --raw /apis/authorization.k8s.io/v1/selfsubjectaccessreviews -f - <<< '{\"apiVersion\":\"authorization.k8s.io/v1\",\"kind\":\"SelfSubjectAccessReview\",\"spec\":{\"resourceAttributes\":{\"group\":\"helm.toolkit.fluxcd.io\",\"resource\":\"helmreleases\",\"verb\":\"list\"}}}'",
+      "exitCode": 0,
+      "allowed": false,
+      "status": "forbidden",
+      "output": "{\"allowed\":false}"
+    },
+    {
+      "tier": "namespaced-read",
+      "layer": "nodes",
+      "sublayer": "list",
+      "kind": "can-i",
+      "command": "kubectl --kubeconfig kubeconfig/namespaced-read.yaml auth can-i list nodes",
+      "exitCode": 1,
+      "allowed": false,
+      "status": "forbidden",
+      "output": "Warning: resource 'nodes' is not namespace scoped\n\nno"
+    },
+    {
+      "tier": "namespaced-read",
+      "layer": "nodes",
+      "sublayer": "list",
+      "kind": "real",
+      "command": "kubectl --kubeconfig kubeconfig/namespaced-read.yaml get nodes -o jsonpath={range .items[*]}{.metadata.name} cpu={.status.allocatable.cpu}{\"\\n\"}{end}",
+      "exitCode": 1,
+      "allowed": false,
+      "status": "forbidden",
+      "output": "Error from server (Forbidden): nodes is forbidden: User \"system:serviceaccount:s8:fathom-import-namespaced\" cannot list resource \"nodes\" in API group \"\" at the cluster scope"
+    },
+    {
+      "tier": "cluster-read",
+      "layer": "identity",
+      "sublayer": "whoami",
+      "kind": "real",
+      "command": "kubectl --kubeconfig kubeconfig/cluster-read.yaml auth whoami -o json",
+      "exitCode": 0,
+      "allowed": true,
+      "status": "allowed",
+      "output": "{\n    \"kind\": \"SelfSubjectReview\",\n    \"apiVersion\": \"authentication.k8s.io/v1\",\n    \"metadata\": {\n        \"creationTimestamp\": \"2026-09-17T23:43:55Z\"\n    },\n    \"status\": {\n        \"userInfo\": {"
+    },
+    {
+      "tier": "cluster-read",
+      "layer": "identity",
+      "sublayer": "selfsubjectrulesreview",
+      "kind": "real",
+      "command": "kubectl --kubeconfig kubeconfig/cluster-read.yaml auth can-i --list --namespace s4",
+      "exitCode": 0,
+      "allowed": true,
+      "status": "allowed",
+      "output": "Resources                                                        Non-Resource URLs                      Resource Names   Verbs\nselfsubjectreviews.authentication.k8s.io                         []                                     []               [create]\nselfsubjectaccessreviews.authorization.k8s.io                    []                                     []               [create]\nselfsubjectrulesreviews.authorization.k8s.io                     []                                     []               [create]\nconfigmaps                                                       []                                     []               [get list watch]\nlimitranges                                                      []                                     []               [get list watch]\nnamespaces                                                       []                                     []               [get list watch]\nnodes                                                            []                                     []               [get list watch]"
+    },
+    {
+      "tier": "cluster-read",
+      "layer": "discovery",
+      "sublayer": "apis",
+      "kind": "can-i",
+      "command": "kubectl --kubeconfig kubeconfig/cluster-read.yaml auth can-i get /apis",
+      "exitCode": 0,
+      "allowed": true,
+      "status": "allowed",
+      "output": "yes"
+    },
+    {
+      "tier": "cluster-read",
+      "layer": "discovery",
+      "sublayer": "apis",
+      "kind": "real",
+      "command": "kubectl --kubeconfig kubeconfig/cluster-read.yaml get --raw /apis",
+      "exitCode": 0,
+      "allowed": true,
+      "status": "allowed",
+      "output": "{\"kind\":\"APIGroupList\",\"apiVersion\":\"v1\",\"groups\":[{\"name\":\"apiregistration.k8s.io\",\"versions\":[{\"groupVersion\":\"apiregistration.k8s.io/v1\",\"version\":\"v1\"}],\"preferredVersion\":{\"groupVersion\":\"apiregistration.k8s.io/v1\",\"version\":\"v1\"}},{\"name\":\"apps\",\"versions\":[{\"groupVersion\":\"apps/v1\",\"version\":\"v1\"}],\"preferredVersion\":{\"groupVersion\":\"apps/v1\",\"version\":\"v1\"}},{\"name\":\"events.k8s.io\",\"versions\":[{\"groupVersion\":\"events.k8s.io/v1\",\"version\":\"v1\"}],\"preferredVersion\":{\"groupVersion\":\"events.k8s.io/v1\",\"version\":\"v1\"}},{\"name\":\"authentication.k8s.io\",\"versions\":[{\"groupVersion\":\"authentication.k8s.io/v1\",\"version\":\"v1\"}],\"preferredVersion\":{\"groupVersion\":\"authentication.k8s.io/v1\",\"version\":\"v1\"}},{\"name\":\"authorization.k8s.io\",\"versions\":[{\"groupVersion\":\"authorization.k8s.io/v1\",\"version\":\"v1\"}],\"preferredVersion\":{\"groupVersion\":\"authorization.k8s.io/v1\",\"version\":\"v1\"}},{\"name\":\"autoscaling\",\"versions\":[{\"groupVersion\":\"autoscaling/v2\",\"version\":\"v2\"},{\"groupVersion\":\"autoscaling/v1\",\"version\":\"v1\"}],\"preferredVersion\":{\"groupVersion\":\"autoscaling/v2\",\"version\":\"v2\"}},{\"name\":\"batch\",\"versions\":[{\"groupVersion\":\"batch/v1\",\"version\":\"v1\"}],\"preferredVersion\":{\"groupVersion\":"
+    },
+    {
+      "tier": "cluster-read",
+      "layer": "discovery",
+      "sublayer": "aggregated",
+      "kind": "can-i",
+      "command": "kubectl --kubeconfig kubeconfig/cluster-read.yaml auth can-i get /api",
+      "exitCode": 0,
+      "allowed": true,
+      "status": "allowed",
+      "output": "yes"
+    },
+    {
+      "tier": "cluster-read",
+      "layer": "discovery",
+      "sublayer": "aggregated",
+      "kind": "real",
+      "command": "kubectl --kubeconfig kubeconfig/cluster-read.yaml get --raw /api",
+      "exitCode": 0,
+      "allowed": true,
+      "status": "allowed",
+      "output": "{\"kind\":\"APIVersions\",\"versions\":[\"v1\"],\"serverAddressByClientCIDRs\":[{\"clientCIDR\":\"0.0.0.0/0\",\"serverAddress\":\"172.19.0.2:6443\"}]}"
+    },
+    {
+      "tier": "cluster-read",
+      "layer": "discovery",
+      "sublayer": "version",
+      "kind": "can-i",
+      "command": "kubectl --kubeconfig kubeconfig/cluster-read.yaml auth can-i get /version",
+      "exitCode": 0,
+      "allowed": true,
+      "status": "allowed",
+      "output": "yes"
+    },
+    {
+      "tier": "cluster-read",
+      "layer": "discovery",
+      "sublayer": "version",
+      "kind": "real",
+      "command": "kubectl --kubeconfig kubeconfig/cluster-read.yaml version -o json",
+      "exitCode": 0,
+      "allowed": true,
+      "status": "allowed",
+      "output": "{\n  \"clientVersion\": {\n    \"major\": \"1\",\n    \"minor\": \"36\",\n    \"gitVersion\": \"v1.36.4\",\n    \"gitCommit\": \"bb826b1d48562f110659e64e8ec444327433db95\",\n    \"gitTreeState\": \"archive\",\n    \"buildDate\": \"2026-08-25T21:11:57Z\","
+    },
+    {
+      "tier": "cluster-read",
+      "layer": "openapi",
+      "sublayer": "v3-index",
+      "kind": "can-i",
+      "command": "kubectl --kubeconfig kubeconfig/cluster-read.yaml auth can-i get /openapi/v3",
+      "exitCode": 0,
+      "allowed": true,
+      "status": "allowed",
+      "output": "yes"
+    },
+    {
+      "tier": "cluster-read",
+      "layer": "openapi",
+      "sublayer": "v3-index",
+      "kind": "real",
+      "command": "kubectl --kubeconfig kubeconfig/cluster-read.yaml get --raw /openapi/v3",
+      "exitCode": 0,
+      "allowed": true,
+      "status": "allowed",
+      "output": "{\"paths\":{\".well-known/openid-configuration\":{\"serverRelativeURL\":\"/openapi/v3/.well-known/openid-configuration?hash=6FC9A3F1AAFB9DB96732185437546356002049DB5D05A741400B0777C3AB15ECF0199AC39BB450AF92B9FD1F95F6C15919A2940D4FF624EE74AAAAAF8769887B\"},\"api\":{\"serverRelativeURL\":\"/openapi/v3/api?hash=5AF8A0B247FB2756BA827FA01CA503A50320CDA5217107642980739CCC7189AE25083B97BC410D42F06B4207F7B6212B9E3BE82264D0F1DDF13B2E7990F007F6\"},\"api/v1\":{\"serverRelativeURL\":\"/openapi/v3/api/v1?hash=8F5F21DFCD465B067ED095B213D5695C2424C01AC732DEC7C1D767B196C545F4AFFE76D518B72E08FD924EE97E72DF1D115C995389B119BBEFCFE9060BF428CF\"},\"apis\":{\"serverRelativeURL\":\"/openapi/v3/apis?hash=F829BA17EB008C8219E29884E177EDA2C9B97D62E276E824178FEFE92866842A303738D9F6C2928899BD0A337DB0BC409A62DD8D73A647B99B67202B6C1BE0A3\"},\"apis/admissionregistration.k8s.io\":{\"serverRelativeURL\":\"/openapi/v3/apis/admissionregistration.k8s.io?hash=59F3B241F1DE4155E06FC95CEC460706671EC85C4472B146B35661396CAE99BD20C1D1DC39104E6F1A64B0939C532E7152E1CD1FE9B033B30A179EF04D74CB6A\"},\"apis/admissionregistration.k8s.io/v1\":{\"serverRelativeURL\":\"/openapi/v3/apis/admissionregistration.k8s.io/v1?hash=C0748328C71E4DDD22D8BF9268B68812F8B62BB45D8F04878"
+    },
+    {
+      "tier": "cluster-read",
+      "layer": "openapi",
+      "sublayer": "v3-group",
+      "kind": "can-i",
+      "command": "kubectl --kubeconfig kubeconfig/cluster-read.yaml auth can-i get /openapi/v3/apis/apps/v1",
+      "exitCode": 0,
+      "allowed": true,
+      "status": "allowed",
+      "output": "yes"
+    },
+    {
+      "tier": "cluster-read",
+      "layer": "openapi",
+      "sublayer": "v3-group",
+      "kind": "real",
+      "command": "kubectl --kubeconfig kubeconfig/cluster-read.yaml get --raw /openapi/v3/apis/apps/v1",
+      "exitCode": 0,
+      "allowed": true,
+      "status": "allowed",
+      "output": "{\"openapi\":\"3.0.0\",\"info\":{\"title\":\"Kubernetes\",\"version\":\"1.37\"},\"paths\":{\"/apis/apps/v1/\":{\"get\":{\"tags\":[\"apps_v1\"],\"description\":\"get available resources\",\"operationId\":\"getAppsV1APIResources\",\"responses\":{\"200\":{\"description\":\"OK\",\"content\":{\"application/json\":{\"schema\":{\"$ref\":\"#/components/schemas/io.k8s.apimachinery.pkg.apis.meta.v1.APIResourceList\"}},\"application/vnd.kubernetes.protobuf\":{\"schema\":{\"$ref\":\"#/components/schemas/io.k8s.apimachinery.pkg.apis.meta.v1.APIResourceList\"}},\"application/yaml\":{\"schema\":{\"$ref\":\"#/components/schemas/io.k8s.apimachinery.pkg.apis.meta.v1.APIResourceList\"}}}},\"401\":{\"description\":\"Unauthorized\"}}}},\"/apis/apps/v1/controllerrevisions\":{\"get\":{\"tags\":[\"apps_v1\"],\"description\":\"list or watch objects of kind ControllerRevision\",\"operationId\":\"listAppsV1ControllerRevisionForAllNamespaces\",\"responses\":{\"200\":{\"description\":\"OK\",\"content\":{\"application/json\":{\"schema\":{\"$ref\":\"#/components/schemas/io.k8s.api.apps.v1.ControllerRevisionList\"}},\"application/json;stream=watch\":{\"schema\":{\"$ref\":\"#/components/schemas/io.k8s.api.apps.v1.ControllerRevisionList\"}},\"application/vnd.kubernetes.protobuf\":{\"schema\":{\"$ref\":\"#/components/schemas/io.k8s.ap"
+    },
+    {
+      "tier": "cluster-read",
+      "layer": "crds",
+      "sublayer": "list",
+      "kind": "can-i",
+      "command": "kubectl --kubeconfig kubeconfig/cluster-read.yaml auth can-i list customresourcedefinitions.apiextensions.k8s.io",
+      "exitCode": 0,
+      "allowed": true,
+      "status": "allowed",
+      "output": "Warning: resource 'customresourcedefinitions' is not namespace scoped in group 'apiextensions.k8s.io'\n\nyes"
+    },
+    {
+      "tier": "cluster-read",
+      "layer": "crds",
+      "sublayer": "list",
+      "kind": "real",
+      "command": "kubectl --kubeconfig kubeconfig/cluster-read.yaml get crd widgets.spike.fathom.dev -o name",
+      "exitCode": 0,
+      "allowed": true,
+      "status": "allowed",
+      "output": "customresourcedefinition.apiextensions.k8s.io/widgets.spike.fathom.dev"
+    },
+    {
+      "tier": "cluster-read",
+      "layer": "catalogs/names",
+      "sublayer": "storageclasses",
+      "kind": "can-i",
+      "command": "kubectl --kubeconfig kubeconfig/cluster-read.yaml auth can-i list storageclasses.storage.k8s.io",
+      "exitCode": 0,
+      "allowed": true,
+      "status": "allowed",
+      "output": "Warning: resource 'storageclasses' is not namespace scoped in group 'storage.k8s.io'\n\nyes"
+    },
+    {
+      "tier": "cluster-read",
+      "layer": "catalogs/names",
+      "sublayer": "storageclasses",
+      "kind": "real",
+      "command": "kubectl --kubeconfig kubeconfig/cluster-read.yaml get storageclasses -o name",
+      "exitCode": 0,
+      "allowed": true,
+      "status": "allowed",
+      "output": "storageclass.storage.k8s.io/standard"
+    },
+    {
+      "tier": "cluster-read",
+      "layer": "catalogs/names",
+      "sublayer": "ingressclasses",
+      "kind": "can-i",
+      "command": "kubectl --kubeconfig kubeconfig/cluster-read.yaml auth can-i list ingressclasses.networking.k8s.io",
+      "exitCode": 0,
+      "allowed": true,
+      "status": "allowed",
+      "output": "Warning: resource 'ingressclasses' is not namespace scoped in group 'networking.k8s.io'\n\nyes"
+    },
+    {
+      "tier": "cluster-read",
+      "layer": "catalogs/names",
+      "sublayer": "ingressclasses",
+      "kind": "real",
+      "command": "kubectl --kubeconfig kubeconfig/cluster-read.yaml get ingressclasses -o name",
+      "exitCode": 0,
+      "allowed": true,
+      "status": "allowed",
+      "output": ""
+    },
+    {
+      "tier": "cluster-read",
+      "layer": "catalogs/names",
+      "sublayer": "priorityclasses",
+      "kind": "can-i",
+      "command": "kubectl --kubeconfig kubeconfig/cluster-read.yaml auth can-i list priorityclasses.scheduling.k8s.io",
+      "exitCode": 0,
+      "allowed": true,
+      "status": "allowed",
+      "output": "Warning: resource 'priorityclasses' is not namespace scoped in group 'scheduling.k8s.io'\n\nyes"
+    },
+    {
+      "tier": "cluster-read",
+      "layer": "catalogs/names",
+      "sublayer": "priorityclasses",
+      "kind": "real",
+      "command": "kubectl --kubeconfig kubeconfig/cluster-read.yaml get priorityclasses -o name",
+      "exitCode": 0,
+      "allowed": true,
+      "status": "allowed",
+      "output": "priorityclass.scheduling.k8s.io/s4-high\npriorityclass.scheduling.k8s.io/system-cluster-critical\npriorityclass.scheduling.k8s.io/system-node-critical"
+    },
+    {
+      "tier": "cluster-read",
+      "layer": "catalogs/names",
+      "sublayer": "runtimeclasses",
+      "kind": "can-i",
+      "command": "kubectl --kubeconfig kubeconfig/cluster-read.yaml auth can-i list runtimeclasses.node.k8s.io",
+      "exitCode": 0,
+      "allowed": true,
+      "status": "allowed",
+      "output": "Warning: resource 'runtimeclasses' is not namespace scoped in group 'node.k8s.io'\n\nyes"
+    },
+    {
+      "tier": "cluster-read",
+      "layer": "catalogs/names",
+      "sublayer": "runtimeclasses",
+      "kind": "real",
+      "command": "kubectl --kubeconfig kubeconfig/cluster-read.yaml get runtimeclasses -o name",
+      "exitCode": 0,
+      "allowed": true,
+      "status": "allowed",
+      "output": ""
+    },
+    {
+      "tier": "cluster-read",
+      "layer": "catalogs/full",
+      "sublayer": "storageclasses",
+      "kind": "can-i",
+      "command": "kubectl --kubeconfig kubeconfig/cluster-read.yaml auth can-i get storageclasses.storage.k8s.io",
+      "exitCode": 0,
+      "allowed": true,
+      "status": "allowed",
+      "output": "Warning: resource 'storageclasses' is not namespace scoped in group 'storage.k8s.io'\n\nyes"
+    },
+    {
+      "tier": "cluster-read",
+      "layer": "catalogs/full",
+      "sublayer": "storageclasses",
+      "kind": "real",
+      "command": "kubectl --kubeconfig kubeconfig/cluster-read.yaml get storageclasses -o json",
+      "exitCode": 0,
+      "allowed": true,
+      "status": "allowed",
+      "output": "{\n    \"apiVersion\": \"v1\",\n    \"items\": [\n        {\n            \"apiVersion\": \"storage.k8s.io/v1\",\n            \"kind\": \"StorageClass\",\n            \"metadata\": {\n                \"annotations\": {"
+    },
+    {
+      "tier": "cluster-read",
+      "layer": "catalogs/full",
+      "sublayer": "csidrivers",
+      "kind": "can-i",
+      "command": "kubectl --kubeconfig kubeconfig/cluster-read.yaml auth can-i list csidrivers.storage.k8s.io",
+      "exitCode": 0,
+      "allowed": true,
+      "status": "allowed",
+      "output": "Warning: resource 'csidrivers' is not namespace scoped in group 'storage.k8s.io'\n\nyes"
+    },
+    {
+      "tier": "cluster-read",
+      "layer": "catalogs/full",
+      "sublayer": "csidrivers",
+      "kind": "real",
+      "command": "kubectl --kubeconfig kubeconfig/cluster-read.yaml get csidrivers -o json",
+      "exitCode": 0,
+      "allowed": true,
+      "status": "allowed",
+      "output": "{\n    \"apiVersion\": \"v1\",\n    \"items\": [],\n    \"kind\": \"List\",\n    \"metadata\": {\n        \"resourceVersion\": \"\"\n    }\n}"
+    },
+    {
+      "tier": "cluster-read",
+      "layer": "admission/policies",
+      "sublayer": "vap",
+      "kind": "can-i",
+      "command": "kubectl --kubeconfig kubeconfig/cluster-read.yaml auth can-i list validatingadmissionpolicies.admissionregistration.k8s.io",
+      "exitCode": 0,
+      "allowed": true,
+      "status": "allowed",
+      "output": "Warning: resource 'validatingadmissionpolicies' is not namespace scoped in group 'admissionregistration.k8s.io'\n\nyes"
+    },
+    {
+      "tier": "cluster-read",
+      "layer": "admission/policies",
+      "sublayer": "vap",
+      "kind": "real",
+      "command": "kubectl --kubeconfig kubeconfig/cluster-read.yaml get validatingadmissionpolicies -o name",
+      "exitCode": 0,
+      "allowed": true,
+      "status": "allowed",
+      "output": "validatingadmissionpolicy.admissionregistration.k8s.io/s3-replica-limit\nvalidatingadmissionpolicy.admissionregistration.k8s.io/vap-deny"
+    },
+    {
+      "tier": "cluster-read",
+      "layer": "admission/policies",
+      "sublayer": "vapb",
+      "kind": "can-i",
+      "command": "kubectl --kubeconfig kubeconfig/cluster-read.yaml auth can-i list validatingadmissionpolicybindings.admissionregistration.k8s.io",
+      "exitCode": 0,
+      "allowed": true,
+      "status": "allowed",
+      "output": "Warning: resource 'validatingadmissionpolicybindings' is not namespace scoped in group 'admissionregistration.k8s.io'\n\nyes"
+    },
+    {
+      "tier": "cluster-read",
+      "layer": "admission/policies",
+      "sublayer": "vapb",
+      "kind": "real",
+      "command": "kubectl --kubeconfig kubeconfig/cluster-read.yaml get validatingadmissionpolicybindings -o name",
+      "exitCode": 0,
+      "allowed": true,
+      "status": "allowed",
+      "output": "validatingadmissionpolicybinding.admissionregistration.k8s.io/s3-replica-limit-binding\nvalidatingadmissionpolicybinding.admissionregistration.k8s.io/vap-deny-binding\nvalidatingadmissionpolicybinding.admissionregistration.k8s.io/vap-param-missing-binding\nvalidatingadmissionpolicybinding.admissionregistration.k8s.io/vap-warn-binding"
+    },
+    {
+      "tier": "cluster-read",
+      "layer": "admission/policies",
+      "sublayer": "map",
+      "kind": "can-i",
+      "command": "kubectl --kubeconfig kubeconfig/cluster-read.yaml auth can-i list mutatingadmissionpolicies.admissionregistration.k8s.io",
+      "exitCode": 0,
+      "allowed": true,
+      "status": "allowed",
+      "output": "Warning: resource 'mutatingadmissionpolicies' is not namespace scoped in group 'admissionregistration.k8s.io'\n\nyes"
+    },
+    {
+      "tier": "cluster-read",
+      "layer": "admission/policies",
+      "sublayer": "map",
+      "kind": "real",
+      "command": "kubectl --kubeconfig kubeconfig/cluster-read.yaml get mutatingadmissionpolicies -o name",
+      "exitCode": 0,
+      "allowed": true,
+      "status": "allowed",
+      "output": "mutatingadmissionpolicy.admissionregistration.k8s.io/map-apply\nmutatingadmissionpolicy.admissionregistration.k8s.io/map-jsonpatch\nmutatingadmissionpolicy.admissionregistration.k8s.io/map-reinvoke-1-reader\nmutatingadmissionpolicy.admissionregistration.k8s.io/map-reinvoke-2-setter"
+    },
+    {
+      "tier": "cluster-read",
+      "layer": "admission/policies",
+      "sublayer": "mapb",
+      "kind": "can-i",
+      "command": "kubectl --kubeconfig kubeconfig/cluster-read.yaml auth can-i list mutatingadmissionpolicybindings.admissionregistration.k8s.io",
+      "exitCode": 0,
+      "allowed": true,
+      "status": "allowed",
+      "output": "Warning: resource 'mutatingadmissionpolicybindings' is not namespace scoped in group 'admissionregistration.k8s.io'\n\nyes"
+    },
+    {
+      "tier": "cluster-read",
+      "layer": "admission/policies",
+      "sublayer": "mapb",
+      "kind": "real",
+      "command": "kubectl --kubeconfig kubeconfig/cluster-read.yaml get mutatingadmissionpolicybindings -o name",
+      "exitCode": 0,
+      "allowed": true,
+      "status": "allowed",
+      "output": "mutatingadmissionpolicybinding.admissionregistration.k8s.io/map-apply-binding\nmutatingadmissionpolicybinding.admissionregistration.k8s.io/map-jsonpatch-binding\nmutatingadmissionpolicybinding.admissionregistration.k8s.io/map-reinvoke-1-reader-binding\nmutatingadmissionpolicybinding.admissionregistration.k8s.io/map-reinvoke-2-setter-binding"
+    },
+    {
+      "tier": "cluster-read",
+      "layer": "admission/policies",
+      "sublayer": "map-v1beta1-fallback",
+      "kind": "real",
+      "command": "kubectl --kubeconfig kubeconfig/cluster-read.yaml get --raw /apis/admissionregistration.k8s.io/v1beta1/mutatingadmissionpolicies",
+      "exitCode": 1,
+      "allowed": false,
+      "status": "not-served",
+      "output": "Error from server (NotFound): the server could not find the requested resource"
+    },
+    {
+      "tier": "cluster-read",
+      "layer": "admission/params",
+      "sublayer": "s3-replica-limits",
+      "kind": "can-i",
+      "command": "kubectl --kubeconfig kubeconfig/cluster-read.yaml auth can-i get configmaps -n s3",
+      "exitCode": 0,
+      "allowed": true,
+      "status": "allowed",
+      "output": "yes"
+    },
+    {
+      "tier": "cluster-read",
+      "layer": "admission/params",
+      "sublayer": "s3-replica-limits",
+      "kind": "real",
+      "command": "kubectl --kubeconfig kubeconfig/cluster-read.yaml get configmap replica-limits -n s3 -o name",
+      "exitCode": 0,
+      "allowed": true,
+      "status": "allowed",
+      "output": "configmap/replica-limits"
+    },
+    {
+      "tier": "cluster-read",
+      "layer": "admission/params",
+      "sublayer": "s2-vap-limits",
+      "kind": "can-i",
+      "command": "kubectl --kubeconfig kubeconfig/cluster-read.yaml auth can-i get configmaps -n s2",
+      "exitCode": 0,
+      "allowed": true,
+      "status": "allowed",
+      "output": "yes"
+    },
+    {
+      "tier": "cluster-read",
+      "layer": "admission/params",
+      "sublayer": "s2-vap-limits",
+      "kind": "real",
+      "command": "kubectl --kubeconfig kubeconfig/cluster-read.yaml get configmap vap-limits -n s2 -o name",
+      "exitCode": 0,
+      "allowed": true,
+      "status": "allowed",
+      "output": "configmap/vap-limits"
+    },
+    {
+      "tier": "cluster-read",
+      "layer": "admission/webhooks",
+      "sublayer": "validating",
+      "kind": "can-i",
+      "command": "kubectl --kubeconfig kubeconfig/cluster-read.yaml auth can-i list validatingwebhookconfigurations.admissionregistration.k8s.io",
+      "exitCode": 0,
+      "allowed": true,
+      "status": "allowed",
+      "output": "Warning: resource 'validatingwebhookconfigurations' is not namespace scoped in group 'admissionregistration.k8s.io'\n\nyes"
+    },
+    {
+      "tier": "cluster-read",
+      "layer": "admission/webhooks",
+      "sublayer": "validating",
+      "kind": "real",
+      "command": "kubectl --kubeconfig kubeconfig/cluster-read.yaml get validatingwebhookconfigurations -o name",
+      "exitCode": 0,
+      "allowed": true,
+      "status": "allowed",
+      "output": "validatingwebhookconfiguration.admissionregistration.k8s.io/kyverno-cel-exception-validating-webhook-cfg\nvalidatingwebhookconfiguration.admissionregistration.k8s.io/kyverno-cleanup-validating-webhook-cfg\nvalidatingwebhookconfiguration.admissionregistration.k8s.io/kyverno-exception-validating-webhook-cfg\nvalidatingwebhookconfiguration.admissionregistration.k8s.io/kyverno-global-context-validating-webhook-cfg\nvalidatingwebhookconfiguration.admissionregistration.k8s.io/kyverno-policy-validating-webhook-cfg\nvalidatingwebhookconfiguration.admissionregistration.k8s.io/kyverno-resource-validating-webhook-cfg\nvalidatingwebhookconfiguration.admissionregistration.k8s.io/kyverno-ttl-validating-webhook-cfg"
+    },
+    {
+      "tier": "cluster-read",
+      "layer": "admission/webhooks",
+      "sublayer": "mutating",
+      "kind": "can-i",
+      "command": "kubectl --kubeconfig kubeconfig/cluster-read.yaml auth can-i list mutatingwebhookconfigurations.admissionregistration.k8s.io",
+      "exitCode": 0,
+      "allowed": true,
+      "status": "allowed",
+      "output": "Warning: resource 'mutatingwebhookconfigurations' is not namespace scoped in group 'admissionregistration.k8s.io'\n\nyes"
+    },
+    {
+      "tier": "cluster-read",
+      "layer": "admission/webhooks",
+      "sublayer": "mutating",
+      "kind": "real",
+      "command": "kubectl --kubeconfig kubeconfig/cluster-read.yaml get mutatingwebhookconfigurations -o name",
+      "exitCode": 0,
+      "allowed": true,
+      "status": "allowed",
+      "output": "mutatingwebhookconfiguration.admissionregistration.k8s.io/kyverno-policy-mutating-webhook-cfg\nmutatingwebhookconfiguration.admissionregistration.k8s.io/kyverno-resource-mutating-webhook-cfg\nmutatingwebhookconfiguration.admissionregistration.k8s.io/kyverno-verify-mutating-webhook-cfg"
+    },
+    {
+      "tier": "cluster-read",
+      "layer": "engines",
+      "sublayer": "clusterpolicies",
+      "kind": "can-i",
+      "command": "kubectl --kubeconfig kubeconfig/cluster-read.yaml auth can-i list clusterpolicies.kyverno.io",
+      "exitCode": 0,
+      "allowed": true,
+      "status": "allowed",
+      "output": "Warning: resource 'clusterpolicies' is not namespace scoped in group 'kyverno.io'\n\nyes"
+    },
+    {
+      "tier": "cluster-read",
+      "layer": "engines",
+      "sublayer": "clusterpolicies",
+      "kind": "real",
+      "command": "kubectl --kubeconfig kubeconfig/cluster-read.yaml get clusterpolicies.kyverno.io -o name",
+      "exitCode": 0,
+      "allowed": true,
+      "status": "allowed",
+      "output": "Warning: kyverno.io/v1 ClusterPolicy is deprecated and will be removed in a future release; migrate to ValidatingPolicy, MutatingPolicy, GeneratingPolicy or ImageValidatingPolicy (policies.kyverno.io), see https://kyverno.io/docs/guides/migration-to-cel/\nclusterpolicy.kyverno.io/add-default-securitycontext\nclusterpolicy.kyverno.io/require-team-label\nclusterpolicy.kyverno.io/restrict-protected-deployer"
+    },
+    {
+      "tier": "cluster-read",
+      "layer": "engines",
+      "sublayer": "validatingpolicies",
+      "kind": "can-i",
+      "command": "kubectl --kubeconfig kubeconfig/cluster-read.yaml auth can-i list validatingpolicies.policies.kyverno.io",
+      "exitCode": 0,
+      "allowed": true,
+      "status": "allowed",
+      "output": "Warning: resource 'validatingpolicies' is not namespace scoped in group 'policies.kyverno.io'\n\nyes"
+    },
+    {
+      "tier": "cluster-read",
+      "layer": "engines",
+      "sublayer": "validatingpolicies",
+      "kind": "real",
+      "command": "kubectl --kubeconfig kubeconfig/cluster-read.yaml get validatingpolicies.policies.kyverno.io -o name",
+      "exitCode": 0,
+      "allowed": true,
+      "status": "allowed",
+      "output": ""
+    },
+    {
+      "tier": "cluster-read",
+      "layer": "engines",
+      "sublayer": "policyexceptions-v2",
+      "kind": "can-i",
+      "command": "kubectl --kubeconfig kubeconfig/cluster-read.yaml auth can-i list policyexceptions.kyverno.io -A",
+      "exitCode": 0,
+      "allowed": true,
+      "status": "allowed",
+      "output": "yes"
+    },
+    {
+      "tier": "cluster-read",
+      "layer": "engines",
+      "sublayer": "policyexceptions-v2",
+      "kind": "real",
+      "command": "kubectl --kubeconfig kubeconfig/cluster-read.yaml get policyexceptions.kyverno.io -A -o name",
+      "exitCode": 0,
+      "allowed": true,
+      "status": "allowed",
+      "output": "Warning: kyverno.io/v2 PolicyException is deprecated and will be removed in a future release; migrate to PolicyException (policies.kyverno.io), see https://kyverno.io/docs/guides/migration-to-cel/\npolicyexception.kyverno.io/legacy-app-team-label"
+    },
+    {
+      "tier": "cluster-read",
+      "layer": "engines",
+      "sublayer": "policyexceptions-cel",
+      "kind": "can-i",
+      "command": "kubectl --kubeconfig kubeconfig/cluster-read.yaml auth can-i list policyexceptions.policies.kyverno.io -A",
+      "exitCode": 0,
+      "allowed": true,
+      "status": "allowed",
+      "output": "yes"
+    },
+    {
+      "tier": "cluster-read",
+      "layer": "engines",
+      "sublayer": "policyexceptions-cel",
+      "kind": "real",
+      "command": "kubectl --kubeconfig kubeconfig/cluster-read.yaml get policyexceptions.policies.kyverno.io -A -o name",
+      "exitCode": 0,
+      "allowed": true,
+      "status": "allowed",
+      "output": ""
+    },
+    {
+      "tier": "cluster-read",
+      "layer": "engines",
+      "sublayer": "policies-namespaced-s4",
+      "kind": "can-i",
+      "command": "kubectl --kubeconfig kubeconfig/cluster-read.yaml auth can-i list policies.kyverno.io -n s4",
+      "exitCode": 0,
+      "allowed": true,
+      "status": "allowed",
+      "output": "yes"
+    },
+    {
+      "tier": "cluster-read",
+      "layer": "engines",
+      "sublayer": "policies-namespaced-s4",
+      "kind": "real",
+      "command": "kubectl --kubeconfig kubeconfig/cluster-read.yaml get policies.kyverno.io -n s4 -o name",
+      "exitCode": 0,
+      "allowed": true,
+      "status": "allowed",
+      "output": "Warning: kyverno.io/v1 Policy is deprecated and will be removed in a future release; migrate to NamespacedValidatingPolicy and the other namespaced policy types (policies.kyverno.io), see https://kyverno.io/docs/guides/migration-to-cel/"
+    },
+    {
+      "tier": "cluster-read",
+      "layer": "namespaces",
+      "sublayer": "list",
+      "kind": "can-i",
+      "command": "kubectl --kubeconfig kubeconfig/cluster-read.yaml auth can-i list namespaces",
+      "exitCode": 0,
+      "allowed": true,
+      "status": "allowed",
+      "output": "Warning: resource 'namespaces' is not namespace scoped\n\nyes"
+    },
+    {
+      "tier": "cluster-read",
+      "layer": "namespaces",
+      "sublayer": "list",
+      "kind": "real",
+      "command": "kubectl --kubeconfig kubeconfig/cluster-read.yaml get namespaces -o name",
+      "exitCode": 0,
+      "allowed": true,
+      "status": "allowed",
+      "output": "namespace/default\nnamespace/kube-node-lease\nnamespace/kube-public\nnamespace/kube-system\nnamespace/kyverno\nnamespace/local-path-storage\nnamespace/s1\nnamespace/s2"
+    },
+    {
+      "tier": "cluster-read",
+      "layer": "namespaces",
+      "sublayer": "get-s4-labels",
+      "kind": "can-i",
+      "command": "kubectl --kubeconfig kubeconfig/cluster-read.yaml auth can-i get namespaces/s4",
+      "exitCode": 0,
+      "allowed": true,
+      "status": "allowed",
+      "output": "Warning: resource 'namespaces' is not namespace scoped\n\nyes"
+    },
+    {
+      "tier": "cluster-read",
+      "layer": "namespaces",
+      "sublayer": "get-s4-labels",
+      "kind": "real",
+      "command": "kubectl --kubeconfig kubeconfig/cluster-read.yaml get namespace s4 -o jsonpath={.metadata.labels}",
+      "exitCode": 0,
+      "allowed": true,
+      "status": "allowed",
+      "output": "{\"fathom.dev/spike\":\"s4\",\"kubernetes.io/metadata.name\":\"s4\"}"
+    },
+    {
+      "tier": "cluster-read",
+      "layer": "namespaces",
+      "sublayer": "get-s8-labels",
+      "kind": "can-i",
+      "command": "kubectl --kubeconfig kubeconfig/cluster-read.yaml auth can-i get namespaces/s8",
+      "exitCode": 0,
+      "allowed": true,
+      "status": "allowed",
+      "output": "Warning: resource 'namespaces' is not namespace scoped\n\nyes"
+    },
+    {
+      "tier": "cluster-read",
+      "layer": "namespaces",
+      "sublayer": "get-s8-labels",
+      "kind": "real",
+      "command": "kubectl --kubeconfig kubeconfig/cluster-read.yaml get namespace s8 -o jsonpath={.metadata.labels}",
+      "exitCode": 0,
+      "allowed": true,
+      "status": "allowed",
+      "output": "{\"environment\":\"staging\",\"fathom.dev/spike\":\"s8\",\"kubernetes.io/metadata.name\":\"s8\",\"team\":\"importers\"}"
+    },
+    {
+      "tier": "cluster-read",
+      "layer": "namespaces",
+      "sublayer": "get-s2-labels",
+      "kind": "can-i",
+      "command": "kubectl --kubeconfig kubeconfig/cluster-read.yaml auth can-i get namespaces/s2",
+      "exitCode": 0,
+      "allowed": true,
+      "status": "allowed",
+      "output": "Warning: resource 'namespaces' is not namespace scoped\n\nyes"
+    },
+    {
+      "tier": "cluster-read",
+      "layer": "namespaces",
+      "sublayer": "get-s2-labels",
+      "kind": "real",
+      "command": "kubectl --kubeconfig kubeconfig/cluster-read.yaml get namespace s2 -o jsonpath={.metadata.labels}",
+      "exitCode": 0,
+      "allowed": true,
+      "status": "allowed",
+      "output": "{\"environment\":\"prod\",\"kubernetes.io/metadata.name\":\"s2\",\"team\":\"shop\"}"
+    },
+    {
+      "tier": "cluster-read",
+      "layer": "namespaces",
+      "sublayer": "quota-s4",
+      "kind": "can-i",
+      "command": "kubectl --kubeconfig kubeconfig/cluster-read.yaml auth can-i list resourcequotas -n s4",
+      "exitCode": 0,
+      "allowed": true,
+      "status": "allowed",
+      "output": "yes"
+    },
+    {
+      "tier": "cluster-read",
+      "layer": "namespaces",
+      "sublayer": "quota-s4",
+      "kind": "real",
+      "command": "kubectl --kubeconfig kubeconfig/cluster-read.yaml get resourcequotas -n s4 -o jsonpath={range .items[*]}{.metadata.name}={.status.used}{\"\\n\"}{end}",
+      "exitCode": 0,
+      "allowed": true,
+      "status": "allowed",
+      "output": "s4-quota={\"count/configmaps\":\"1\",\"limits.cpu\":\"900m\",\"limits.memory\":\"1Gi\",\"persistentvolumeclaims\":\"1\",\"pods\":\"3\",\"requests.cpu\":\"700m\",\"requests.memory\":\"768Mi\",\"requests.storage\":\"5Gi\",\"services.loadbalancers\":\"1\"}\ns4-quota-high={\"pods\":\"1\"}"
+    },
+    {
+      "tier": "cluster-read",
+      "layer": "namespaces",
+      "sublayer": "limitrange-s4",
+      "kind": "can-i",
+      "command": "kubectl --kubeconfig kubeconfig/cluster-read.yaml auth can-i list limitranges -n s4",
+      "exitCode": 0,
+      "allowed": true,
+      "status": "allowed",
+      "output": "yes"
+    },
+    {
+      "tier": "cluster-read",
+      "layer": "namespaces",
+      "sublayer": "limitrange-s4",
+      "kind": "real",
+      "command": "kubectl --kubeconfig kubeconfig/cluster-read.yaml get limitranges -n s4 -o name",
+      "exitCode": 0,
+      "allowed": true,
+      "status": "allowed",
+      "output": "limitrange/s4-limits"
+    },
+    {
+      "tier": "cluster-read",
+      "layer": "namespaces",
+      "sublayer": "netpol-s4",
+      "kind": "can-i",
+      "command": "kubectl --kubeconfig kubeconfig/cluster-read.yaml auth can-i list networkpolicies.networking.k8s.io -n s4",
+      "exitCode": 0,
+      "allowed": true,
+      "status": "allowed",
+      "output": "yes"
+    },
+    {
+      "tier": "cluster-read",
+      "layer": "namespaces",
+      "sublayer": "netpol-s4",
+      "kind": "real",
+      "command": "kubectl --kubeconfig kubeconfig/cluster-read.yaml get networkpolicies -n s4 -o name",
+      "exitCode": 0,
+      "allowed": true,
+      "status": "allowed",
+      "output": ""
+    },
+    {
+      "tier": "cluster-read",
+      "layer": "namespaces",
+      "sublayer": "quota-s2-other",
+      "kind": "can-i",
+      "command": "kubectl --kubeconfig kubeconfig/cluster-read.yaml auth can-i list resourcequotas -n s2",
+      "exitCode": 0,
+      "allowed": true,
+      "status": "allowed",
+      "output": "yes"
+    },
+    {
+      "tier": "cluster-read",
+      "layer": "namespaces",
+      "sublayer": "quota-s2-other",
+      "kind": "real",
+      "command": "kubectl --kubeconfig kubeconfig/cluster-read.yaml get resourcequotas -n s2 -o name",
+      "exitCode": 0,
+      "allowed": true,
+      "status": "allowed",
+      "output": ""
+    },
+    {
+      "tier": "cluster-read",
+      "layer": "rbac",
+      "sublayer": "clusterroles",
+      "kind": "can-i",
+      "command": "kubectl --kubeconfig kubeconfig/cluster-read.yaml auth can-i list clusterroles.rbac.authorization.k8s.io",
+      "exitCode": 0,
+      "allowed": true,
+      "status": "allowed",
+      "output": "Warning: resource 'clusterroles' is not namespace scoped in group 'rbac.authorization.k8s.io'\n\nyes"
+    },
+    {
+      "tier": "cluster-read",
+      "layer": "rbac",
+      "sublayer": "clusterroles",
+      "kind": "real",
+      "command": "kubectl --kubeconfig kubeconfig/cluster-read.yaml get clusterroles fathom-import-cluster-read -o name",
+      "exitCode": 0,
+      "allowed": true,
+      "status": "allowed",
+      "output": "clusterrole.rbac.authorization.k8s.io/fathom-import-cluster-read"
+    },
+    {
+      "tier": "cluster-read",
+      "layer": "rbac",
+      "sublayer": "clusterrolebindings",
+      "kind": "can-i",
+      "command": "kubectl --kubeconfig kubeconfig/cluster-read.yaml auth can-i list clusterrolebindings.rbac.authorization.k8s.io",
+      "exitCode": 0,
+      "allowed": true,
+      "status": "allowed",
+      "output": "Warning: resource 'clusterrolebindings' is not namespace scoped in group 'rbac.authorization.k8s.io'\n\nyes"
+    },
+    {
+      "tier": "cluster-read",
+      "layer": "rbac",
+      "sublayer": "clusterrolebindings",
+      "kind": "real",
+      "command": "kubectl --kubeconfig kubeconfig/cluster-read.yaml get clusterrolebindings fathom-import-cluster-read -o name",
+      "exitCode": 0,
+      "allowed": true,
+      "status": "allowed",
+      "output": "clusterrolebinding.rbac.authorization.k8s.io/fathom-import-cluster-read"
+    },
+    {
+      "tier": "cluster-read",
+      "layer": "rbac",
+      "sublayer": "roles-s4",
+      "kind": "can-i",
+      "command": "kubectl --kubeconfig kubeconfig/cluster-read.yaml auth can-i list roles.rbac.authorization.k8s.io -n s4",
+      "exitCode": 0,
+      "allowed": true,
+      "status": "allowed",
+      "output": "yes"
+    },
+    {
+      "tier": "cluster-read",
+      "layer": "rbac",
+      "sublayer": "roles-s4",
+      "kind": "real",
+      "command": "kubectl --kubeconfig kubeconfig/cluster-read.yaml get roles -n s4 -o name",
+      "exitCode": 0,
+      "allowed": true,
+      "status": "allowed",
+      "output": "role.rbac.authorization.k8s.io/deployer-role\nrole.rbac.authorization.k8s.io/fathom-import-namespaced-read"
+    },
+    {
+      "tier": "cluster-read",
+      "layer": "rbac",
+      "sublayer": "rolebindings-s4",
+      "kind": "can-i",
+      "command": "kubectl --kubeconfig kubeconfig/cluster-read.yaml auth can-i list rolebindings.rbac.authorization.k8s.io -n s4",
+      "exitCode": 0,
+      "allowed": true,
+      "status": "allowed",
+      "output": "yes"
+    },
+    {
+      "tier": "cluster-read",
+      "layer": "rbac",
+      "sublayer": "rolebindings-s4",
+      "kind": "real",
+      "command": "kubectl --kubeconfig kubeconfig/cluster-read.yaml get rolebindings -n s4 -o name",
+      "exitCode": 0,
+      "allowed": true,
+      "status": "allowed",
+      "output": "rolebinding.rbac.authorization.k8s.io/deployer-binding\nrolebinding.rbac.authorization.k8s.io/fathom-import-namespaced-read"
+    },
+    {
+      "tier": "cluster-read",
+      "layer": "inventory",
+      "sublayer": "configmaps-s4",
+      "kind": "can-i",
+      "command": "kubectl --kubeconfig kubeconfig/cluster-read.yaml auth can-i list configmaps -n s4",
+      "exitCode": 0,
+      "allowed": true,
+      "status": "allowed",
+      "output": "yes"
+    },
+    {
+      "tier": "cluster-read",
+      "layer": "inventory",
+      "sublayer": "configmaps-s4",
+      "kind": "real",
+      "command": "kubectl --kubeconfig kubeconfig/cluster-read.yaml get configmaps -n s4 -o name",
+      "exitCode": 0,
+      "allowed": true,
+      "status": "allowed",
+      "output": "configmap/kube-root-ca.crt"
+    },
+    {
+      "tier": "cluster-read",
+      "layer": "inventory",
+      "sublayer": "secrets-names-s4",
+      "kind": "can-i",
+      "command": "kubectl --kubeconfig kubeconfig/cluster-read.yaml auth can-i list secrets -n s4",
+      "exitCode": 1,
+      "allowed": false,
+      "status": "forbidden",
+      "output": "no"
+    },
+    {
+      "tier": "cluster-read",
+      "layer": "inventory",
+      "sublayer": "secrets-names-s4",
+      "kind": "real",
+      "command": "kubectl --kubeconfig kubeconfig/cluster-read.yaml get secrets -n s4 -o name",
+      "exitCode": 1,
+      "allowed": false,
+      "status": "forbidden",
+      "output": "Error from server (Forbidden): secrets is forbidden: User \"system:serviceaccount:s8:fathom-import-cluster\" cannot list resource \"secrets\" in API group \"\" in the namespace \"s4\""
+    },
+    {
+      "tier": "cluster-read",
+      "layer": "inventory",
+      "sublayer": "secrets-names-s8",
+      "kind": "can-i",
+      "command": "kubectl --kubeconfig kubeconfig/cluster-read.yaml auth can-i list secrets -n s8",
+      "exitCode": 1,
+      "allowed": false,
+      "status": "forbidden",
+      "output": "no"
+    },
+    {
+      "tier": "cluster-read",
+      "layer": "inventory",
+      "sublayer": "secrets-names-s8",
+      "kind": "real",
+      "command": "kubectl --kubeconfig kubeconfig/cluster-read.yaml get secrets -n s8 -o name",
+      "exitCode": 1,
+      "allowed": false,
+      "status": "forbidden",
+      "output": "Error from server (Forbidden): secrets is forbidden: User \"system:serviceaccount:s8:fathom-import-cluster\" cannot list resource \"secrets\" in API group \"\" in the namespace \"s8\""
+    },
+    {
+      "tier": "cluster-read",
+      "layer": "inventory",
+      "sublayer": "serviceaccounts-s4",
+      "kind": "can-i",
+      "command": "kubectl --kubeconfig kubeconfig/cluster-read.yaml auth can-i list serviceaccounts -n s4",
+      "exitCode": 0,
+      "allowed": true,
+      "status": "allowed",
+      "output": "yes"
+    },
+    {
+      "tier": "cluster-read",
+      "layer": "inventory",
+      "sublayer": "serviceaccounts-s4",
+      "kind": "real",
+      "command": "kubectl --kubeconfig kubeconfig/cluster-read.yaml get serviceaccounts -n s4 -o name",
+      "exitCode": 0,
+      "allowed": true,
+      "status": "allowed",
+      "output": "serviceaccount/default\nserviceaccount/deployer"
+    },
+    {
+      "tier": "cluster-read",
+      "layer": "inventory",
+      "sublayer": "services-s4",
+      "kind": "can-i",
+      "command": "kubectl --kubeconfig kubeconfig/cluster-read.yaml auth can-i list services -n s4",
+      "exitCode": 0,
+      "allowed": true,
+      "status": "allowed",
+      "output": "yes"
+    },
+    {
+      "tier": "cluster-read",
+      "layer": "inventory",
+      "sublayer": "services-s4",
+      "kind": "real",
+      "command": "kubectl --kubeconfig kubeconfig/cluster-read.yaml get services -n s4 -o name",
+      "exitCode": 0,
+      "allowed": true,
+      "status": "allowed",
+      "output": "service/real-svc-lb"
+    },
+    {
+      "tier": "cluster-read",
+      "layer": "inventory",
+      "sublayer": "ingresses-s4",
+      "kind": "can-i",
+      "command": "kubectl --kubeconfig kubeconfig/cluster-read.yaml auth can-i list ingresses.networking.k8s.io -n s4",
+      "exitCode": 0,
+      "allowed": true,
+      "status": "allowed",
+      "output": "yes"
+    },
+    {
+      "tier": "cluster-read",
+      "layer": "inventory",
+      "sublayer": "ingresses-s4",
+      "kind": "real",
+      "command": "kubectl --kubeconfig kubeconfig/cluster-read.yaml get ingresses -n s4 -o name",
+      "exitCode": 0,
+      "allowed": true,
+      "status": "allowed",
+      "output": ""
+    },
+    {
+      "tier": "cluster-read",
+      "layer": "inventory",
+      "sublayer": "deployments-s4",
+      "kind": "can-i",
+      "command": "kubectl --kubeconfig kubeconfig/cluster-read.yaml auth can-i list deployments.apps -n s4",
+      "exitCode": 0,
+      "allowed": true,
+      "status": "allowed",
+      "output": "yes"
+    },
+    {
+      "tier": "cluster-read",
+      "layer": "inventory",
+      "sublayer": "deployments-s4",
+      "kind": "real",
+      "command": "kubectl --kubeconfig kubeconfig/cluster-read.yaml get deployments -n s4 -o name",
+      "exitCode": 0,
+      "allowed": true,
+      "status": "allowed",
+      "output": ""
+    },
+    {
+      "tier": "cluster-read",
+      "layer": "inventory",
+      "sublayer": "pods-s4",
+      "kind": "can-i",
+      "command": "kubectl --kubeconfig kubeconfig/cluster-read.yaml auth can-i list pods -n s4",
+      "exitCode": 0,
+      "allowed": true,
+      "status": "allowed",
+      "output": "yes"
+    },
+    {
+      "tier": "cluster-read",
+      "layer": "inventory",
+      "sublayer": "pods-s4",
+      "kind": "real",
+      "command": "kubectl --kubeconfig kubeconfig/cluster-read.yaml get pods -n s4 -o name",
+      "exitCode": 0,
+      "allowed": true,
+      "status": "allowed",
+      "output": "pod/real-pod-a\npod/real-pod-b\npod/real-pod-high"
+    },
+    {
+      "tier": "cluster-read",
+      "layer": "inventory",
+      "sublayer": "configmaps-all",
+      "kind": "can-i",
+      "command": "kubectl --kubeconfig kubeconfig/cluster-read.yaml auth can-i list configmaps -A",
+      "exitCode": 0,
+      "allowed": true,
+      "status": "allowed",
+      "output": "yes"
+    },
+    {
+      "tier": "cluster-read",
+      "layer": "inventory",
+      "sublayer": "configmaps-all",
+      "kind": "real",
+      "command": "kubectl --kubeconfig kubeconfig/cluster-read.yaml get configmaps -A -o name",
+      "exitCode": 0,
+      "allowed": true,
+      "status": "allowed",
+      "output": "configmap/kube-root-ca.crt\nconfigmap/kube-root-ca.crt\nconfigmap/cluster-info\nconfigmap/kube-root-ca.crt\nconfigmap/coredns\nconfigmap/extension-apiserver-authentication\nconfigmap/kube-apiserver-legacy-service-account-token-tracking\nconfigmap/kube-proxy"
+    },
+    {
+      "tier": "cluster-read",
+      "layer": "gitops",
+      "sublayer": "argocd-applications",
+      "kind": "can-i",
+      "command": "kubectl --kubeconfig kubeconfig/cluster-read.yaml auth can-i list applications.argoproj.io -A",
+      "exitCode": 1,
+      "allowed": false,
+      "status": "not-served",
+      "output": "Warning: the server doesn't have a resource type 'applications' in group 'argoproj.io'\n\nno"
+    },
+    {
+      "tier": "cluster-read",
+      "layer": "gitops",
+      "sublayer": "argocd-applications",
+      "kind": "real",
+      "command": "kubectl --kubeconfig kubeconfig/cluster-read.yaml get applications.argoproj.io -A -o name",
+      "exitCode": 1,
+      "allowed": false,
+      "status": "not-served",
+      "output": "error: the server doesn't have a resource type \"applications\""
+    },
+    {
+      "tier": "cluster-read",
+      "layer": "gitops",
+      "sublayer": "flux-helmreleases",
+      "kind": "can-i",
+      "command": "kubectl --kubeconfig kubeconfig/cluster-read.yaml auth can-i list helmreleases.helm.toolkit.fluxcd.io -A",
+      "exitCode": 1,
+      "allowed": false,
+      "status": "not-served",
+      "output": "Warning: the server doesn't have a resource type 'helmreleases' in group 'helm.toolkit.fluxcd.io'\n\nno"
+    },
+    {
+      "tier": "cluster-read",
+      "layer": "gitops",
+      "sublayer": "flux-helmreleases",
+      "kind": "real",
+      "command": "kubectl --kubeconfig kubeconfig/cluster-read.yaml get helmreleases.helm.toolkit.fluxcd.io -A -o name",
+      "exitCode": 1,
+      "allowed": false,
+      "status": "not-served",
+      "output": "error: the server doesn't have a resource type \"helmreleases\""
+    },
+    {
+      "tier": "cluster-read",
+      "layer": "gitops",
+      "sublayer": "argocd-applications-ssar",
+      "kind": "ssar",
+      "command": "kubectl --kubeconfig kubeconfig/cluster-read.yaml create --raw /apis/authorization.k8s.io/v1/selfsubjectaccessreviews -f - <<< '{\"apiVersion\":\"authorization.k8s.io/v1\",\"kind\":\"SelfSubjectAccessReview\",\"spec\":{\"resourceAttributes\":{\"group\":\"argoproj.io\",\"resource\":\"applications\",\"verb\":\"list\"}}}'",
+      "exitCode": 0,
+      "allowed": true,
+      "status": "allowed",
+      "output": "{\"allowed\":true,\"reason\":\"RBAC: allowed by ClusterRoleBinding \\\"fathom-import-cluster-read\\\" of ClusterRole \\\"fathom-import-cluster-read\\\" to ServiceAccount \\\"fathom-import-cluster/s8\\\"\"}"
+    },
+    {
+      "tier": "cluster-read",
+      "layer": "gitops",
+      "sublayer": "flux-helmreleases-ssar",
+      "kind": "ssar",
+      "command": "kubectl --kubeconfig kubeconfig/cluster-read.yaml create --raw /apis/authorization.k8s.io/v1/selfsubjectaccessreviews -f - <<< '{\"apiVersion\":\"authorization.k8s.io/v1\",\"kind\":\"SelfSubjectAccessReview\",\"spec\":{\"resourceAttributes\":{\"group\":\"helm.toolkit.fluxcd.io\",\"resource\":\"helmreleases\",\"verb\":\"list\"}}}'",
+      "exitCode": 0,
+      "allowed": true,
+      "status": "allowed",
+      "output": "{\"allowed\":true,\"reason\":\"RBAC: allowed by ClusterRoleBinding \\\"fathom-import-cluster-read\\\" of ClusterRole \\\"fathom-import-cluster-read\\\" to ServiceAccount \\\"fathom-import-cluster/s8\\\"\"}"
+    },
+    {
+      "tier": "cluster-read",
+      "layer": "nodes",
+      "sublayer": "list",
+      "kind": "can-i",
+      "command": "kubectl --kubeconfig kubeconfig/cluster-read.yaml auth can-i list nodes",
+      "exitCode": 0,
+      "allowed": true,
+      "status": "allowed",
+      "output": "Warning: resource 'nodes' is not namespace scoped\n\nyes"
+    },
+    {
+      "tier": "cluster-read",
+      "layer": "nodes",
+      "sublayer": "list",
+      "kind": "real",
+      "command": "kubectl --kubeconfig kubeconfig/cluster-read.yaml get nodes -o jsonpath={range .items[*]}{.metadata.name} cpu={.status.allocatable.cpu}{\"\\n\"}{end}",
+      "exitCode": 0,
+      "allowed": true,
+      "status": "allowed",
+      "output": "fathom-oracle-control-plane cpu=32"
+    }
+  ],
+  "summary": {
+    "cluster-read": {
+      "admission/params": {
+        "allowed": 4,
+        "denied": 0,
+        "deniedSublayers": []
+      },
+      "admission/policies": {
+        "allowed": 8,
+        "denied": 1,
+        "deniedSublayers": [
+          "map-v1beta1-fallback"
+        ]
+      },
+      "admission/webhooks": {
+        "allowed": 4,
+        "denied": 0,
+        "deniedSublayers": []
+      },
+      "catalogs/full": {
+        "allowed": 4,
+        "denied": 0,
+        "deniedSublayers": []
+      },
+      "catalogs/names": {
+        "allowed": 8,
+        "denied": 0,
+        "deniedSublayers": []
+      },
+      "crds": {
+        "allowed": 2,
+        "denied": 0,
+        "deniedSublayers": []
+      },
+      "discovery": {
+        "allowed": 6,
+        "denied": 0,
+        "deniedSublayers": []
+      },
+      "engines": {
+        "allowed": 10,
+        "denied": 0,
+        "deniedSublayers": []
+      },
+      "gitops": {
+        "allowed": 2,
+        "denied": 4,
+        "deniedSublayers": [
+          "argocd-applications",
+          "flux-helmreleases"
+        ]
+      },
+      "identity": {
+        "allowed": 2,
+        "denied": 0,
+        "deniedSublayers": []
+      },
+      "inventory": {
+        "allowed": 14,
+        "denied": 4,
+        "deniedSublayers": [
+          "secrets-names-s4",
+          "secrets-names-s8"
+        ]
+      },
+      "namespaces": {
+        "allowed": 16,
+        "denied": 0,
+        "deniedSublayers": []
+      },
+      "nodes": {
+        "allowed": 2,
+        "denied": 0,
+        "deniedSublayers": []
+      },
+      "openapi": {
+        "allowed": 4,
+        "denied": 0,
+        "deniedSublayers": []
+      },
+      "rbac": {
+        "allowed": 8,
+        "denied": 0,
+        "deniedSublayers": []
+      }
+    },
+    "discovery-only": {
+      "admission/params": {
+        "allowed": 0,
+        "denied": 4,
+        "deniedSublayers": [
+          "s2-vap-limits",
+          "s3-replica-limits"
+        ]
+      },
+      "admission/policies": {
+        "allowed": 0,
+        "denied": 9,
+        "deniedSublayers": [
+          "map",
+          "map-v1beta1-fallback",
+          "mapb",
+          "vap",
+          "vapb"
+        ]
+      },
+      "admission/webhooks": {
+        "allowed": 0,
+        "denied": 4,
+        "deniedSublayers": [
+          "mutating",
+          "validating"
+        ]
+      },
+      "catalogs/full": {
+        "allowed": 0,
+        "denied": 4,
+        "deniedSublayers": [
+          "csidrivers",
+          "storageclasses"
+        ]
+      },
+      "catalogs/names": {
+        "allowed": 0,
+        "denied": 8,
+        "deniedSublayers": [
+          "ingressclasses",
+          "priorityclasses",
+          "runtimeclasses",
+          "storageclasses"
+        ]
+      },
+      "crds": {
+        "allowed": 0,
+        "denied": 2,
+        "deniedSublayers": [
+          "list"
+        ]
+      },
+      "discovery": {
+        "allowed": 6,
+        "denied": 0,
+        "deniedSublayers": []
+      },
+      "engines": {
+        "allowed": 0,
+        "denied": 10,
+        "deniedSublayers": [
+          "clusterpolicies",
+          "policies-namespaced-s4",
+          "policyexceptions-cel",
+          "policyexceptions-v2",
+          "validatingpolicies"
+        ]
+      },
+      "gitops": {
+        "allowed": 0,
+        "denied": 6,
+        "deniedSublayers": [
+          "argocd-applications",
+          "argocd-applications-ssar",
+          "flux-helmreleases",
+          "flux-helmreleases-ssar"
+        ]
+      },
+      "identity": {
+        "allowed": 2,
+        "denied": 0,
+        "deniedSublayers": []
+      },
+      "inventory": {
+        "allowed": 0,
+        "denied": 18,
+        "deniedSublayers": [
+          "configmaps-all",
+          "configmaps-s4",
+          "deployments-s4",
+          "ingresses-s4",
+          "pods-s4",
+          "secrets-names-s4",
+          "secrets-names-s8",
+          "serviceaccounts-s4",
+          "services-s4"
+        ]
+      },
+      "namespaces": {
+        "allowed": 0,
+        "denied": 16,
+        "deniedSublayers": [
+          "get-s2-labels",
+          "get-s4-labels",
+          "get-s8-labels",
+          "limitrange-s4",
+          "list",
+          "netpol-s4",
+          "quota-s2-other",
+          "quota-s4"
+        ]
+      },
+      "nodes": {
+        "allowed": 0,
+        "denied": 2,
+        "deniedSublayers": [
+          "list"
+        ]
+      },
+      "openapi": {
+        "allowed": 4,
+        "denied": 0,
+        "deniedSublayers": []
+      },
+      "rbac": {
+        "allowed": 0,
+        "denied": 8,
+        "deniedSublayers": [
+          "clusterrolebindings",
+          "clusterroles",
+          "rolebindings-s4",
+          "roles-s4"
+        ]
+      }
+    },
+    "namespaced-read": {
+      "admission/params": {
+        "allowed": 0,
+        "denied": 4,
+        "deniedSublayers": [
+          "s2-vap-limits",
+          "s3-replica-limits"
+        ]
+      },
+      "admission/policies": {
+        "allowed": 0,
+        "denied": 9,
+        "deniedSublayers": [
+          "map",
+          "map-v1beta1-fallback",
+          "mapb",
+          "vap",
+          "vapb"
+        ]
+      },
+      "admission/webhooks": {
+        "allowed": 0,
+        "denied": 4,
+        "deniedSublayers": [
+          "mutating",
+          "validating"
+        ]
+      },
+      "catalogs/full": {
+        "allowed": 0,
+        "denied": 4,
+        "deniedSublayers": [
+          "csidrivers",
+          "storageclasses"
+        ]
+      },
+      "catalogs/names": {
+        "allowed": 0,
+        "denied": 8,
+        "deniedSublayers": [
+          "ingressclasses",
+          "priorityclasses",
+          "runtimeclasses",
+          "storageclasses"
+        ]
+      },
+      "crds": {
+        "allowed": 0,
+        "denied": 2,
+        "deniedSublayers": [
+          "list"
+        ]
+      },
+      "discovery": {
+        "allowed": 6,
+        "denied": 0,
+        "deniedSublayers": []
+      },
+      "engines": {
+        "allowed": 0,
+        "denied": 10,
+        "deniedSublayers": [
+          "clusterpolicies",
+          "policies-namespaced-s4",
+          "policyexceptions-cel",
+          "policyexceptions-v2",
+          "validatingpolicies"
+        ]
+      },
+      "gitops": {
+        "allowed": 0,
+        "denied": 6,
+        "deniedSublayers": [
+          "argocd-applications",
+          "argocd-applications-ssar",
+          "flux-helmreleases",
+          "flux-helmreleases-ssar"
+        ]
+      },
+      "identity": {
+        "allowed": 2,
+        "denied": 0,
+        "deniedSublayers": []
+      },
+      "inventory": {
+        "allowed": 12,
+        "denied": 6,
+        "deniedSublayers": [
+          "configmaps-all",
+          "secrets-names-s4",
+          "secrets-names-s8"
+        ]
+      },
+      "namespaces": {
+        "allowed": 10,
+        "denied": 6,
+        "deniedSublayers": [
+          "get-s2-labels",
+          "list",
+          "quota-s2-other"
+        ]
+      },
+      "nodes": {
+        "allowed": 0,
+        "denied": 2,
+        "deniedSublayers": [
+          "list"
+        ]
+      },
+      "openapi": {
+        "allowed": 4,
+        "denied": 0,
+        "deniedSublayers": []
+      },
+      "rbac": {
+        "allowed": 4,
+        "denied": 4,
+        "deniedSublayers": [
+          "clusterrolebindings",
+          "clusterroles"
+        ]
+      }
+    }
+  }
+}

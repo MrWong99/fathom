@@ -1,0 +1,32 @@
+# source: github.com/kyverno/policies/other/always-pull-images/always-pull-images.yaml @ 2716f4a26a3c27590a1d6d960dee4ce043e4fa4a (Apache-2.0); Enforce + background=false forced for S7
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: always-pull-images
+  annotations:
+    policies.kyverno.io/title: Always Pull Images
+    policies.kyverno.io/category: Sample
+    policies.kyverno.io/severity: medium
+    policies.kyverno.io/subject: Pod
+    policies.kyverno.io/minversion: 1.6.0
+    policies.kyverno.io/description: >-
+      By default, images that have already been pulled can be accessed by other
+      Pods without re-pulling them if the name and tag are known. In multi-tenant scenarios,
+      this may be undesirable. This policy mutates all incoming Pods to set their
+      imagePullPolicy to Always. An alternative to the Kubernetes admission controller
+      AlwaysPullImages.
+spec:
+  background: false
+  rules:
+  - name: always-pull-images
+    match:
+      any:
+      - resources:
+          kinds:
+          - Pod
+    mutate:
+      patchStrategicMerge:
+        spec:
+          containers:
+          - (name): "?*"
+            imagePullPolicy: Always

@@ -1,0 +1,86 @@
+# S13: one PASS and one FAIL variant per analyzer, evaluated against snapshot/.
+# Document 1 must produce IsPass for all four; document 2 IsFail for all four.
+apiVersion: troubleshoot.sh/v1beta2
+kind: Analyzer
+metadata:
+  name: s13-pass
+spec:
+  analyzers:
+    - storageClass:
+        checkName: storage class standard exists
+        storageClassName: standard
+        outcomes:
+          - fail:
+              message: StorageClass standard is missing
+          - pass:
+              message: StorageClass standard found
+    - clusterVersion:
+        checkName: kubernetes at least 1.30
+        outcomes:
+          - fail:
+              when: "< 1.30.0"
+              message: Kubernetes 1.30 or newer is required
+          - pass:
+              when: ">= 1.30.0"
+              message: Kubernetes version is supported
+    - customResourceDefinition:
+        checkName: CRD widgets.spike.fathom.dev exists
+        customResourceDefinitionName: widgets.spike.fathom.dev
+        outcomes:
+          - fail:
+              message: CRD widgets.spike.fathom.dev is missing
+          - pass:
+              message: CRD widgets.spike.fathom.dev found
+    - nodeResources:
+        checkName: at least one node with 1 cpu allocatable
+        outcomes:
+          - fail:
+              when: "count() < 1"
+              message: no nodes in snapshot
+          - fail:
+              when: "min(cpuAllocatable) < 1"
+              message: a node has less than 1 cpu allocatable
+          - pass:
+              message: "{{ .NodeCount }} node(s), all with at least 1 cpu allocatable"
+---
+apiVersion: troubleshoot.sh/v1beta2
+kind: Analyzer
+metadata:
+  name: s13-fail
+spec:
+  analyzers:
+    - storageClass:
+        checkName: storage class nope exists (negative)
+        storageClassName: nope
+        outcomes:
+          - fail:
+              message: StorageClass nope is missing
+          - pass:
+              message: StorageClass nope found
+    - clusterVersion:
+        checkName: kubernetes below 1.30 (negative)
+        outcomes:
+          - fail:
+              when: ">= 1.30.0"
+              message: Kubernetes is newer than 1.30, negative variant fails
+          - pass:
+              message: Kubernetes version is below 1.30
+    - customResourceDefinition:
+        checkName: CRD nopes.spike.fathom.dev exists (negative)
+        customResourceDefinitionName: nopes.spike.fathom.dev
+        outcomes:
+          - fail:
+              message: CRD nopes.spike.fathom.dev is missing
+          - pass:
+              message: CRD nopes.spike.fathom.dev found
+    - nodeResources:
+        checkName: at least 100 nodes with 1000 cpu allocatable (negative)
+        outcomes:
+          - fail:
+              when: "count() < 100"
+              message: "only {{ .NodeCount }} node(s), 100 required"
+          - fail:
+              when: "min(cpuAllocatable) < 1000"
+              message: a node has less than 1000 cpu allocatable
+          - pass:
+              message: enough nodes and cpu

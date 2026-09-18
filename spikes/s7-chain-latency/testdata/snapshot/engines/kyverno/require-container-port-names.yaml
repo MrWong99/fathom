@@ -1,0 +1,36 @@
+# source: github.com/kyverno/policies/other/require-container-port-names/require-container-port-names.yaml @ 2716f4a26a3c27590a1d6d960dee4ce043e4fa4a (Apache-2.0); Enforce + background=false forced for S7
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: require-container-port-names
+  annotations:
+    policies.kyverno.io/title: Require Container Port Names
+    policies.kyverno.io/category: Other
+    policies.kyverno.io/severity: medium
+    kyverno.io/kyverno-version: 1.7.2
+    kyverno.io/kubernetes-version: "1.23"
+    policies.kyverno.io/subject: Pod
+    policies.kyverno.io/description: >-
+      Containers may define ports on which they listen. In addition to a port number,
+      a name field may optionally be used. Including a name makes it easier when defining
+      Service resource definitions and others since the name may be referenced allowing
+      the port number to change. This policy requires that for every containerPort defined
+      there is also a name specified.      
+spec:
+  validationFailureAction: Enforce
+  background: false
+  rules:
+    - name: port-name
+      match:
+        any:
+        - resources:
+            kinds:
+              - Pod
+      validate:
+        message: Name is required for every containerPort.
+        pattern:
+          spec:
+            containers:
+            - name: "*"
+              =(ports):
+              - name: "*"

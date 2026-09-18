@@ -1,0 +1,87 @@
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    kubectl.kubernetes.io/last-applied-configuration: |
+      {"apiVersion":"apiextensions.k8s.io/v1","kind":"CustomResourceDefinition","metadata":{"annotations":{},"name":"blobs.spike.fathom.dev"},"spec":{"group":"spike.fathom.dev","names":{"kind":"Blob","plural":"blobs","singular":"blob"},"scope":"Namespaced","versions":[{"name":"v1","schema":{"openAPIV3Schema":{"properties":{"spec":{"properties":{"values":{"items":{"type":"integer"},"maxItems":350,"type":"array"}},"required":["values"],"type":"object","x-kubernetes-validations":[{"message":"rule 1","rule":"self.values.all(x, self.values.all(y, x + y \u003e= 0))"},{"message":"rule 2","rule":"self.values.all(x, self.values.all(y, x + y \u003e= 0))"},{"message":"rule 3","rule":"self.values.all(x, self.values.all(y, x + y \u003e= 0))"},{"message":"rule 4","rule":"self.values.all(x, self.values.all(y, x + y \u003e= 0))"},{"message":"rule 5","rule":"self.values.all(x, self.values.all(y, x + y \u003e= 0))"},{"message":"rule 6","rule":"self.values.all(x, self.values.all(y, x + y \u003e= 0))"},{"message":"rule 7","rule":"self.values.all(x, self.values.all(y, x + y \u003e= 0))"},{"message":"rule 8","rule":"self.values.all(x, self.values.all(y, x + y \u003e= 0))"},{"message":"rule 9","rule":"self.values.all(x, self.values.all(y, x + y \u003e= 0))"},{"message":"rule 10","rule":"self.values.all(x, self.values.all(y, x + y \u003e= 0))"},{"message":"rule 11","rule":"self.values.all(x, self.values.all(y, x + y \u003e= 0))"},{"message":"rule 12","rule":"self.values.all(x, self.values.all(y, x + y \u003e= 0))"},{"message":"rule 13","rule":"self.values.all(x, self.values.all(y, x + y \u003e= 0))"},{"message":"rule 14","rule":"self.values.all(x, self.values.all(y, x + y \u003e= 0))"}]}},"type":"object"}},"served":true,"storage":true}]}}
+  creationTimestamp: "2026-09-17T22:17:31Z"
+  generation: 8
+  name: blobs.spike.fathom.dev
+  resourceVersion: "1317"
+  uid: 590acd6c-8777-4ec0-8f12-7a893002f640
+spec:
+  conversion:
+    strategy: None
+  group: spike.fathom.dev
+  names:
+    kind: Blob
+    listKind: BlobList
+    plural: blobs
+    singular: blob
+  scope: Namespaced
+  versions:
+  - name: v1
+    schema:
+      openAPIV3Schema:
+        properties:
+          spec:
+            properties:
+              values:
+                items:
+                  type: integer
+                maxItems: 350
+                type: array
+            required:
+            - values
+            type: object
+            x-kubernetes-validations:
+            - message: rule 1
+              rule: self.values.all(x, self.values.all(y, x + y >= 0))
+            - message: rule 2
+              rule: self.values.all(x, self.values.all(y, x + y >= 0))
+            - message: rule 3
+              rule: self.values.all(x, self.values.all(y, x + y >= 0))
+            - message: rule 4
+              rule: self.values.all(x, self.values.all(y, x + y >= 0))
+            - message: rule 5
+              rule: self.values.all(x, self.values.all(y, x + y >= 0))
+            - message: rule 6
+              rule: self.values.all(x, self.values.all(y, x + y >= 0))
+            - message: rule 7
+              rule: self.values.all(x, self.values.all(y, x + y >= 0))
+            - message: rule 8
+              rule: self.values.all(x, self.values.all(y, x + y >= 0))
+            - message: rule 9
+              rule: self.values.all(x, self.values.all(y, x + y >= 0))
+            - message: rule 10
+              rule: self.values.all(x, self.values.all(y, x + y >= 0))
+            - message: rule 11
+              rule: self.values.all(x, self.values.all(y, x + y >= 0))
+            - message: rule 12
+              rule: self.values.all(x, self.values.all(y, x + y >= 0))
+            - message: rule 13
+              rule: self.values.all(x, self.values.all(y, x + y >= 0))
+            - message: rule 14
+              rule: self.values.all(x, self.values.all(y, x + y >= 0))
+        type: object
+    served: true
+    storage: true
+status:
+  acceptedNames:
+    kind: Blob
+    listKind: BlobList
+    plural: blobs
+    singular: blob
+  conditions:
+  - lastTransitionTime: "2026-09-17T22:17:31Z"
+    message: no conflicts found
+    reason: NoConflicts
+    status: "True"
+    type: NamesAccepted
+  - lastTransitionTime: "2026-09-17T22:17:31Z"
+    message: the initial names have been accepted
+    reason: InitialNamesAccepted
+    status: "True"
+    type: Established
+  storedVersions:
+  - v1

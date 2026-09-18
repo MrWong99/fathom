@@ -1,0 +1,61 @@
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    kubectl.kubernetes.io/last-applied-configuration: |
+      {"apiVersion":"apiextensions.k8s.io/v1","kind":"CustomResourceDefinition","metadata":{"annotations":{},"name":"gadgets.spike.fathom.dev"},"spec":{"group":"spike.fathom.dev","names":{"kind":"Gadget","plural":"gadgets","singular":"gadget"},"scope":"Namespaced","versions":[{"name":"v1","schema":{"openAPIV3Schema":{"properties":{"spec":{"properties":{"name":{"type":"string","x-kubernetes-validations":[{"message":"name must be lowercase","rule":"self == self.lowerAscii()"}]},"replicas":{"type":"integer"}},"required":["name","replicas"],"type":"object"}},"type":"object"}},"served":true,"storage":true}]}}
+  creationTimestamp: "2026-09-17T22:13:05Z"
+  generation: 4
+  name: gadgets.spike.fathom.dev
+  resourceVersion: "1363"
+  uid: b8394b7d-37ca-4149-a5d4-71ff6b78cbcc
+spec:
+  conversion:
+    strategy: None
+  group: spike.fathom.dev
+  names:
+    kind: Gadget
+    listKind: GadgetList
+    plural: gadgets
+    singular: gadget
+  scope: Namespaced
+  versions:
+  - name: v1
+    schema:
+      openAPIV3Schema:
+        properties:
+          spec:
+            properties:
+              name:
+                type: string
+                x-kubernetes-validations:
+                - message: name must be lowercase
+                  rule: self == self.lowerAscii()
+              replicas:
+                type: integer
+            required:
+            - name
+            - replicas
+            type: object
+        type: object
+    served: true
+    storage: true
+status:
+  acceptedNames:
+    kind: Gadget
+    listKind: GadgetList
+    plural: gadgets
+    singular: gadget
+  conditions:
+  - lastTransitionTime: "2026-09-17T22:13:05Z"
+    message: no conflicts found
+    reason: NoConflicts
+    status: "True"
+    type: NamesAccepted
+  - lastTransitionTime: "2026-09-17T22:13:05Z"
+    message: the initial names have been accepted
+    reason: InitialNamesAccepted
+    status: "True"
+    type: Established
+  storedVersions:
+  - v1

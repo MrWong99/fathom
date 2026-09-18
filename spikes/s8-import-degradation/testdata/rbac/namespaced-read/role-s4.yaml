@@ -1,0 +1,37 @@
+# Namespaced read Role for the fathom importer, bound in namespace s4.
+# Each rule names the snapshot layer it feeds (design 3.5).
+# Secrets are deliberately absent: the `inventory/secrets` layer degrades to
+# "secrets: forbidden" and the secret-key picker becomes free text (unobserved).
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: fathom-import-namespaced-read
+  namespace: s4
+  labels:
+    fathom.dev/spike: s8
+    fathom.dev/import-tier: namespaced-read
+rules:
+  # namespaces/<ns>/  ResourceQuota spec+status, LimitRange
+  - apiGroups: [""]
+    resources: [resourcequotas, limitranges]
+    verbs: [get, list]
+  # namespaces/<ns>/  NetworkPolicy; inventory/ Ingress
+  - apiGroups: [networking.k8s.io]
+    resources: [networkpolicies, ingresses]
+    verbs: [get, list]
+  # inventory/  ConfigMaps verbatim, ServiceAccounts, Services; namespaces/<ns>/ aggregated Pod requests
+  - apiGroups: [""]
+    resources: [configmaps, serviceaccounts, services, pods]
+    verbs: [get, list]
+  # inventory/  workloads
+  - apiGroups: [apps]
+    resources: [deployments, statefulsets, daemonsets]
+    verbs: [get, list]
+  - apiGroups: [batch]
+    resources: [jobs, cronjobs]
+    verbs: [get, list]
+  # rbac/  namespaced Roles and RoleBindings (controller RBAC resolved offline)
+  - apiGroups: [rbac.authorization.k8s.io]
+    resources: [roles, rolebindings]
+    verbs: [get, list]
+  # inventory/secrets  -- intentionally NOT granted in this tier

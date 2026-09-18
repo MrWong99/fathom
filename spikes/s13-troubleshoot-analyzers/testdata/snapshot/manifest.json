@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 1,
+  "clusterId": "kind-fathom-oracle",
+  "serverVersion": "v1.37.0",
+  "capturedAt": "2026-09-17T23:44:44Z",
+  "capturedBy": "spike S13, kubectl v1.36.4 read-only export",
+  "importerVersion": "s13-manual",
+  "slice": "full",
+  "namespaces": [],
+  "signed": false,
+  "signer": "",
+  "ttl": "",
+  "profileId": "",
+  "redactionPolicyDigest": "",
+  "policyOptIn": false,
+  "engines": {},
+  "featureState": {},
+  "layers": [
+    {"name": "discovery", "digest": "sha256:d4b38bef7a9be210bf9f1add12ec19d0ec0ff9ec217dbd8c5e1c3854deb4c952", "capturedAt": "2026-09-17T23:44:44Z"},
+    {"name": "catalogs", "digest": "sha256:f29035ee9ba68927569c700a63c75e24725b6c1646c1afd5fb51e6f4b1c3bdc4", "capturedAt": "2026-09-17T23:44:44Z"},
+    {"name": "crds", "digest": "sha256:0b8753af39220fc980e1af1ea14029868a46cff0e2fe126e848eef5ab3e0d082", "capturedAt": "2026-09-17T23:44:44Z", "degraded": "partial: only spike.fathom.dev CRDs exported; kyverno.io and wgpolicyk8s.io CRDs belong to spike S3 and were left out"},
+    {"name": "nodes", "digest": "sha256:b324b06e15d2cee9b652271ed3fc043edc63326a313361e1457306402454547f", "capturedAt": "2026-09-17T23:44:44Z"}
+  ]
+}

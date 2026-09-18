@@ -1,0 +1,48 @@
+# S7 fixture values: Bitnami redis 28.2.1, replication + metrics + network policy.
+# Passwords are fixed so `helm template` is byte-stable across runs (the chart
+# would otherwise call randAlphaNum for a missing password).
+fullnameOverride: s7-redis
+architecture: replication
+auth:
+  enabled: true
+  password: s7-redis-fixture-password
+master:
+  count: 1
+  pdb:
+    create: true
+  persistence:
+    enabled: true
+    size: 1Gi
+  resourcesPreset: small
+replica:
+  replicaCount: 2
+  pdb:
+    create: true
+  persistence:
+    enabled: true
+    size: 1Gi
+  resourcesPreset: small
+metrics:
+  enabled: true
+  serviceMonitor:
+    enabled: true
+    namespace: s7
+  prometheusRule:
+    enabled: true
+    namespace: s7
+    rules:
+    - alert: RedisDown
+      expr: redis_up{service="{{ template "common.names.fullname" . }}-metrics"} == 0
+      for: 2m
+      labels:
+        severity: error
+      annotations:
+        summary: Redis instance {{ "{{ $labels.instance }}" }} down
+  resourcesPreset: nano
+networkPolicy:
+  enabled: true
+  allowExternal: false
+serviceAccount:
+  create: true
+commonLabels:
+  team: s7

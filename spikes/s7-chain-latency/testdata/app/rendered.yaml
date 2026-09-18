@@ -1,0 +1,2612 @@
+---
+# Source: redis/templates/networkpolicy.yaml
+kind: NetworkPolicy
+apiVersion: networking.k8s.io/v1
+metadata:
+  name: s7-redis
+  namespace: "s7"
+  labels:
+    app.kubernetes.io/instance: redis
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: redis
+    app.kubernetes.io/version: 8.10.2
+    helm.sh/chart: redis-28.2.1
+    team: s7
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/instance: redis
+      app.kubernetes.io/name: redis
+  policyTypes:
+    - Ingress
+    - Egress
+  egress:
+    - {}
+  ingress:
+    # Allow inbound connections
+    - ports:
+        - port: 6379
+      from:
+        - podSelector:
+            matchLabels:
+              s7-redis-client: "true"
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/instance: redis
+              app.kubernetes.io/name: redis
+    # Allow prometheus scrapes for metrics
+    - ports:
+        - port: 9121
+
+---
+# Source: redis/templates/master/pdb.yaml
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: s7-redis-master
+  namespace: "s7"
+  labels:
+    app.kubernetes.io/instance: redis
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: redis
+    app.kubernetes.io/version: 8.10.2
+    helm.sh/chart: redis-28.2.1
+    team: s7
+    app.kubernetes.io/component: master
+spec:
+  maxUnavailable: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/instance: redis
+      app.kubernetes.io/name: redis
+      app.kubernetes.io/component: master
+
+---
+# Source: redis/templates/replicas/pdb.yaml
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: s7-redis-replicas
+  namespace: "s7"
+  labels:
+    app.kubernetes.io/instance: redis
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: redis
+    app.kubernetes.io/version: 8.10.2
+    helm.sh/chart: redis-28.2.1
+    team: s7
+    app.kubernetes.io/component: replica
+spec:
+  maxUnavailable: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/instance: redis
+      app.kubernetes.io/name: redis
+      app.kubernetes.io/component: replica
+
+---
+# Source: redis/templates/master/serviceaccount.yaml
+apiVersion: v1
+kind: ServiceAccount
+automountServiceAccountToken: false
+metadata:
+  name: s7-redis-master
+  namespace: "s7"
+  labels:
+    app.kubernetes.io/instance: redis
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: redis
+    app.kubernetes.io/version: 8.10.2
+    helm.sh/chart: redis-28.2.1
+    team: s7
+
+---
+# Source: redis/templates/replicas/serviceaccount.yaml
+apiVersion: v1
+kind: ServiceAccount
+automountServiceAccountToken: false
+metadata:
+  name: s7-redis-replica
+  namespace: "s7"
+  labels:
+    app.kubernetes.io/instance: redis
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: redis
+    app.kubernetes.io/version: 8.10.2
+    helm.sh/chart: redis-28.2.1
+    team: s7
+
+---
+# Source: redis/templates/secret.yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: s7-redis
+  namespace: "s7"
+  labels:
+    app.kubernetes.io/instance: redis
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: redis
+    app.kubernetes.io/version: 8.10.2
+    helm.sh/chart: redis-28.2.1
+    team: s7
+type: Opaque
+data:
+  redis-password: "czctcmVkaXMtZml4dHVyZS1wYXNzd29yZA=="
+---
+# Source: redis/templates/configmap.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: s7-redis-configuration
+  namespace: "s7"
+  labels:
+    app.kubernetes.io/instance: redis
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: redis
+    app.kubernetes.io/version: 8.10.2
+    helm.sh/chart: redis-28.2.1
+    team: s7
+data:
+  redis.conf: |-
+    # User-supplied common configuration:
+    # Enable ReJSON y Redisearch
+    loadmodule /opt/bitnami/redis/lib/redis/modules/redisearch.so
+    loadmodule /opt/bitnami/redis/lib/redis/modules/rejson.so
+    # Enable AOF https://redis.io/topics/persistence#append-only-file
+    appendonly yes
+    # Disable RDB persistence, AOF persistence already enabled.
+    save ""
+    # End of common configuration
+  master.conf: |-
+    dir /data
+    # User-supplied master configuration:
+    rename-command FLUSHDB ""
+    rename-command FLUSHALL ""
+    # End of master configuration
+  replica.conf: |-
+    dir /data
+    # User-supplied replica configuration:
+    rename-command FLUSHDB ""
+    rename-command FLUSHALL ""
+    # End of replica configuration
+
+---
+# Source: redis/templates/health-configmap.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: s7-redis-health
+  namespace: "s7"
+  labels:
+    app.kubernetes.io/instance: redis
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: redis
+    app.kubernetes.io/version: 8.10.2
+    helm.sh/chart: redis-28.2.1
+    team: s7
+data:
+  ping_readiness_local.sh: |-
+    #!/bin/bash
+
+    timeout=$1
+    run_redis_command() {
+        local args=("-p" "$REDIS_PORT")
+        timeout -s 15 $timeout redis-cli "${args[@]}" "$@"
+    }
+
+    [[ -f $REDIS_PASSWORD_FILE ]] && export REDIS_PASSWORD="$(< "${REDIS_PASSWORD_FILE}")"
+    [[ -n "$REDIS_PASSWORD" ]] && export REDISCLI_AUTH="$REDIS_PASSWORD"
+    response=$(run_redis_command ping)
+    if [ "$?" -eq "124" ]; then
+      echo "Timed out"
+      exit 1
+    fi
+    if [ "$response" != "PONG" ]; then
+      echo "$response"
+      exit 1
+    fi
+
+  ping_liveness_local.sh: |-
+    #!/bin/bash
+
+    [[ -f $REDIS_PASSWORD_FILE ]] && export REDIS_PASSWORD="$(< "${REDIS_PASSWORD_FILE}")"
+    [[ -n "$REDIS_PASSWORD" ]] && export REDISCLI_AUTH="$REDIS_PASSWORD"
+    response=$(
+      timeout -s 15 $1 \
+      redis-cli \
+        -h localhost \
+        -p $REDIS_PORT \
+        ping
+    )
+    if [ "$?" -eq "124" ]; then
+      echo "Timed out"
+      exit 1
+    fi
+    responseFirstWord=$(echo $response | head -n1 | awk '{print $1;}')
+    if [ "$response" != "PONG" ] && [ "$responseFirstWord" != "LOADING" ] && [ "$responseFirstWord" != "MASTERDOWN" ]; then
+      echo "$response"
+      exit 1
+    fi
+  ping_readiness_master.sh: |-
+    #!/bin/bash
+
+    [[ -f $REDIS_MASTER_PASSWORD_FILE ]] && export REDIS_MASTER_PASSWORD="$(< "${REDIS_MASTER_PASSWORD_FILE}")"
+    [[ -n "$REDIS_MASTER_PASSWORD" ]] && export REDISCLI_AUTH="$REDIS_MASTER_PASSWORD"
+    response=$(
+      timeout -s 15 $1 \
+      redis-cli \
+        -h $REDIS_MASTER_HOST \
+        -p $REDIS_MASTER_PORT_NUMBER \
+        ping
+    )
+    if [ "$?" -eq "124" ]; then
+      echo "Timed out"
+      exit 1
+    fi
+    if [ "$response" != "PONG" ]; then
+      echo "$response"
+      exit 1
+    fi
+  ping_liveness_master.sh: |-
+    #!/bin/bash
+
+    [[ -f $REDIS_MASTER_PASSWORD_FILE ]] && export REDIS_MASTER_PASSWORD="$(< "${REDIS_MASTER_PASSWORD_FILE}")"
+    [[ -n "$REDIS_MASTER_PASSWORD" ]] && export REDISCLI_AUTH="$REDIS_MASTER_PASSWORD"
+    response=$(
+      timeout -s 15 $1 \
+      redis-cli \
+        -h $REDIS_MASTER_HOST \
+        -p $REDIS_MASTER_PORT_NUMBER \
+        ping
+    )
+    if [ "$?" -eq "124" ]; then
+      echo "Timed out"
+      exit 1
+    fi
+    responseFirstWord=$(echo $response | head -n1 | awk '{print $1;}')
+    if [ "$response" != "PONG" ] && [ "$responseFirstWord" != "LOADING" ]; then
+      echo "$response"
+      exit 1
+    fi
+  ping_readiness_local_and_master.sh: |-
+    script_dir="$(dirname "$0")"
+    exit_status=0
+    "$script_dir/ping_readiness_local.sh" $1 || exit_status=$?
+    "$script_dir/ping_readiness_master.sh" $1 || exit_status=$?
+    exit $exit_status
+  ping_liveness_local_and_master.sh: |-
+    script_dir="$(dirname "$0")"
+    exit_status=0
+    "$script_dir/ping_liveness_local.sh" $1 || exit_status=$?
+    "$script_dir/ping_liveness_master.sh" $1 || exit_status=$?
+    exit $exit_status
+
+---
+# Source: redis/templates/scripts-configmap.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: s7-redis-scripts
+  namespace: "s7"
+  labels:
+    app.kubernetes.io/instance: redis
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: redis
+    app.kubernetes.io/version: 8.10.2
+    helm.sh/chart: redis-28.2.1
+    team: s7
+data:
+  start-master.sh: |
+    #!/bin/bash
+
+    [[ -f $REDIS_PASSWORD_FILE ]] && export REDIS_PASSWORD="$(< "${REDIS_PASSWORD_FILE}")"
+    if [[ -f /opt/bitnami/redis/mounted-etc/master.conf ]];then
+        cp /opt/bitnami/redis/mounted-etc/master.conf /opt/bitnami/redis/etc/master.conf
+    fi
+    if [[ -f /opt/bitnami/redis/mounted-etc/redis.conf ]];then
+        cp /opt/bitnami/redis/mounted-etc/redis.conf /opt/bitnami/redis/etc/redis.conf
+    fi
+    if [[ -f /opt/bitnami/redis/mounted-etc/users.acl ]];then
+        cp /opt/bitnami/redis/mounted-etc/users.acl /opt/bitnami/redis/etc/users.acl
+    fi
+    ARGS=("--port" "${REDIS_PORT}")
+    ARGS+=("--requirepass" "${REDIS_PASSWORD}")
+    ARGS+=("--masterauth" "${REDIS_PASSWORD}")
+    ARGS+=("--include" "/opt/bitnami/redis/etc/redis.conf")
+    ARGS+=("--include" "/opt/bitnami/redis/etc/master.conf")
+    exec redis-server "${ARGS[@]}"
+  start-replica.sh: |
+    #!/bin/bash
+
+    get_port() {
+        hostname="$1"
+        type="$2"
+
+        port_var=$(echo "${hostname^^}_SERVICE_PORT_$type" | sed "s/-/_/g")
+        port=${!port_var}
+
+        if [ -z "$port" ]; then
+            case $type in
+                "SENTINEL")
+                    echo 26379
+                    ;;
+                "REDIS")
+                    echo 6379
+                    ;;
+            esac
+        else
+            echo $port
+        fi
+    }
+
+    get_full_hostname() {
+        hostname="$1"
+        full_hostname="${hostname}.${HEADLESS_SERVICE}"
+        echo "${full_hostname}"
+    }
+
+    REDISPORT=$(get_port "$HOSTNAME" "REDIS")
+    HEADLESS_SERVICE="s7-redis-headless.s7.svc.cluster.local"
+
+    [[ -f $REDIS_PASSWORD_FILE ]] && export REDIS_PASSWORD="$(< "${REDIS_PASSWORD_FILE}")"
+    [[ -f $REDIS_MASTER_PASSWORD_FILE ]] && export REDIS_MASTER_PASSWORD="$(< "${REDIS_MASTER_PASSWORD_FILE}")"
+    if [[ -f /opt/bitnami/redis/mounted-etc/replica.conf ]];then
+        cp /opt/bitnami/redis/mounted-etc/replica.conf /opt/bitnami/redis/etc/replica.conf
+    fi
+    if [[ -f /opt/bitnami/redis/mounted-etc/redis.conf ]];then
+        cp /opt/bitnami/redis/mounted-etc/redis.conf /opt/bitnami/redis/etc/redis.conf
+    fi
+    if [[ -f /opt/bitnami/redis/mounted-etc/users.acl ]];then
+        cp /opt/bitnami/redis/mounted-etc/users.acl /opt/bitnami/redis/etc/users.acl
+    fi
+
+    echo "" >> /opt/bitnami/redis/etc/replica.conf
+    echo "replica-announce-port $REDISPORT" >> /opt/bitnami/redis/etc/replica.conf
+    echo "replica-announce-ip $(get_full_hostname "$HOSTNAME")" >> /opt/bitnami/redis/etc/replica.conf
+    ARGS=("--port" "${REDIS_PORT}")
+    ARGS+=("--replicaof" "${REDIS_MASTER_HOST}" "${REDIS_MASTER_PORT_NUMBER}")
+    ARGS+=("--requirepass" "${REDIS_PASSWORD}")
+    ARGS+=("--masterauth" "${REDIS_MASTER_PASSWORD}")
+    ARGS+=("--include" "/opt/bitnami/redis/etc/redis.conf")
+    ARGS+=("--include" "/opt/bitnami/redis/etc/replica.conf")
+    exec redis-server "${ARGS[@]}"
+
+---
+# Source: redis/templates/headless-svc.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: s7-redis-headless
+  namespace: "s7"
+  labels:
+    app.kubernetes.io/instance: redis
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: redis
+    app.kubernetes.io/version: 8.10.2
+    helm.sh/chart: redis-28.2.1
+    team: s7
+spec:
+  type: ClusterIP
+  clusterIP: None
+  ports:
+    - name: tcp-redis
+      port: 6379
+      targetPort: redis
+  selector:
+    app.kubernetes.io/instance: redis
+    app.kubernetes.io/name: redis
+
+---
+# Source: redis/templates/master/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: s7-redis-master
+  namespace: "s7"
+  labels:
+    app.kubernetes.io/instance: redis
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: redis
+    app.kubernetes.io/version: 8.10.2
+    helm.sh/chart: redis-28.2.1
+    team: s7
+    app.kubernetes.io/component: master
+spec:
+  type: ClusterIP
+  internalTrafficPolicy: Cluster
+  ports:
+    - name: tcp-redis
+      port: 6379
+      targetPort: redis
+      nodePort: null
+  selector:
+    app.kubernetes.io/instance: redis
+    app.kubernetes.io/name: redis
+    app.kubernetes.io/component: master
+
+---
+# Source: redis/templates/metrics-svc.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: s7-redis-metrics
+  namespace: "s7"
+  labels:
+    app.kubernetes.io/instance: redis
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: redis
+    app.kubernetes.io/version: 8.10.2
+    helm.sh/chart: redis-28.2.1
+    team: s7
+    app.kubernetes.io/component: metrics
+spec:
+  type: ClusterIP
+  ports:
+    - name: http-metrics
+      port: 9121
+      protocol: TCP
+      targetPort: metrics
+  selector:
+    app.kubernetes.io/instance: redis
+    app.kubernetes.io/name: redis
+
+---
+# Source: redis/templates/replicas/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: s7-redis-replicas
+  namespace: "s7"
+  labels:
+    app.kubernetes.io/instance: redis
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: redis
+    app.kubernetes.io/version: 8.10.2
+    helm.sh/chart: redis-28.2.1
+    team: s7
+    app.kubernetes.io/component: replica
+spec:
+  type: ClusterIP
+  internalTrafficPolicy: Cluster
+  ports:
+    - name: tcp-redis
+      port: 6379
+      targetPort: redis
+      nodePort: null
+  selector:
+    app.kubernetes.io/instance: redis
+    app.kubernetes.io/name: redis
+    app.kubernetes.io/component: replica
+
+---
+# Source: redis/templates/master/application.yaml
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: s7-redis-master
+  namespace: "s7"
+  labels:
+    app.kubernetes.io/instance: redis
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: redis
+    app.kubernetes.io/version: 8.10.2
+    helm.sh/chart: redis-28.2.1
+    team: s7
+    app.kubernetes.io/component: master
+spec:
+  replicas: 1
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      app.kubernetes.io/instance: redis
+      app.kubernetes.io/name: redis
+      app.kubernetes.io/component: master
+  serviceName: s7-redis-headless
+  updateStrategy:
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/instance: redis
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: redis
+        app.kubernetes.io/version: 8.10.2
+        helm.sh/chart: redis-28.2.1
+        team: s7
+        app.kubernetes.io/component: master
+      annotations:
+        checksum/configmap: 62ff2843192643ad74a96fbad607a0b92db3dc81d3a369deaa3fb9aebbd24ddc
+        checksum/health: a2fc61ae99390643dac0673ed97203805136d4460b2319e7beff10546c1e1140
+        checksum/scripts: 415efbd631470bfa3e8e0677ab0b9d86a6eccd20bb12e9baa417a09970c00ec6
+        checksum/secret: b1f569fd4adcb5d32d2a0262c09797ab103c69f2f90c93ab9621bb13c37e831f
+        prometheus.io/port: "9121"
+        prometheus.io/scrape: "true"
+    spec:
+      
+      securityContext:
+        fsGroup: 1001
+        fsGroupChangePolicy: Always
+        supplementalGroups: []
+        sysctls: []
+      serviceAccountName: s7-redis-master
+      automountServiceAccountToken: false
+      affinity:
+        podAffinity:
+          
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - podAffinityTerm:
+                labelSelector:
+                  matchLabels:
+                    app.kubernetes.io/instance: redis
+                    app.kubernetes.io/name: redis
+                    app.kubernetes.io/component: master
+                topologyKey: kubernetes.io/hostname
+              weight: 1
+        nodeAffinity:
+          
+      enableServiceLinks: true
+      terminationGracePeriodSeconds: 30
+      containers:
+        - name: redis
+          image: registry-1.docker.io/bitnami/redis:latest
+          imagePullPolicy: "IfNotPresent"
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+              - ALL
+            readOnlyRootFilesystem: true
+            runAsGroup: 1001
+            runAsNonRoot: true
+            runAsUser: 1001
+            seLinuxOptions: {}
+            seccompProfile:
+              type: RuntimeDefault
+          command:
+            - /bin/bash
+          args:
+            - -ec
+            - /opt/bitnami/scripts/start-scripts/start-master.sh
+          env:
+            - name: BITNAMI_DEBUG
+              value: "false"
+            - name: REDIS_REPLICATION_MODE
+              value: master
+            - name: ALLOW_EMPTY_PASSWORD
+              value: "no"
+            - name: OPENSSL_FIPS
+              value: "yes"
+            - name: REDIS_PASSWORD_FILE
+              value: "/opt/bitnami/redis/secrets/redis-password"
+            - name: REDIS_TLS_ENABLED
+              value: "no"
+            - name: REDIS_PORT
+              value: "6379"
+          ports:
+            - name: redis
+              containerPort: 6379
+          livenessProbe:
+            initialDelaySeconds: 20
+            periodSeconds: 5
+            # One second longer than command timeout should prevent generation of zombie processes.
+            timeoutSeconds: 6
+            successThreshold: 1
+            failureThreshold: 5
+            exec:
+              command:
+                - /bin/bash
+                - -ec
+                - "/health/ping_liveness_local.sh 5"
+          readinessProbe:
+            initialDelaySeconds: 20
+            periodSeconds: 5
+            timeoutSeconds: 2
+            successThreshold: 1
+            failureThreshold: 5
+            exec:
+              command:
+                - /bin/bash
+                - -ec
+                - "/health/ping_readiness_local.sh 1"
+          resources:
+            limits:
+              cpu: 750m
+              ephemeral-storage: 2Gi
+              memory: 768Mi
+            requests:
+              cpu: 500m
+              ephemeral-storage: 50Mi
+              memory: 512Mi
+          volumeMounts:
+            - name: start-scripts
+              mountPath: /opt/bitnami/scripts/start-scripts
+            - name: health
+              mountPath: /health
+            - name: redis-password
+              mountPath: /opt/bitnami/redis/secrets/
+            - name: redis-data
+              mountPath: /data
+            - name: config
+              mountPath: /opt/bitnami/redis/mounted-etc
+            - name: empty-dir
+              mountPath: /opt/bitnami/redis/etc/
+              subPath: app-conf-dir
+            - name: empty-dir
+              mountPath: /tmp
+              subPath: tmp-dir
+        - name: metrics
+          image: registry-1.docker.io/bitnami/redis-exporter:latest
+          imagePullPolicy: "IfNotPresent"
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+              - ALL
+            readOnlyRootFilesystem: true
+            runAsGroup: 1001
+            runAsNonRoot: true
+            runAsUser: 1001
+            seLinuxOptions: {}
+            seccompProfile:
+              type: RuntimeDefault
+          command:
+            - /bin/bash
+            - -ec
+            - |
+              export REDIS_PASSWORD="$(< $REDIS_PASSWORD_FILE)"
+              redis_exporter
+          env:
+            - name: REDIS_ALIAS
+              value: s7-redis
+            - name: REDIS_EXPORTER_WEB_LISTEN_ADDRESS
+              value: :9121
+            - name: REDIS_USER
+              value: default
+            - name: REDIS_PASSWORD_FILE
+              value: "/secrets/redis-password"
+            - name: OPENSSL_FIPS
+              value: "yes"
+            - name: GODEBUG
+              value: "fips140=only,tlsmlkem=0"
+          ports:
+            - name: metrics
+              containerPort: 9121
+          livenessProbe:
+            failureThreshold: 5
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 5
+            tcpSocket:
+              port: metrics
+          readinessProbe:
+            failureThreshold: 3
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 1
+            httpGet:
+              path: /
+              port: metrics
+          resources:
+            limits:
+              cpu: 150m
+              ephemeral-storage: 2Gi
+              memory: 192Mi
+            requests:
+              cpu: 100m
+              ephemeral-storage: 50Mi
+              memory: 128Mi
+          volumeMounts:
+            - name: empty-dir
+              mountPath: /tmp
+              subPath: app-tmp-dir
+            - name: redis-password
+              mountPath: /secrets/
+      volumes:
+        - name: start-scripts
+          configMap:
+            name: s7-redis-scripts
+            defaultMode: 0755
+        - name: health
+          configMap:
+            name: s7-redis-health
+            defaultMode: 0755
+        - name: redis-password
+          
+          secret:
+            secretName: s7-redis
+            items:
+            - key: redis-password
+              path: redis-password
+        - name: config
+          configMap:
+            name: s7-redis-configuration
+        - name: empty-dir
+          emptyDir: {}
+  volumeClaimTemplates:
+    - apiVersion: v1
+      kind: PersistentVolumeClaim
+      metadata:
+        name: redis-data
+        labels:
+          app.kubernetes.io/instance: redis
+          app.kubernetes.io/name: redis
+          app.kubernetes.io/component: master
+      spec:
+        accessModes:
+          - "ReadWriteOnce"
+        resources:
+          requests:
+            storage: "1Gi"
+        
+
+---
+# Source: redis/templates/replicas/application.yaml
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: s7-redis-replicas
+  namespace: "s7"
+  labels:
+    app.kubernetes.io/instance: redis
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: redis
+    app.kubernetes.io/version: 8.10.2
+    helm.sh/chart: redis-28.2.1
+    team: s7
+    app.kubernetes.io/component: replica
+spec:
+  replicas: 2
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      app.kubernetes.io/instance: redis
+      app.kubernetes.io/name: redis
+      app.kubernetes.io/component: replica
+  serviceName: s7-redis-headless
+  updateStrategy:
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/instance: redis
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: redis
+        app.kubernetes.io/version: 8.10.2
+        helm.sh/chart: redis-28.2.1
+        team: s7
+        app.kubernetes.io/component: replica
+      annotations:
+        checksum/configmap: 62ff2843192643ad74a96fbad607a0b92db3dc81d3a369deaa3fb9aebbd24ddc
+        checksum/health: a2fc61ae99390643dac0673ed97203805136d4460b2319e7beff10546c1e1140
+        checksum/scripts: 415efbd631470bfa3e8e0677ab0b9d86a6eccd20bb12e9baa417a09970c00ec6
+        checksum/secret: b1f569fd4adcb5d32d2a0262c09797ab103c69f2f90c93ab9621bb13c37e831f
+        prometheus.io/port: "9121"
+        prometheus.io/scrape: "true"
+    spec:
+      
+      securityContext:
+        fsGroup: 1001
+        fsGroupChangePolicy: Always
+        supplementalGroups: []
+        sysctls: []
+      serviceAccountName: s7-redis-replica
+      automountServiceAccountToken: false
+      affinity:
+        podAffinity:
+          
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - podAffinityTerm:
+                labelSelector:
+                  matchLabels:
+                    app.kubernetes.io/instance: redis
+                    app.kubernetes.io/name: redis
+                    app.kubernetes.io/component: replica
+                topologyKey: kubernetes.io/hostname
+              weight: 1
+        nodeAffinity:
+          
+      enableServiceLinks: true
+      terminationGracePeriodSeconds: 30
+      containers:
+        - name: redis
+          image: registry-1.docker.io/bitnami/redis:latest
+          imagePullPolicy: "IfNotPresent"
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+              - ALL
+            readOnlyRootFilesystem: true
+            runAsGroup: 1001
+            runAsNonRoot: true
+            runAsUser: 1001
+            seLinuxOptions: {}
+            seccompProfile:
+              type: RuntimeDefault
+          command:
+            - /bin/bash
+          args:
+            - -ec
+            - /opt/bitnami/scripts/start-scripts/start-replica.sh
+          env:
+            - name: BITNAMI_DEBUG
+              value: "false"
+            - name: REDIS_REPLICATION_MODE
+              value: replica
+            - name: REDIS_MASTER_HOST
+              value: s7-redis-master-0.s7-redis-headless.s7.svc.cluster.local
+            - name: REDIS_MASTER_PORT_NUMBER
+              value: "6379"
+            - name: OPENSSL_FIPS
+              value: "yes"
+            - name: ALLOW_EMPTY_PASSWORD
+              value: "no"
+            - name: REDIS_PASSWORD_FILE
+              value: "/opt/bitnami/redis/secrets/redis-password"
+            - name: REDIS_MASTER_PASSWORD_FILE
+              value: "/opt/bitnami/redis/secrets/redis-password"
+            - name: REDIS_TLS_ENABLED
+              value: "no"
+            - name: REDIS_PORT
+              value: "6379"
+          ports:
+            - name: redis
+              containerPort: 6379
+          startupProbe:
+            failureThreshold: 22
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 5
+            tcpSocket:
+              port: redis
+          livenessProbe:
+            initialDelaySeconds: 20
+            periodSeconds: 5
+            timeoutSeconds: 6
+            successThreshold: 1
+            failureThreshold: 5
+            exec:
+              command:
+                - /bin/bash
+                - -ec
+                - "/health/ping_liveness_local_and_master.sh 5"
+          readinessProbe:
+            initialDelaySeconds: 20
+            periodSeconds: 5
+            timeoutSeconds: 2
+            successThreshold: 1
+            failureThreshold: 5
+            exec:
+              command:
+                - /bin/bash
+                - -ec
+                - "/health/ping_readiness_local_and_master.sh 1"
+          resources:
+            limits:
+              cpu: 750m
+              ephemeral-storage: 2Gi
+              memory: 768Mi
+            requests:
+              cpu: 500m
+              ephemeral-storage: 50Mi
+              memory: 512Mi
+          volumeMounts:
+            - name: start-scripts
+              mountPath: /opt/bitnami/scripts/start-scripts
+            - name: health
+              mountPath: /health
+            - name: redis-password
+              mountPath: /opt/bitnami/redis/secrets/
+            - name: redis-data
+              mountPath: /data
+            - name: config
+              mountPath: /opt/bitnami/redis/mounted-etc
+            - name: empty-dir
+              mountPath: /opt/bitnami/redis/etc
+              subPath: app-conf-dir
+            - name: empty-dir
+              mountPath: /tmp
+              subPath: tmp-dir
+        - name: metrics
+          image: registry-1.docker.io/bitnami/redis-exporter:latest
+          imagePullPolicy: "IfNotPresent"
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+              - ALL
+            readOnlyRootFilesystem: true
+            runAsGroup: 1001
+            runAsNonRoot: true
+            runAsUser: 1001
+            seLinuxOptions: {}
+            seccompProfile:
+              type: RuntimeDefault
+          command:
+            - /bin/bash
+            - -ec
+            - |
+              export REDIS_PASSWORD="$(< $REDIS_PASSWORD_FILE)"
+              redis_exporter
+          env:
+            - name: REDIS_ALIAS
+              value: s7-redis
+            - name: REDIS_EXPORTER_WEB_LISTEN_ADDRESS
+              value: :9121
+            - name: OPENSSL_FIPS
+              value: "yes"
+            - name: GODEBUG
+              value: "fips140=only,tlsmlkem=0"
+            - name: REDIS_USER
+              value: default
+            - name: REDIS_PASSWORD_FILE
+              value: "/secrets/redis-password"
+          ports:
+            - name: metrics
+              containerPort: 9121
+          livenessProbe:
+            failureThreshold: 5
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 5
+            tcpSocket:
+              port: metrics
+          readinessProbe:
+            failureThreshold: 3
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 1
+            httpGet:
+              path: /
+              port: metrics
+          resources:
+            limits:
+              cpu: 150m
+              ephemeral-storage: 2Gi
+              memory: 192Mi
+            requests:
+              cpu: 100m
+              ephemeral-storage: 50Mi
+              memory: 128Mi
+          volumeMounts:
+            - name: empty-dir
+              mountPath: /tmp
+              subPath: tmp-dir
+            - name: redis-password
+              mountPath: /secrets/
+      volumes:
+        - name: start-scripts
+          configMap:
+            name: s7-redis-scripts
+            defaultMode: 0755
+        - name: health
+          configMap:
+            name: s7-redis-health
+            defaultMode: 0755
+        - name: redis-password
+          
+          secret:
+            secretName: s7-redis
+            items:
+            - key: redis-password
+              path: redis-password
+        - name: config
+          configMap:
+            name: s7-redis-configuration
+        - name: empty-dir
+          emptyDir: {}
+  volumeClaimTemplates:
+    - apiVersion: v1
+      kind: PersistentVolumeClaim
+      metadata:
+        name: redis-data
+        labels:
+          app.kubernetes.io/instance: redis
+          app.kubernetes.io/name: redis
+          app.kubernetes.io/component: replica
+      spec:
+        accessModes:
+          - "ReadWriteOnce"
+        resources:
+          requests:
+            storage: "1Gi"
+        
+
+---
+# Source: redis/templates/prometheusrule.yaml
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: s7-redis
+  namespace: "s7"
+  labels:
+    app.kubernetes.io/instance: redis
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: redis
+    app.kubernetes.io/version: 8.10.2
+    helm.sh/chart: redis-28.2.1
+    team: s7
+spec:
+  groups:
+    - name: s7-redis
+      rules:
+        - alert: RedisDown
+          annotations:
+            summary: Redis instance {{ $labels.instance }} down
+          expr: redis_up{service="s7-redis-metrics"} == 0
+          for: 2m
+          labels:
+            severity: error
+
+---
+# Source: redis/templates/servicemonitor.yaml
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: s7-redis
+  namespace: "s7"
+  labels:
+    app.kubernetes.io/instance: redis
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: redis
+    app.kubernetes.io/version: 8.10.2
+    helm.sh/chart: redis-28.2.1
+    team: s7
+spec:
+  endpoints:
+    - port: http-metrics
+      interval: 30s
+  namespaceSelector:
+    matchNames:
+      - "s7"
+  selector:
+    matchLabels:
+      app.kubernetes.io/instance: redis
+      app.kubernetes.io/name: redis
+      app.kubernetes.io/component: metrics
+---
+# Source: postgresql/templates/primary/networkpolicy.yaml
+kind: NetworkPolicy
+apiVersion: networking.k8s.io/v1
+metadata:
+  name: s7-postgresql-primary
+  namespace: "s7"
+  labels:
+    app.kubernetes.io/instance: postgresql
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: postgresql
+    app.kubernetes.io/version: 18.6.0
+    helm.sh/chart: postgresql-18.11.3
+    team: s7
+    app.kubernetes.io/component: primary
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/instance: postgresql
+      app.kubernetes.io/name: postgresql
+      app.kubernetes.io/component: primary
+  policyTypes:
+    - Ingress
+    - Egress
+  egress:
+    - {}
+  ingress:
+    - ports:
+        - port: 5432
+        - port: 9187
+      from:
+        - podSelector:
+            matchLabels:
+              s7-postgresql-primary-client: "true"
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/instance: postgresql
+              app.kubernetes.io/name: postgresql
+
+---
+# Source: postgresql/templates/read/networkpolicy.yaml
+kind: NetworkPolicy
+apiVersion: networking.k8s.io/v1
+metadata:
+  name: s7-postgresql-read
+  namespace: "s7"
+  labels:
+    app.kubernetes.io/instance: postgresql
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: postgresql
+    app.kubernetes.io/version: 18.6.0
+    helm.sh/chart: postgresql-18.11.3
+    team: s7
+    app.kubernetes.io/component: read
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/instance: postgresql
+      app.kubernetes.io/name: postgresql
+      app.kubernetes.io/component: read
+  policyTypes:
+    - Ingress
+    - Egress
+  egress:
+    - {}
+  ingress:
+    - ports:
+        - port: 5432
+        - port: 9187
+      from:
+        - podSelector:
+            matchLabels:
+              s7-postgresql-read-client: "true"
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/instance: postgresql
+              app.kubernetes.io/name: postgresql
+
+---
+# Source: postgresql/templates/primary/pdb.yaml
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: s7-postgresql-primary
+  namespace: "s7"
+  labels:
+    app.kubernetes.io/instance: postgresql
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: postgresql
+    app.kubernetes.io/version: 18.6.0
+    helm.sh/chart: postgresql-18.11.3
+    team: s7
+    app.kubernetes.io/component: primary
+spec:
+  maxUnavailable: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/instance: postgresql
+      app.kubernetes.io/name: postgresql
+      app.kubernetes.io/component: primary
+
+---
+# Source: postgresql/templates/read/pdb.yaml
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: s7-postgresql-read
+  namespace: "s7"
+  labels:
+    app.kubernetes.io/instance: postgresql
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: postgresql
+    app.kubernetes.io/version: 18.6.0
+    helm.sh/chart: postgresql-18.11.3
+    team: s7
+    app.kubernetes.io/component: read
+spec:
+  maxUnavailable: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/instance: postgresql
+      app.kubernetes.io/name: postgresql
+      app.kubernetes.io/component: read
+
+---
+# Source: postgresql/templates/serviceaccount.yaml
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: s7-postgresql
+  namespace: "s7"
+  labels:
+    app.kubernetes.io/instance: postgresql
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: postgresql
+    app.kubernetes.io/version: 18.6.0
+    helm.sh/chart: postgresql-18.11.3
+    team: s7
+automountServiceAccountToken: false
+
+---
+# Source: postgresql/templates/secrets.yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: s7-postgresql
+  namespace: "s7"
+  labels:
+    app.kubernetes.io/instance: postgresql
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: postgresql
+    app.kubernetes.io/version: 18.6.0
+    helm.sh/chart: postgresql-18.11.3
+    team: s7
+type: Opaque
+data:
+  postgres-password: "czctcG9zdGdyZXMtZml4dHVyZS1wYXNzd29yZA=="
+  password: "czctYXBwLWZpeHR1cmUtcGFzc3dvcmQ="
+  replication-password: "czctcmVwbC1maXh0dXJlLXBhc3N3b3Jk"
+  # We don't auto-generate metrics password when it's not provided as we do for other passwords
+  # We don't auto-generate LDAP password when it's not provided as we do for other passwords
+
+---
+# Source: postgresql/templates/primary/metrics-svc.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: s7-postgresql-primary-metrics
+  namespace: "s7"
+  labels:
+    app.kubernetes.io/instance: postgresql
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: postgresql
+    app.kubernetes.io/version: 18.6.0
+    helm.sh/chart: postgresql-18.11.3
+    team: s7
+    app.kubernetes.io/component: metrics
+  annotations:
+    prometheus.io/port: "9187"
+    prometheus.io/scrape: "true"
+spec:
+  type: ClusterIP
+  sessionAffinity: None
+  ports:
+    - name: http-metrics
+      port: 9187
+      targetPort: http-metrics
+  selector:
+    app.kubernetes.io/instance: postgresql
+    app.kubernetes.io/name: postgresql
+    app.kubernetes.io/component: primary
+
+---
+# Source: postgresql/templates/primary/svc-headless.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: s7-postgresql-primary-hl
+  namespace: "s7"
+  labels:
+    app.kubernetes.io/instance: postgresql
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: postgresql
+    app.kubernetes.io/version: 18.6.0
+    helm.sh/chart: postgresql-18.11.3
+    team: s7
+    app.kubernetes.io/component: primary
+  annotations:
+spec:
+  type: ClusterIP
+  clusterIP: None
+  # We want all pods in the StatefulSet to have their addresses published for
+  # the sake of the other Postgresql pods even before they're ready, since they
+  # have to be able to talk to each other in order to become ready.
+  publishNotReadyAddresses: true
+  ports:
+    - name: tcp-postgresql
+      port: 5432
+      targetPort: tcp-postgresql
+  selector:
+    app.kubernetes.io/instance: postgresql
+    app.kubernetes.io/name: postgresql
+    app.kubernetes.io/component: primary
+
+---
+# Source: postgresql/templates/primary/svc.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: s7-postgresql-primary
+  namespace: "s7"
+  labels:
+    app.kubernetes.io/instance: postgresql
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: postgresql
+    app.kubernetes.io/version: 18.6.0
+    helm.sh/chart: postgresql-18.11.3
+    team: s7
+    app.kubernetes.io/component: primary
+spec:
+  type: ClusterIP
+  ports:
+    - name: tcp-postgresql
+      port: 5432
+      targetPort: tcp-postgresql
+      nodePort: null
+  selector:
+    app.kubernetes.io/instance: postgresql
+    app.kubernetes.io/name: postgresql
+    app.kubernetes.io/component: primary
+
+---
+# Source: postgresql/templates/read/metrics-svc.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: s7-postgresql-read-metrics
+  namespace: "s7"
+  labels:
+    app.kubernetes.io/instance: postgresql
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: postgresql
+    app.kubernetes.io/version: 18.6.0
+    helm.sh/chart: postgresql-18.11.3
+    team: s7
+    app.kubernetes.io/component: metrics-read
+  annotations:
+    prometheus.io/port: "9187"
+    prometheus.io/scrape: "true"
+spec:
+  type: ClusterIP
+  sessionAffinity: None
+  ports:
+    - name: http-metrics
+      port: 9187
+      targetPort: http-metrics
+  selector:
+    app.kubernetes.io/instance: postgresql
+    app.kubernetes.io/name: postgresql
+    app.kubernetes.io/component: read
+
+---
+# Source: postgresql/templates/read/svc-headless.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: s7-postgresql-read-hl
+  namespace: "s7"
+  labels:
+    app.kubernetes.io/instance: postgresql
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: postgresql
+    app.kubernetes.io/version: 18.6.0
+    helm.sh/chart: postgresql-18.11.3
+    team: s7
+    app.kubernetes.io/component: read
+  annotations:
+spec:
+  type: ClusterIP
+  clusterIP: None
+  # We want all pods in the StatefulSet to have their addresses published for
+  # the sake of the other Postgresql pods even before they're ready, since they
+  # have to be able to talk to each other in order to become ready.
+  publishNotReadyAddresses: true
+  ports:
+    - name: tcp-postgresql
+      port: 5432
+      targetPort: tcp-postgresql
+  selector:
+    app.kubernetes.io/instance: postgresql
+    app.kubernetes.io/name: postgresql
+    app.kubernetes.io/component: read
+
+---
+# Source: postgresql/templates/read/svc.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: s7-postgresql-read
+  namespace: "s7"
+  labels:
+    app.kubernetes.io/instance: postgresql
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: postgresql
+    app.kubernetes.io/version: 18.6.0
+    helm.sh/chart: postgresql-18.11.3
+    team: s7
+    app.kubernetes.io/component: read
+spec:
+  type: ClusterIP
+  ports:
+    - name: tcp-postgresql
+      port: 5432
+      targetPort: tcp-postgresql
+      nodePort: null
+  selector:
+    app.kubernetes.io/instance: postgresql
+    app.kubernetes.io/name: postgresql
+    app.kubernetes.io/component: read
+
+---
+# Source: postgresql/templates/primary/statefulset.yaml
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: s7-postgresql-primary
+  namespace: "s7"
+  labels:
+    app.kubernetes.io/instance: postgresql
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: postgresql
+    app.kubernetes.io/version: 18.6.0
+    helm.sh/chart: postgresql-18.11.3
+    team: s7
+    app.kubernetes.io/component: primary
+spec:
+  replicas: 1
+  serviceName: s7-postgresql-primary-hl
+  updateStrategy:
+    rollingUpdate: {}
+    type: RollingUpdate
+  selector:
+    matchLabels:
+      app.kubernetes.io/instance: postgresql
+      app.kubernetes.io/name: postgresql
+      app.kubernetes.io/component: primary
+  template:
+    metadata:
+      name: s7-postgresql-primary
+      labels:
+        app.kubernetes.io/instance: postgresql
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: postgresql
+        app.kubernetes.io/version: 18.6.0
+        helm.sh/chart: postgresql-18.11.3
+        team: s7
+        app.kubernetes.io/component: primary
+    spec:
+      serviceAccountName: s7-postgresql
+      
+      automountServiceAccountToken: false
+      affinity:
+        podAffinity:
+          
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - podAffinityTerm:
+                labelSelector:
+                  matchLabels:
+                    app.kubernetes.io/instance: postgresql
+                    app.kubernetes.io/name: postgresql
+                    app.kubernetes.io/component: primary
+                topologyKey: kubernetes.io/hostname
+              weight: 1
+        nodeAffinity:
+          
+      securityContext:
+        fsGroup: 1001
+        fsGroupChangePolicy: Always
+        seccompProfile:
+          type: RuntimeDefault
+        supplementalGroups: []
+        sysctls: []
+      hostNetwork: false
+      hostIPC: false
+      containers:
+        - name: postgresql
+          image: registry-1.docker.io/bitnami/postgresql:latest
+          imagePullPolicy: "IfNotPresent"
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+              - ALL
+            privileged: false
+            readOnlyRootFilesystem: true
+            runAsGroup: 1001
+            runAsNonRoot: true
+            runAsUser: 1001
+            seLinuxOptions: {}
+            seccompProfile:
+              type: RuntimeDefault
+          env:
+            - name: BITNAMI_DEBUG
+              value: "false"
+            - name: POSTGRESQL_PORT_NUMBER
+              value: "5432"
+            - name: POSTGRESQL_VOLUME_DIR
+              value: "/bitnami/postgresql"
+            - name: OPENSSL_FIPS
+              value: "yes"
+            - name: OPENSSL_FIPS_PROVIDER_PATH
+              value: "/etc/ssl/provider_fips.cnf"
+            - name: PGDATA
+              value: "/bitnami/postgresql/data"
+            # Authentication
+            - name: POSTGRES_USER
+              value: "s7app"
+            - name: POSTGRES_PASSWORD_FILE
+              value: /opt/bitnami/postgresql/secrets/password
+            - name: POSTGRES_POSTGRES_PASSWORD_FILE
+              value: /opt/bitnami/postgresql/secrets/postgres-password
+            - name: POSTGRES_DATABASE
+              value: "s7app"
+            # Replication
+            - name: POSTGRES_REPLICATION_MODE
+              value: "master"
+            - name: POSTGRES_REPLICATION_USER
+              value: "repl_user"
+            - name: POSTGRES_REPLICATION_PASSWORD_FILE
+              value: /opt/bitnami/postgresql/secrets/replication-password
+            - name: POSTGRES_CLUSTER_APP_NAME
+              value: my_application
+            # LDAP
+            - name: POSTGRESQL_ENABLE_LDAP
+              value: "no"
+            # TLS
+            - name: POSTGRESQL_ENABLE_TLS
+              value: "no"
+            # Audit
+            - name: POSTGRESQL_LOG_HOSTNAME
+              value: "false"
+            - name: POSTGRESQL_LOG_CONNECTIONS
+              value: "false"
+            - name: POSTGRESQL_LOG_DISCONNECTIONS
+              value: "false"
+            - name: POSTGRESQL_PGAUDIT_LOG_CATALOG
+              value: "off"
+            # Others
+            - name: POSTGRESQL_CLIENT_MIN_MESSAGES
+              value: "error"
+            - name: POSTGRESQL_SHARED_PRELOAD_LIBRARIES
+              value: "pgaudit"
+          ports:
+            - name: tcp-postgresql
+              containerPort: 5432
+          livenessProbe:
+            failureThreshold: 6
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 5
+            exec:
+              command:
+                - /bin/sh
+                - -ec
+                - |
+                  exec pg_isready -U "s7app" -d "dbname=s7app" -h 127.0.0.1 -p 5432
+          readinessProbe:
+            failureThreshold: 6
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 5
+            exec:
+              command:
+                - /bin/sh
+                - -ec
+                - |
+                  exec pg_isready -U "s7app" -d "dbname=s7app" -h 127.0.0.1 -p 5432
+                  [ -f /opt/bitnami/postgresql/tmp/.initialized ] || [ -f /bitnami/postgresql/.initialized ]
+          resources:
+            limits:
+              cpu: 750m
+              ephemeral-storage: 2Gi
+              memory: 768Mi
+            requests:
+              cpu: 500m
+              ephemeral-storage: 50Mi
+              memory: 512Mi
+          volumeMounts:
+            - name: empty-dir
+              mountPath: /tmp
+              subPath: tmp-dir
+            - name: empty-dir
+              mountPath: /opt/bitnami/postgresql/conf
+              subPath: app-conf-dir
+            - name: empty-dir
+              mountPath: /opt/bitnami/postgresql/tmp
+              subPath: app-tmp-dir
+            - name: postgresql-password
+              mountPath: /opt/bitnami/postgresql/secrets/
+            - name: dshm
+              mountPath: /dev/shm
+            - name: data
+              mountPath: /bitnami/postgresql
+        - name: metrics
+          image: registry-1.docker.io/bitnami/postgres-exporter:latest
+          imagePullPolicy: "IfNotPresent"
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+              - ALL
+            privileged: false
+            readOnlyRootFilesystem: true
+            runAsGroup: 1001
+            runAsNonRoot: true
+            runAsUser: 1001
+            seLinuxOptions: {}
+            seccompProfile:
+              type: RuntimeDefault
+          env:
+            - name: DATA_SOURCE_URI
+              value: 127.0.0.1:5432/postgres?sslmode=disable
+            - name: DATA_SOURCE_PASS_FILE
+              value: /opt/bitnami/postgresql/secrets/postgres-password
+            - name: DATA_SOURCE_USER
+              value: postgres
+            - name: OPENSSL_FIPS
+              value: "yes"
+            - name: OPENSSL_FIPS_PROVIDER_PATH
+              value: "/etc/ssl/provider_fips.cnf"
+            - name: GODEBUG
+              value: "fips140=on"
+          ports:
+            - name: http-metrics
+              containerPort: 9187
+          livenessProbe:
+            failureThreshold: 6
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 5
+            httpGet:
+              path: /
+              port: http-metrics
+          readinessProbe:
+            failureThreshold: 6
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 5
+            httpGet:
+              path: /
+              port: http-metrics
+          volumeMounts:
+            - name: empty-dir
+              mountPath: /tmp
+              subPath: tmp-dir
+            - name: postgresql-password
+              mountPath: /opt/bitnami/postgresql/secrets/
+          resources:
+            limits:
+              cpu: 150m
+              ephemeral-storage: 2Gi
+              memory: 192Mi
+            requests:
+              cpu: 100m
+              ephemeral-storage: 50Mi
+              memory: 128Mi
+      volumes:
+        - name: empty-dir
+          emptyDir: {}
+        - name: postgresql-password
+          secret:
+            secretName: s7-postgresql
+        - name: dshm
+          emptyDir:
+            medium: Memory
+  volumeClaimTemplates:
+    - apiVersion: v1
+      kind: PersistentVolumeClaim
+      metadata:
+        name: data
+      spec:
+        accessModes:
+          - "ReadWriteOnce"
+        resources:
+          requests:
+            storage: "2Gi"
+        
+
+---
+# Source: postgresql/templates/read/statefulset.yaml
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: s7-postgresql-read
+  namespace: "s7"
+  labels:
+    app.kubernetes.io/instance: postgresql
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: postgresql
+    app.kubernetes.io/version: 18.6.0
+    helm.sh/chart: postgresql-18.11.3
+    team: s7
+    app.kubernetes.io/component: read
+spec:
+  replicas: 1
+  serviceName: s7-postgresql-read-hl
+  updateStrategy:
+    rollingUpdate: {}
+    type: RollingUpdate
+  selector:
+    matchLabels:
+      app.kubernetes.io/instance: postgresql
+      app.kubernetes.io/name: postgresql
+      app.kubernetes.io/component: read
+  template:
+    metadata:
+      name: s7-postgresql-read
+      labels:
+        app.kubernetes.io/instance: postgresql
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: postgresql
+        app.kubernetes.io/version: 18.6.0
+        helm.sh/chart: postgresql-18.11.3
+        team: s7
+        app.kubernetes.io/component: read
+    spec:
+      serviceAccountName: s7-postgresql
+      
+      automountServiceAccountToken: false
+      affinity:
+        podAffinity:
+          
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - podAffinityTerm:
+                labelSelector:
+                  matchLabels:
+                    app.kubernetes.io/instance: postgresql
+                    app.kubernetes.io/name: postgresql
+                    app.kubernetes.io/component: read
+                topologyKey: kubernetes.io/hostname
+              weight: 1
+        nodeAffinity:
+          
+      securityContext:
+        fsGroup: 1001
+        fsGroupChangePolicy: Always
+        seccompProfile:
+          type: RuntimeDefault
+        supplementalGroups: []
+        sysctls: []
+      hostNetwork: false
+      hostIPC: false
+      containers:
+        - name: postgresql
+          image: registry-1.docker.io/bitnami/postgresql:latest
+          imagePullPolicy: "IfNotPresent"
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+              - ALL
+            privileged: false
+            readOnlyRootFilesystem: true
+            runAsGroup: 1001
+            runAsNonRoot: true
+            runAsUser: 1001
+            seLinuxOptions: {}
+            seccompProfile:
+              type: RuntimeDefault
+          env:
+            - name: BITNAMI_DEBUG
+              value: "false"
+            - name: POSTGRESQL_PORT_NUMBER
+              value: "5432"
+            - name: POSTGRESQL_VOLUME_DIR
+              value: "/bitnami/postgresql"
+            - name: PGDATA
+              value: "/bitnami/postgresql/data"
+            - name: OPENSSL_FIPS
+              value: "yes"
+            - name: OPENSSL_FIPS_PROVIDER_PATH
+              value: "/etc/ssl/provider_fips.cnf"
+            # Authentication
+            - name: POSTGRES_USER
+              value: "s7app"
+            - name: POSTGRES_PASSWORD_FILE
+              value: /opt/bitnami/postgresql/secrets/password
+            - name: POSTGRES_POSTGRES_PASSWORD_FILE
+              value: /opt/bitnami/postgresql/secrets/postgres-password
+            # Replication
+            - name: POSTGRES_REPLICATION_MODE
+              value: "slave"
+            - name: POSTGRES_REPLICATION_USER
+              value: "repl_user"
+            - name: POSTGRES_REPLICATION_PASSWORD_FILE
+              value: /opt/bitnami/postgresql/secrets/replication-password
+            - name: POSTGRES_CLUSTER_APP_NAME
+              value: my_application
+            - name: POSTGRES_MASTER_HOST
+              value: s7-postgresql-primary
+            - name: POSTGRES_MASTER_PORT_NUMBER
+              value: "5432"
+            # TLS
+            - name: POSTGRESQL_ENABLE_TLS
+              value: "no"
+            # Audit
+            - name: POSTGRESQL_LOG_HOSTNAME
+              value: "false"
+            - name: POSTGRESQL_LOG_CONNECTIONS
+              value: "false"
+            - name: POSTGRESQL_LOG_DISCONNECTIONS
+              value: "false"
+            - name: POSTGRESQL_PGAUDIT_LOG_CATALOG
+              value: "off"
+            # Others
+            - name: POSTGRESQL_CLIENT_MIN_MESSAGES
+              value: "error"
+            - name: POSTGRESQL_SHARED_PRELOAD_LIBRARIES
+              value: "pgaudit"
+          ports:
+            - name: tcp-postgresql
+              containerPort: 5432
+          livenessProbe:
+            failureThreshold: 6
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 5
+            exec:
+              command:
+                - /bin/sh
+                - -ec
+                - |
+                  exec pg_isready -U "s7app" -d "dbname=s7app" -h 127.0.0.1 -p 5432
+          readinessProbe:
+            failureThreshold: 6
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 5
+            exec:
+              command:
+                - /bin/sh
+                - -ec
+                - |
+                  exec pg_isready -U "s7app" -d "dbname=s7app" -h 127.0.0.1 -p 5432
+                  [ -f /opt/bitnami/postgresql/tmp/.initialized ] || [ -f /bitnami/postgresql/.initialized ]
+          resources:
+            limits:
+              cpu: 750m
+              ephemeral-storage: 2Gi
+              memory: 768Mi
+            requests:
+              cpu: 500m
+              ephemeral-storage: 50Mi
+              memory: 512Mi
+          volumeMounts:
+            - name: empty-dir
+              mountPath: /tmp
+              subPath: tmp-dir
+            - name: empty-dir
+              mountPath: /opt/bitnami/postgresql/conf
+              subPath: app-conf-dir
+            - name: empty-dir
+              mountPath: /opt/bitnami/postgresql/tmp
+              subPath: app-tmp-dir
+            - name: postgresql-password
+              mountPath: /opt/bitnami/postgresql/secrets/
+            - name: dshm
+              mountPath: /dev/shm
+            - name: data
+              mountPath: /bitnami/postgresql
+        - name: metrics
+          image: registry-1.docker.io/bitnami/postgres-exporter:latest
+          imagePullPolicy: "IfNotPresent"
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+              - ALL
+            privileged: false
+            readOnlyRootFilesystem: true
+            runAsGroup: 1001
+            runAsNonRoot: true
+            runAsUser: 1001
+            seLinuxOptions: {}
+            seccompProfile:
+              type: RuntimeDefault
+          env:
+            - name: DATA_SOURCE_URI
+              value: 127.0.0.1:5432/postgres?sslmode=disable
+            - name: DATA_SOURCE_PASS_FILE
+              value: /opt/bitnami/postgresql/secrets/postgres-password
+            - name: DATA_SOURCE_USER
+              value: "postgres"
+            - name: OPENSSL_FIPS
+              value: "yes"
+            - name: OPENSSL_FIPS_PROVIDER_PATH
+              value: "/etc/ssl/provider_fips.cnf"
+            - name: GODEBUG
+              value: "fips140=on"
+          ports:
+            - name: http-metrics
+              containerPort: 9187
+          livenessProbe:
+            failureThreshold: 6
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 5
+            httpGet:
+              path: /
+              port: http-metrics
+          readinessProbe:
+            failureThreshold: 6
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 5
+            httpGet:
+              path: /
+              port: http-metrics
+          volumeMounts:
+            - name: empty-dir
+              mountPath: /tmp
+              subPath: tmp-dir
+            - name: postgresql-password
+              mountPath: /opt/bitnami/postgresql/secrets/
+          resources:
+            limits:
+              cpu: 150m
+              ephemeral-storage: 2Gi
+              memory: 192Mi
+            requests:
+              cpu: 100m
+              ephemeral-storage: 50Mi
+              memory: 128Mi
+      volumes:
+        - name: postgresql-password
+          secret:
+            secretName: s7-postgresql
+        - name: dshm
+          emptyDir:
+            medium: Memory
+        - name: empty-dir
+          emptyDir: {}
+  volumeClaimTemplates:
+    - apiVersion: v1
+      kind: PersistentVolumeClaim
+      metadata:
+        name: data
+      spec:
+        accessModes:
+          - "ReadWriteOnce"
+        resources:
+          requests:
+            storage: "2Gi"
+        
+
+---
+# Source: postgresql/templates/prometheusrule.yaml
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: s7-postgresql
+  namespace: "s7"
+  labels:
+    app.kubernetes.io/instance: postgresql
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: postgresql
+    app.kubernetes.io/version: 18.6.0
+    helm.sh/chart: postgresql-18.11.3
+    team: s7
+    app.kubernetes.io/component: metrics
+spec:
+  groups:
+    - name: s7-postgresql
+      rules:
+        - alert: PostgresqlDown
+          annotations:
+            summary: PostgreSQL instance {{ $labels.instance }} down
+          expr: pg_up == 0
+          for: 5m
+          labels:
+            severity: error
+
+---
+# Source: postgresql/templates/primary/servicemonitor.yaml
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: s7-postgresql-primary
+  namespace: "s7"
+  labels:
+    app.kubernetes.io/instance: postgresql
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: postgresql
+    app.kubernetes.io/version: 18.6.0
+    helm.sh/chart: postgresql-18.11.3
+    team: s7
+    app.kubernetes.io/component: metrics
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/instance: postgresql
+      app.kubernetes.io/name: postgresql
+      app.kubernetes.io/component: metrics
+  endpoints:
+    - port: http-metrics
+  namespaceSelector:
+    matchNames:
+      - "s7"
+
+---
+# Source: postgresql/templates/read/servicemonitor.yaml
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: s7-postgresql-read
+  namespace: "s7"
+  labels:
+    app.kubernetes.io/instance: postgresql
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: postgresql
+    app.kubernetes.io/version: 18.6.0
+    helm.sh/chart: postgresql-18.11.3
+    team: s7
+    app.kubernetes.io/component: metrics-read
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/instance: postgresql
+      app.kubernetes.io/name: postgresql
+      app.kubernetes.io/component: metrics-read
+  endpoints:
+    - port: http-metrics
+  namespaceSelector:
+    matchNames:
+      - "s7"
+---
+# Source: rabbitmq/templates/networkpolicy.yaml
+kind: NetworkPolicy
+apiVersion: networking.k8s.io/v1
+metadata:
+  name: s7-rabbitmq
+  namespace: "s7"
+  labels:
+    app.kubernetes.io/instance: rabbitmq
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: rabbitmq
+    app.kubernetes.io/version: 4.1.3
+    helm.sh/chart: rabbitmq-16.0.14
+    team: s7
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/instance: rabbitmq
+      app.kubernetes.io/name: rabbitmq
+  policyTypes:
+    - Ingress
+    - Egress
+  egress:
+    - {}
+  ingress:
+    # Allow inbound connections to RabbitMQ
+    - ports:
+        - port: 4369
+        - port: 5672
+        - port: 5671
+        - port: 25672
+        - port: 15672
+        - port: 9419
+      from:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/instance: rabbitmq
+              app.kubernetes.io/name: rabbitmq
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/instance: rabbitmq
+              app.kubernetes.io/name: rabbitmq
+        - podSelector:
+            matchLabels:
+              s7-rabbitmq-client: "true"
+
+---
+# Source: rabbitmq/templates/pdb.yaml
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: s7-rabbitmq
+  namespace: "s7"
+  labels:
+    app.kubernetes.io/instance: rabbitmq
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: rabbitmq
+    app.kubernetes.io/version: 4.1.3
+    helm.sh/chart: rabbitmq-16.0.14
+    team: s7
+spec:
+  maxUnavailable: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/instance: rabbitmq
+      app.kubernetes.io/name: rabbitmq
+
+---
+# Source: rabbitmq/templates/serviceaccount.yaml
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: s7-rabbitmq
+  namespace: "s7"
+  labels:
+    app.kubernetes.io/instance: rabbitmq
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: rabbitmq
+    app.kubernetes.io/version: 4.1.3
+    helm.sh/chart: rabbitmq-16.0.14
+    team: s7
+automountServiceAccountToken: false
+secrets:
+  - name: s7-rabbitmq
+
+
+---
+# Source: rabbitmq/templates/config-secret.yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: s7-rabbitmq-config
+  namespace: "s7"
+  labels:
+    app.kubernetes.io/instance: rabbitmq
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: rabbitmq
+    app.kubernetes.io/version: 4.1.3
+    helm.sh/chart: rabbitmq-16.0.14
+    team: s7
+type: Opaque
+data:
+  rabbitmq.conf: |-
+    IyMgVXNlcm5hbWUgYW5kIHBhc3N3b3JkCmRlZmF1bHRfdXNlciA9IHM3CiMjIENsdXN0ZXJpbmcKIyMKY2x1c3Rlcl9uYW1lID0gczctcmFiYml0bXEKY2x1c3Rlcl9mb3JtYXRpb24ucGVlcl9kaXNjb3ZlcnlfYmFja2VuZCAgPSByYWJiaXRfcGVlcl9kaXNjb3ZlcnlfazhzCmNsdXN0ZXJfZm9ybWF0aW9uLms4cy5ob3N0ID0ga3ViZXJuZXRlcy5kZWZhdWx0CmNsdXN0ZXJfZm9ybWF0aW9uLms4cy5hZGRyZXNzX3R5cGUgPSBob3N0bmFtZQpjbHVzdGVyX2Zvcm1hdGlvbi5rOHMuc2VydmljZV9uYW1lID0gczctcmFiYml0bXEtaGVhZGxlc3MKY2x1c3Rlcl9mb3JtYXRpb24uazhzLmhvc3RuYW1lX3N1ZmZpeCA9IC5zNy1yYWJiaXRtcS1oZWFkbGVzcy5zNy5zdmMuY2x1c3Rlci5sb2NhbApjbHVzdGVyX2Zvcm1hdGlvbi5ub2RlX2NsZWFudXAuaW50ZXJ2YWwgPSAxMApjbHVzdGVyX2Zvcm1hdGlvbi5ub2RlX2NsZWFudXAub25seV9sb2dfd2FybmluZyA9IHRydWUKY2x1c3Rlcl9wYXJ0aXRpb25faGFuZGxpbmcgPSBhdXRvaGVhbAoKIyBxdWV1ZSBsZWFkZXIgbG9jYXRvcgpxdWV1ZV9sZWFkZXJfbG9jYXRvciA9IGJhbGFuY2VkCiMgZW5hYmxlIGxvb3BiYWNrIHVzZXIKbG9vcGJhY2tfdXNlcnMuczcgPSBmYWxzZQojZGVmYXVsdF92aG9zdCA9IHM3LXZob3N0CiNkaXNrX2ZyZWVfbGltaXQuYWJzb2x1dGUgPSA1ME1CCiMjIFByb21ldGhldXMgbWV0cmljcwojIwpwcm9tZXRoZXVzLnRjcC5wb3J0ID0gOTQxOQojIyBUQ1AgTGlzdGVuIE9wdGlvbnMKIyMKdGNwX2xpc3Rlbl9vcHRpb25zLmJhY2tsb2cgPSAxMjgKdGNwX2xpc3Rlbl9vcHRpb25zLm5vZGVsYXkgPSB0cnVlCnRjcF9saXN0ZW5fb3B0aW9ucy5saW5nZXIub24gICAgICA9IHRydWUKdGNwX2xpc3Rlbl9vcHRpb25zLmxpbmdlci50aW1lb3V0ID0gMAp0Y3BfbGlzdGVuX29wdGlvbnMua2VlcGFsaXZlID0gZmFsc2U=
+
+---
+# Source: rabbitmq/templates/secrets.yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: s7-rabbitmq
+  namespace: "s7"
+  labels:
+    app.kubernetes.io/instance: rabbitmq
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: rabbitmq
+    app.kubernetes.io/version: 4.1.3
+    helm.sh/chart: rabbitmq-16.0.14
+    team: s7
+type: Opaque
+data:
+  rabbitmq-password: "czctcmFiYml0bXEtZml4dHVyZS1wYXNzd29yZA=="
+  rabbitmq-erlang-cookie: "czdmaXh0dXJlZXJsYW5nY29va2llMDEyMzQ1Njc4OQ=="
+
+---
+# Source: rabbitmq/templates/role.yaml
+kind: Role
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: s7-rabbitmq-endpoint-reader
+  namespace: "s7"
+  labels:
+    app.kubernetes.io/instance: rabbitmq
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: rabbitmq
+    app.kubernetes.io/version: 4.1.3
+    helm.sh/chart: rabbitmq-16.0.14
+    team: s7
+rules:
+  - apiGroups: [""]
+    resources: ["endpoints"]
+    verbs: ["get"]
+  - apiGroups: [""]
+    resources: ["events"]
+    verbs: ["create"]
+
+---
+# Source: rabbitmq/templates/rolebinding.yaml
+kind: RoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: s7-rabbitmq-endpoint-reader
+  namespace: "s7"
+  labels:
+    app.kubernetes.io/instance: rabbitmq
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: rabbitmq
+    app.kubernetes.io/version: 4.1.3
+    helm.sh/chart: rabbitmq-16.0.14
+    team: s7
+subjects:
+  - kind: ServiceAccount
+    name: s7-rabbitmq
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: s7-rabbitmq-endpoint-reader
+
+---
+# Source: rabbitmq/templates/svc-headless.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: s7-rabbitmq-headless
+  namespace: "s7"
+  labels:
+    app.kubernetes.io/instance: rabbitmq
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: rabbitmq
+    app.kubernetes.io/version: 4.1.3
+    helm.sh/chart: rabbitmq-16.0.14
+    team: s7
+spec:
+  clusterIP: None
+  ports:
+    - name: epmd
+      port: 4369
+      targetPort: epmd
+    - name: amqp
+      port: 5672
+      targetPort: amqp
+    - name: dist
+      port: 25672
+      targetPort: dist
+    - name: http-stats
+      port: 15672
+      targetPort: stats
+  selector:
+    app.kubernetes.io/instance: rabbitmq
+    app.kubernetes.io/name: rabbitmq
+  publishNotReadyAddresses: true
+  trafficDistribution: PreferClose
+
+---
+# Source: rabbitmq/templates/svc.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: s7-rabbitmq
+  namespace: "s7"
+  labels:
+    app.kubernetes.io/instance: rabbitmq
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: rabbitmq
+    app.kubernetes.io/version: 4.1.3
+    helm.sh/chart: rabbitmq-16.0.14
+    team: s7
+spec:
+  type: ClusterIP
+  sessionAffinity: None
+  ports:
+    - name: amqp
+      port: 5672
+      targetPort: amqp
+      nodePort: null
+    - name: epmd
+      port: 4369
+      targetPort: epmd
+      nodePort: null
+    - name: dist
+      port: 25672
+      targetPort: dist
+      nodePort: null
+    - name: http-stats
+      port: 15672
+      targetPort: stats
+      nodePort: null
+    - name: metrics
+      port: 9419
+      targetPort: metrics
+      nodePort: null
+  selector:
+    app.kubernetes.io/instance: rabbitmq
+    app.kubernetes.io/name: rabbitmq
+
+---
+# Source: rabbitmq/templates/statefulset.yaml
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: s7-rabbitmq
+  namespace: "s7"
+  labels:
+    app.kubernetes.io/instance: rabbitmq
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: rabbitmq
+    app.kubernetes.io/version: 4.1.3
+    helm.sh/chart: rabbitmq-16.0.14
+    team: s7
+spec:
+  serviceName: s7-rabbitmq-headless
+  podManagementPolicy: OrderedReady
+  replicas: 2
+  updateStrategy:
+    type: RollingUpdate
+  selector:
+    matchLabels:
+      app.kubernetes.io/instance: rabbitmq
+      app.kubernetes.io/name: rabbitmq
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/instance: rabbitmq
+        app.kubernetes.io/managed-by: Helm
+        app.kubernetes.io/name: rabbitmq
+        app.kubernetes.io/version: 4.1.3
+        helm.sh/chart: rabbitmq-16.0.14
+        team: s7
+      annotations:
+        checksum/config: ffe453c0754808326daaa2d99a04335dd4cb18c9b92d35fdaed918c06bb93065
+        checksum/secret: d2d084edf69d107979122d8abc29485da1a97b9a418715fe1f470407da39375f
+        prometheus.io/port: '9419'
+        prometheus.io/scrape: "true"
+    spec:
+      
+      serviceAccountName: s7-rabbitmq
+      affinity:
+        podAffinity:
+          
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - podAffinityTerm:
+                labelSelector:
+                  matchLabels:
+                    app.kubernetes.io/instance: rabbitmq
+                    app.kubernetes.io/name: rabbitmq
+                topologyKey: kubernetes.io/hostname
+              weight: 1
+        nodeAffinity:
+          
+      automountServiceAccountToken: true
+      securityContext:
+        fsGroup: 1001
+        fsGroupChangePolicy: Always
+        supplementalGroups: []
+        sysctls: []
+      terminationGracePeriodSeconds: 120
+      enableServiceLinks: true
+      initContainers:
+        - name: prepare-plugins-dir
+          image: docker.io/bitnami/rabbitmq:4.1.3-debian-12-r1
+          imagePullPolicy: "IfNotPresent"
+          resources:
+            limits:
+              cpu: 750m
+              ephemeral-storage: 2Gi
+              memory: 768Mi
+            requests:
+              cpu: 500m
+              ephemeral-storage: 50Mi
+              memory: 512Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+              - ALL
+            readOnlyRootFilesystem: true
+            runAsGroup: 1001
+            runAsNonRoot: true
+            runAsUser: 1001
+            seLinuxOptions: {}
+            seccompProfile:
+              type: RuntimeDefault
+          command:
+            - /bin/bash
+          args:
+            - -ec
+            - |
+              #!/bin/bash
+
+              . /opt/bitnami/scripts/liblog.sh
+
+              info "Copying plugins dir to empty dir"
+              # In order to not break the possibility of installing custom plugins, we need
+              # to make the plugins directory writable, so we need to copy it to an empty dir volume
+              cp -r --preserve=mode /opt/bitnami/rabbitmq/plugins/ /emptydir/app-plugins-dir
+          volumeMounts:
+            - name: empty-dir
+              mountPath: /emptydir
+      containers:
+        - name: rabbitmq
+          image: docker.io/bitnami/rabbitmq:4.1.3-debian-12-r1
+          imagePullPolicy: "IfNotPresent"
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+              - ALL
+            readOnlyRootFilesystem: true
+            runAsGroup: 1001
+            runAsNonRoot: true
+            runAsUser: 1001
+            seLinuxOptions: {}
+            seccompProfile:
+              type: RuntimeDefault
+          lifecycle:
+            preStop:
+              exec:
+                command:
+                  - /bin/bash
+                  - -ec
+                  - |
+                    if [[ -f /opt/bitnami/scripts/rabbitmq/nodeshutdown.sh ]]; then
+                        /opt/bitnami/scripts/rabbitmq/nodeshutdown.sh -t "120" -d "false"
+                    else
+                        rabbitmqctl stop_app
+                    fi
+          env:
+            - name: BITNAMI_DEBUG
+              value: "false"
+            - name: MY_POD_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
+            - name: MY_POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: MY_POD_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: RABBITMQ_FORCE_BOOT
+              value: "no"
+            - name: RABBITMQ_NODE_NAME
+              value: "rabbit@$(MY_POD_NAME).s7-rabbitmq-headless.$(MY_POD_NAMESPACE).svc.cluster.local"
+            - name: RABBITMQ_UPDATE_PASSWORD
+              value: "no"
+            - name: RABBITMQ_MNESIA_DIR
+              value: "/opt/bitnami/rabbitmq/.rabbitmq/mnesia/$(RABBITMQ_NODE_NAME)"
+            - name: RABBITMQ_LDAP_ENABLE
+              value: "no"
+            - name: RABBITMQ_LOGS
+              value: "-"
+            - name: RABBITMQ_ULIMIT_NOFILES
+              value: "65535"
+            - name: RABBITMQ_USE_LONGNAME
+              value: "true"
+            - name: RABBITMQ_ERL_COOKIE_FILE
+              value: /opt/bitnami/rabbitmq/secrets/rabbitmq-erlang-cookie
+            - name: RABBITMQ_LOAD_DEFINITIONS
+              value: "no"
+            - name: RABBITMQ_DEFINITIONS_FILE
+              value: "/app/load_definition.json"
+            - name: RABBITMQ_SECURE_PASSWORD
+              value: "yes"
+            - name: RABBITMQ_USERNAME
+              value: "s7"
+            - name: RABBITMQ_PASSWORD_FILE
+              value: /opt/bitnami/rabbitmq/secrets/rabbitmq-password
+            - name: RABBITMQ_PLUGINS
+              value: "rabbitmq_management, rabbitmq_peer_discovery_k8s, rabbitmq_auth_backend_ldap, rabbitmq_prometheus"
+          envFrom:
+          ports:
+            - name: amqp
+              containerPort: 5672
+            - name: dist
+              containerPort: 25672
+            - name: stats
+              containerPort: 15672
+            - name: epmd
+              containerPort: 4369
+            - name: metrics
+              containerPort: 9419
+          livenessProbe:
+            failureThreshold: 6
+            initialDelaySeconds: 120
+            periodSeconds: 30
+            successThreshold: 1
+            timeoutSeconds: 20
+            exec:
+              command:
+                - /bin/bash
+                - -ec
+                - curl -f --user s7:$(< $RABBITMQ_PASSWORD_FILE) 127.0.0.1:15672/api/health/checks/virtual-hosts
+          readinessProbe:
+            failureThreshold: 3
+            initialDelaySeconds: 10
+            periodSeconds: 30
+            successThreshold: 1
+            timeoutSeconds: 20
+            exec:
+              command:
+                - /bin/bash
+                - -ec
+                - curl -f --user s7:$(< $RABBITMQ_PASSWORD_FILE) 127.0.0.1:15672/api/health/checks/local-alarms
+          resources:
+            limits:
+              cpu: 750m
+              ephemeral-storage: 2Gi
+              memory: 768Mi
+            requests:
+              cpu: 500m
+              ephemeral-storage: 50Mi
+              memory: 512Mi
+          volumeMounts:
+            - name: configuration
+              mountPath: /bitnami/rabbitmq/conf
+            - name: empty-dir
+              mountPath: /tmp
+              subPath: tmp-dir
+            - name: empty-dir
+              mountPath: /opt/bitnami/rabbitmq/etc/rabbitmq
+              subPath: app-conf-dir
+            - name: empty-dir
+              mountPath: /opt/bitnami/rabbitmq/var/lib/rabbitmq
+              subPath: app-tmp-dir
+            - name: empty-dir
+              mountPath: /opt/bitnami/rabbitmq/.rabbitmq/
+              subPath: app-erlang-cookie
+            - name: empty-dir
+              mountPath: /opt/bitnami/rabbitmq/var/log/rabbitmq
+              subPath: app-logs-dir
+            - name: empty-dir
+              mountPath: /opt/bitnami/rabbitmq/plugins
+              subPath: app-plugins-dir
+            - name: data
+              mountPath: /opt/bitnami/rabbitmq/.rabbitmq/mnesia
+            - name: rabbitmq-secrets
+              mountPath: /opt/bitnami/rabbitmq/secrets
+      volumes:
+        - name: empty-dir
+          emptyDir: {}
+        - name: configuration
+          projected:
+            sources:
+              - secret:
+                  name: s7-rabbitmq-config
+        - name: rabbitmq-secrets
+          projected:
+            sources:
+              - secret:
+                  name: s7-rabbitmq
+              - secret:
+                  name: s7-rabbitmq
+  volumeClaimTemplates:
+    - apiVersion: v1
+      kind: PersistentVolumeClaim
+      metadata:
+        name: data
+        labels:
+          app.kubernetes.io/instance: rabbitmq
+          app.kubernetes.io/name: rabbitmq
+      spec:
+        accessModes:
+            - "ReadWriteOnce"
+        resources:
+          requests:
+            storage: "2Gi"
+        
+
+---
+# Source: rabbitmq/templates/prometheusrule.yaml
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: s7-rabbitmq
+  namespace: "s7"
+  labels:
+    app.kubernetes.io/instance: rabbitmq
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: rabbitmq
+    app.kubernetes.io/version: 4.1.3
+    helm.sh/chart: rabbitmq-16.0.14
+    team: s7
+spec:
+  groups:
+    - name: rabbitmq
+      rules:
+        - alert: RabbitmqDown
+          annotations:
+            summary: Rabbitmq instance {{ $labels.instance }} down
+          expr: rabbitmq_up{service="s7-rabbitmq"} == 0
+          for: 5m
+          labels:
+            severity: error
+
+---
+# Source: rabbitmq/templates/servicemonitor.yaml
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: s7-rabbitmq
+  namespace: "s7"
+  labels:
+    app.kubernetes.io/instance: rabbitmq
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: rabbitmq
+    app.kubernetes.io/version: 4.1.3
+    helm.sh/chart: rabbitmq-16.0.14
+    team: s7
+spec:
+  jobLabel: ""
+  endpoints:
+    - port: metrics
+      interval: 30s
+  namespaceSelector:
+    matchNames:
+      - "s7"
+  selector:
+    matchLabels:
+      app.kubernetes.io/instance: rabbitmq
+      app.kubernetes.io/name: rabbitmq

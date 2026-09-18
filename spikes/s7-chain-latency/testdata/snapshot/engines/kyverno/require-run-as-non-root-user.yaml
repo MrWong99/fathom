@@ -1,0 +1,44 @@
+# source: github.com/kyverno/policies/pod-security/restricted/require-run-as-non-root-user/require-run-as-non-root-user.yaml @ 2716f4a26a3c27590a1d6d960dee4ce043e4fa4a (Apache-2.0); Enforce + background=false forced for S7
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: require-run-as-non-root-user
+  annotations:
+    policies.kyverno.io/title: Require Run As Non-Root User
+    policies.kyverno.io/category: Pod Security Standards (Restricted)
+    policies.kyverno.io/severity: medium
+    policies.kyverno.io/subject: Pod
+    kyverno.io/kyverno-version: 1.6.0
+    kyverno.io/kubernetes-version: "1.22-1.23"
+    policies.kyverno.io/description: >-
+      Containers must be required to run as non-root users. This policy ensures
+      `runAsUser` is either unset or set to a number greater than zero.
+spec:
+  validationFailureAction: Enforce
+  background: false
+  rules:
+    - name: run-as-non-root-user
+      match:
+        any:
+        - resources:
+            kinds:
+              - Pod
+      validate:
+        message: >-
+          Running as root is not allowed. The fields spec.securityContext.runAsUser,
+          spec.containers[*].securityContext.runAsUser, spec.initContainers[*].securityContext.runAsUser,
+          and spec.ephemeralContainers[*].securityContext.runAsUser must be unset or
+          set to a number greater than zero.
+        pattern:
+          spec:
+            =(securityContext):
+              =(runAsUser): ">0"
+            =(ephemeralContainers):
+            - =(securityContext):
+                =(runAsUser): ">0"
+            =(initContainers):
+            - =(securityContext):
+                =(runAsUser): ">0"
+            containers:
+            - =(securityContext):
+                =(runAsUser): ">0"

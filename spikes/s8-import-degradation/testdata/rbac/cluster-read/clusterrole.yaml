@@ -1,0 +1,91 @@
+# Cluster-wide read ClusterRole for the fathom importer (what
+# `fathom snapshot rbac` would print). Each rule names the snapshot layer it
+# feeds (design 3.5). Verbs are get/list/watch only; no secrets anywhere.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: fathom-import-cluster-read
+  labels:
+    fathom.dev/spike: s8
+    fathom.dev/import-tier: cluster-read
+rules:
+  # crds/  raw CRDs with x-kubernetes-validations intact                       [schema]
+  - apiGroups: [apiextensions.k8s.io]
+    resources: [customresourcedefinitions]
+    verbs: [get, list, watch]
+  # admission/  VAP/VAPB, MAP/MAPB; admission/webhooks/                         [policy]
+  - apiGroups: [admissionregistration.k8s.io]
+    resources:
+      - validatingadmissionpolicies
+      - validatingadmissionpolicybindings
+      - mutatingadmissionpolicies
+      - mutatingadmissionpolicybindings
+      - validatingwebhookconfigurations
+      - mutatingwebhookconfigurations
+    verbs: [get, list, watch]
+  # catalogs/names and catalogs/ full objects                                    [schema|policy]
+  - apiGroups: [storage.k8s.io]
+    resources: [storageclasses, csidrivers]
+    verbs: [get, list, watch]
+  - apiGroups: [networking.k8s.io]
+    resources: [ingressclasses]
+    verbs: [get, list, watch]
+  - apiGroups: [scheduling.k8s.io]
+    resources: [priorityclasses]
+    verbs: [get, list, watch]
+  - apiGroups: [node.k8s.io]
+    resources: [runtimeclasses]
+    verbs: [get, list, watch]
+  # namespaces/<ns>/  labels, ResourceQuota spec+status, LimitRange; nodes/     [full]
+  - apiGroups: [""]
+    resources: [namespaces, nodes, resourcequotas, limitranges]
+    verbs: [get, list, watch]
+  # rbac/  Roles/ClusterRoles/bindings                                           [full]
+  - apiGroups: [rbac.authorization.k8s.io]
+    resources: [clusterroles, clusterrolebindings, roles, rolebindings]
+    verbs: [get, list, watch]
+  # inventory/  ConfigMaps verbatim (deny-list applied at import), ServiceAccounts,
+  #             Services, Pods (aggregated requests); Secrets NOT here            [full]
+  - apiGroups: [""]
+    resources: [configmaps, serviceaccounts, services, pods]
+    verbs: [get, list, watch]
+  # inventory/  Ingress; namespaces/<ns>/ NetworkPolicy                          [full]
+  - apiGroups: [networking.k8s.io]
+    resources: [ingresses, networkpolicies]
+    verbs: [get, list, watch]
+  # inventory/  workloads                                                        [full]
+  - apiGroups: [apps]
+    resources: [deployments, statefulsets, daemonsets, replicasets]
+    verbs: [get, list, watch]
+  - apiGroups: [batch]
+    resources: [jobs, cronjobs]
+    verbs: [get, list, watch]
+  # engines/  Kyverno legacy API (kyverno.io/v1, v2) policies and exceptions     [policy]
+  - apiGroups: [kyverno.io]
+    resources: [clusterpolicies, policies, policyexceptions, globalcontextentries]
+    verbs: [get, list, watch]
+  # engines/  Kyverno CEL API (policies.kyverno.io/v1) policies and exceptions   [policy]
+  - apiGroups: [policies.kyverno.io]
+    resources:
+      - validatingpolicies
+      - mutatingpolicies
+      - imagevalidatingpolicies
+      - generatingpolicies
+      - deletingpolicies
+      - namespacedvalidatingpolicies
+      - namespacedmutatingpolicies
+      - namespacedimagevalidatingpolicies
+      - namespacedgeneratingpolicies
+      - namespaceddeletingpolicies
+      - policyexceptions
+    verbs: [get, list, watch]
+  # gitops/  Argo CD and Flux CRs. The rules are legal even when the CRDs are
+  #          absent (RBAC does not validate resource names); on kind-fathom-oracle
+  #          neither CRD group is installed, so the probe records "not served"
+  #          rather than "forbidden" for this layer.                            [full]
+  - apiGroups: [argoproj.io]
+    resources: [applications, applicationsets, appprojects]
+    verbs: [get, list, watch]
+  - apiGroups: [helm.toolkit.fluxcd.io, kustomize.toolkit.fluxcd.io, source.toolkit.fluxcd.io]
+    resources: [helmreleases, kustomizations, gitrepositories, helmrepositories, ocirepositories, helmcharts]
+    verbs: [get, list, watch]

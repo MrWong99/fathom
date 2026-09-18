@@ -1,0 +1,32 @@
+# source: github.com/kyverno/policies/other/restrict-loadbalancer/restrict-loadbalancer.yaml @ 2716f4a26a3c27590a1d6d960dee4ce043e4fa4a (Apache-2.0); Enforce + background=false forced for S7
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: no-loadbalancer-service
+  annotations:
+    policies.kyverno.io/title: Disallow Service Type LoadBalancer
+    policies.kyverno.io/category: Sample
+    policies.kyverno.io/severity: medium
+    policies.kyverno.io/subject: Service
+    policies.kyverno.io/minversion: 1.6.0
+    policies.kyverno.io/description: >-
+      Especially in cloud provider environments, a Service having type LoadBalancer will cause the
+      provider to respond by creating a load balancer somewhere in the customer account. This adds
+      cost and complexity to a deployment. Without restricting this ability, users may easily
+      overrun established budgets and security practices set by the organization. This policy restricts
+      use of the Service type LoadBalancer.
+spec:
+  validationFailureAction: Enforce
+  background: false
+  rules:
+  - name: no-LoadBalancer
+    match:
+      any:
+      - resources:
+          kinds:
+          - Service
+    validate:
+      message: "Service of type LoadBalancer is not allowed."
+      pattern:
+        spec:
+          type: "!LoadBalancer"

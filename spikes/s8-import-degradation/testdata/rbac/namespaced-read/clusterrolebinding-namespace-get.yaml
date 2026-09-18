@@ -1,0 +1,15 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: fathom-import-namespaced-read-namespaces
+  labels:
+    fathom.dev/spike: s8
+    fathom.dev/import-tier: namespaced-read
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: fathom-import-namespaced-read-namespaces
+subjects:
+  - kind: ServiceAccount
+    name: fathom-import-namespaced
+    namespace: s8

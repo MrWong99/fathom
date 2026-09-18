@@ -1,0 +1,67 @@
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    kubectl.kubernetes.io/last-applied-configuration: |
+      {"apiVersion":"apiextensions.k8s.io/v1","kind":"CustomResourceDefinition","metadata":{"annotations":{},"name":"widgets.spike.fathom.dev"},"spec":{"group":"spike.fathom.dev","names":{"kind":"Widget","plural":"widgets","singular":"widget"},"scope":"Namespaced","versions":[{"name":"v1","schema":{"openAPIV3Schema":{"properties":{"spec":{"properties":{"maxReplicas":{"type":"integer"},"name":{"type":"string","x-kubernetes-validations":[{"messageExpression":"'name must be lowercase, got ' + self","rule":"self == self.lowerAscii()"}]},"replicas":{"type":"integer"}},"required":["replicas","maxReplicas","name"],"type":"object","x-kubernetes-validations":[{"message":"replicas must not exceed maxReplicas","rule":"self.replicas \u003c= self.maxReplicas"}]}},"type":"object"}},"served":true,"storage":true}]}}
+  creationTimestamp: "2026-09-17T22:12:35Z"
+  generation: 1
+  name: widgets.spike.fathom.dev
+  resourceVersion: "770"
+  uid: 1114655a-3cc3-44b9-9fa0-b494ffaa132c
+spec:
+  conversion:
+    strategy: None
+  group: spike.fathom.dev
+  names:
+    kind: Widget
+    listKind: WidgetList
+    plural: widgets
+    singular: widget
+  scope: Namespaced
+  versions:
+  - name: v1
+    schema:
+      openAPIV3Schema:
+        properties:
+          spec:
+            properties:
+              maxReplicas:
+                type: integer
+              name:
+                type: string
+                x-kubernetes-validations:
+                - messageExpression: '''name must be lowercase, got '' + self'
+                  rule: self == self.lowerAscii()
+              replicas:
+                type: integer
+            required:
+            - replicas
+            - maxReplicas
+            - name
+            type: object
+            x-kubernetes-validations:
+            - message: replicas must not exceed maxReplicas
+              rule: self.replicas <= self.maxReplicas
+        type: object
+    served: true
+    storage: true
+status:
+  acceptedNames:
+    kind: Widget
+    listKind: WidgetList
+    plural: widgets
+    singular: widget
+  conditions:
+  - lastTransitionTime: "2026-09-17T22:12:35Z"
+    message: no conflicts found
+    reason: NoConflicts
+    status: "True"
+    type: NamesAccepted
+  - lastTransitionTime: "2026-09-17T22:12:35Z"
+    message: the initial names have been accepted
+    reason: InitialNamesAccepted
+    status: "True"
+    type: Established
+  storedVersions:
+  - v1

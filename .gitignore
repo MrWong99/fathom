@@ -24,3 +24,6 @@ go.work.sum
 # OS files
 .DS_Store
 Thumbs.db
+
+# Spike kubeconfigs carry ServiceAccount tokens for the local kind oracle
+spikes/*/testdata/kubeconfig/

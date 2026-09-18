@@ -1,0 +1,36 @@
+# S7 fixture values: Bitnami rabbitmq 16.0.14, two-node cluster with metrics,
+# network policy and PDB; fixed credentials for a stable render.
+fullnameOverride: s7-rabbitmq
+replicaCount: 2
+auth:
+  username: s7
+  password: s7-rabbitmq-fixture-password
+  erlangCookie: s7fixtureerlangcookie0123456789
+persistence:
+  size: 2Gi
+pdb:
+  create: true
+networkPolicy:
+  enabled: true
+  allowExternal: false
+metrics:
+  enabled: true
+  serviceMonitor:
+    enabled: true
+    namespace: s7
+  prometheusRule:
+    enabled: true
+    namespace: s7
+    rules:
+    - alert: RabbitmqDown
+      expr: rabbitmq_up{service="{{ template "common.names.fullname" . }}"} == 0
+      for: 5m
+      labels:
+        severity: error
+      annotations:
+        summary: Rabbitmq instance {{ "{{ $labels.instance }}" }} down
+resourcesPreset: small
+serviceAccount:
+  create: true
+commonLabels:
+  team: s7

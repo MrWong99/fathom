@@ -1,0 +1,51 @@
+# S7 fixture values: Bitnami postgresql 18.11.3, primary + one read replica,
+# metrics + network policy + PDBs; fixed passwords for a stable render.
+fullnameOverride: s7-postgresql
+architecture: replication
+auth:
+  postgresPassword: s7-postgres-fixture-password
+  username: s7app
+  password: s7-app-fixture-password
+  database: s7app
+  replicationUsername: repl_user
+  replicationPassword: s7-repl-fixture-password
+primary:
+  persistence:
+    size: 2Gi
+  pdb:
+    create: true
+  networkPolicy:
+    enabled: true
+    allowExternal: false
+  resourcesPreset: small
+readReplicas:
+  replicaCount: 1
+  persistence:
+    size: 2Gi
+  pdb:
+    create: true
+  networkPolicy:
+    enabled: true
+    allowExternal: false
+  resourcesPreset: small
+metrics:
+  enabled: true
+  serviceMonitor:
+    enabled: true
+    namespace: s7
+  prometheusRule:
+    enabled: true
+    namespace: s7
+    rules:
+    - alert: PostgresqlDown
+      expr: pg_up == 0
+      for: 5m
+      labels:
+        severity: error
+      annotations:
+        summary: PostgreSQL instance {{ "{{ $labels.instance }}" }} down
+  resourcesPreset: nano
+serviceAccount:
+  create: true
+commonLabels:
+  team: s7
